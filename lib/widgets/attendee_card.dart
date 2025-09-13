@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/attendee.dart';
+import '../theme/colors.dart';
 
 class AttendeeCard extends StatelessWidget {
   final Attendee attendee;
@@ -31,7 +32,7 @@ class AttendeeCard extends StatelessWidget {
                 Text('Person ${index + 1}', style: const TextStyle(fontWeight: FontWeight.bold)),
                 if (canRemove)
                   IconButton(
-                    icon: const Icon(Icons.remove_circle, color: Colors.red),
+                    icon: Icon(Icons.remove_circle, color: AppColorScheme.error),
                     onPressed: onRemove,
                   ),
               ],
