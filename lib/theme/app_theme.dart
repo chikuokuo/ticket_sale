@@ -287,6 +287,7 @@ class AppTheme {
         borderRadius: BorderRadius.circular(radiusM),
       ),
       behavior: SnackBarBehavior.floating,
+      // margin: const EdgeInsets.all(spacingM), // Margin is handled by the behavior
     ),
 
     // Text selection theme
