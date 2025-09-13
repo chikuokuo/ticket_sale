@@ -236,7 +236,7 @@ class AppTheme {
     ),
 
     // 卡片主題
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       elevation: 2,
       shadowColor: AppColorScheme.neutral300,
       shape: RoundedRectangleBorder(
@@ -287,7 +287,6 @@ class AppTheme {
         borderRadius: BorderRadius.circular(radiusM),
       ),
       behavior: SnackBarBehavior.floating,
-      margin: const EdgeInsets.all(spacingM),
     ),
 
     // 文字選擇主題
