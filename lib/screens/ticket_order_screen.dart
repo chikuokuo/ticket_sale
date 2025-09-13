@@ -8,6 +8,7 @@ import '../models/time_slot.dart';
 import '../providers/ticket_order_provider.dart';
 import '../widgets/attendee_card.dart';
 import '../services/stripe_service.dart';
+import '../theme/colors.dart';
 
 // 1. Convert StatefulWidget to ConsumerWidget
 class TicketOrderScreen extends ConsumerWidget {
@@ -66,7 +67,7 @@ class TicketOrderScreen extends ConsumerWidget {
         ),
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-          backgroundColor: canPay ? Colors.blue : Colors.grey,
+          backgroundColor: canPay ? AppColorScheme.primary : AppColorScheme.neutral400,
           foregroundColor: Colors.white,
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
@@ -84,9 +85,9 @@ class TicketOrderScreen extends ConsumerWidget {
     // Validate date and time selection
     if (orderState.selectedDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a date'),
-          backgroundColor: Colors.orange,
+        SnackBar(
+          content: const Text('Please select a date'),
+          backgroundColor: AppColorScheme.warning,
         ),
       );
       return;
@@ -94,9 +95,9 @@ class TicketOrderScreen extends ConsumerWidget {
 
     if (orderState.selectedTimeSlot == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a time slot (AM/PM)'),
-          backgroundColor: Colors.orange,
+        SnackBar(
+          content: const Text('Please select a time slot (AM/PM)'),
+          backgroundColor: AppColorScheme.warning,
         ),
       );
       return;
@@ -118,10 +119,10 @@ class TicketOrderScreen extends ConsumerWidget {
       if (previous?.paymentStatus != current.paymentStatus) {
         if (current.paymentStatus == PaymentStatus.success) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('🎉 Payment successful! Ticket order confirmed.'),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 4),
+            SnackBar(
+              content: const Text('🎉 Payment successful! Ticket order confirmed.'),
+              backgroundColor: AppColorScheme.success,
+              duration: const Duration(seconds: 4),
             ),
           );
         } else if (current.paymentStatus == PaymentStatus.failed) {
@@ -130,7 +131,7 @@ class TicketOrderScreen extends ConsumerWidget {
               content: Text(
                 current.paymentError ?? 'Payment failed. Please try again.',
               ),
-              backgroundColor: Colors.red,
+              backgroundColor: AppColorScheme.error,
               duration: const Duration(seconds: 5),
               action: SnackBarAction(
                 label: 'Retry',
@@ -177,16 +178,16 @@ class TicketOrderScreen extends ConsumerWidget {
                 Center(
                   child: Text(
                     'Total: €${totalAmount.toStringAsFixed(2)}',
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: Colors.blue),
+                        color: AppColorScheme.primary),
                   ),
                 ),
                 Center(
                   child: Text(
                     '(${orderState.attendees.length} people)',
-                    style: const TextStyle(fontSize: 16, color: Colors.grey),
+                    style: TextStyle(fontSize: 16, color: AppColorScheme.neutral600),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -319,7 +320,7 @@ class TicketOrderScreen extends ConsumerWidget {
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 40, vertical: 15),
-                      backgroundColor: Colors.grey[600],
+                      backgroundColor: AppColorScheme.neutral600,
                       foregroundColor: Colors.white,
                     ),
                     child: const Text('Submit'),
