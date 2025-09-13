@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'colors.dart';
 
 class AppTheme {
-  // 字體家族
+  // Font family
   static const String fontFamily = 'SF Pro Display';
   
-  // 間距系統
+  // Spacing system
   static const double spacingXS = 4.0;
   static const double spacingS = 8.0;
   static const double spacingM = 16.0;
@@ -13,13 +13,13 @@ class AppTheme {
   static const double spacingXL = 32.0;
   static const double spacingXXL = 48.0;
 
-  // 邊框圓角
+  // Border radius
   static const double radiusS = 4.0;
   static const double radiusM = 8.0;
   static const double radiusL = 12.0;
   static const double radiusXL = 16.0;
   
-  // 文字樣式
+  // Text styles
   static TextStyle get displayLarge => const TextStyle(
     fontSize: 32,
     fontWeight: FontWeight.w700,
@@ -125,7 +125,7 @@ class AppTheme {
     height: 1.4,
   );
 
-  // 陰影樣式
+  // Shadow styles
   static List<BoxShadow> get shadowSoft => [
     BoxShadow(
       color: AppColorScheme.neutral900.withOpacity(0.08),
@@ -153,7 +153,7 @@ class AppTheme {
     ),
   ];
 
-  // 漸層樣式
+  // Gradient styles
   static LinearGradient get castleGradient => LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
@@ -172,14 +172,14 @@ class AppTheme {
     colors: AppColorScheme.forestGradient,
   );
 
-  // 完整的亮色主題
+  // Complete light theme
   static ThemeData get lightTheme => ThemeData(
     brightness: Brightness.light,
     colorScheme: AppColorScheme.lightColorScheme,
     useMaterial3: true,
     fontFamily: fontFamily,
     
-    // AppBar主題
+    // AppBar theme
     appBarTheme: AppBarTheme(
       backgroundColor: AppColorScheme.primary,
       foregroundColor: Colors.white,
@@ -192,7 +192,7 @@ class AppTheme {
       shadowColor: AppColorScheme.neutral300,
     ),
 
-    // 按鈕主題
+    // Button themes
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColorScheme.primary,
@@ -235,7 +235,7 @@ class AppTheme {
       ),
     ),
 
-    // 卡片主題
+    // Card theme
     cardTheme: CardThemeData(
       elevation: 2,
       shadowColor: AppColorScheme.neutral300,
@@ -246,7 +246,7 @@ class AppTheme {
       margin: const EdgeInsets.symmetric(vertical: spacingS),
     ),
 
-    // 輸入框主題
+    // Input decoration theme
     inputDecorationTheme: InputDecorationTheme(
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(radiusM),
@@ -272,14 +272,14 @@ class AppTheme {
       hintStyle: bodyMedium.copyWith(color: AppColorScheme.neutral500),
     ),
 
-    // 分隔線主題
+    // Divider theme
     dividerTheme: DividerThemeData(
       color: AppColorScheme.neutral200,
       thickness: 1,
       space: spacingL,
     ),
 
-    // Snackbar主題
+    // Snackbar theme
     snackBarTheme: SnackBarThemeData(
       backgroundColor: AppColorScheme.neutral800,
       contentTextStyle: bodyMedium.copyWith(color: Colors.white),
@@ -289,7 +289,7 @@ class AppTheme {
       behavior: SnackBarBehavior.floating,
     ),
 
-    // 文字選擇主題
+    // Text selection theme
     textSelectionTheme: TextSelectionThemeData(
       cursorColor: AppColorScheme.primary,
       selectionColor: AppColorScheme.primary.withOpacity(0.3),
@@ -297,14 +297,14 @@ class AppTheme {
     ),
   );
 
-  // 完整的深色主題
+  // Complete dark theme
   static ThemeData get darkTheme => ThemeData(
     brightness: Brightness.dark,
     colorScheme: AppColorScheme.darkColorScheme,
     useMaterial3: true,
     fontFamily: fontFamily,
     
-    // 可以在這裡添加深色主題的特定設定
+    // Dark theme specific settings can be added here
     appBarTheme: AppBarTheme(
       backgroundColor: AppColorScheme.primary700,
       foregroundColor: Colors.white,
@@ -316,6 +316,6 @@ class AppTheme {
       ),
     ),
     
-    // 其他主題配置可以根據需要添加
+    // Other theme configurations can be added as needed
   );
 }

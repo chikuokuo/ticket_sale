@@ -64,14 +64,17 @@ class TicketOrderNotifier extends StateNotifier<TicketOrderState> {
           customerEmailController: TextEditingController(),
         ));
 
-  void addAttendee() {
-    state = state.copyWith(attendees: [...state.attendees, Attendee()]);
+  void addAttendee([AttendeeType? type]) {
+    final newAttendee = Attendee();
+    if (type != null) {
+      newAttendee.type = type;
+    }
+    state = state.copyWith(attendees: [...state.attendees, newAttendee]);
   }
 
   void removeAttendee(int index) {
     // It's important to dispose controllers when they are removed
-    state.attendees[index].givenNameController.dispose();
-    state.attendees[index].familyNameController.dispose();
+    state.attendees[index].dispose();
     
     final newAttendees = List<Attendee>.from(state.attendees)..removeAt(index);
     state = state.copyWith(attendees: newAttendees);
@@ -283,8 +286,7 @@ class TicketOrderNotifier extends StateNotifier<TicketOrderState> {
 
     // Dispose old controllers before creating a new list
     for (var attendee in state.attendees) {
-      attendee.givenNameController.dispose();
-      attendee.familyNameController.dispose();
+      attendee.dispose();
     }
 
     state = state.copyWith(
@@ -300,8 +302,7 @@ class TicketOrderNotifier extends StateNotifier<TicketOrderState> {
   void dispose() {
     // Dispose all controllers when the notifier is disposed
     for (var attendee in state.attendees) {
-      attendee.givenNameController.dispose();
-      attendee.familyNameController.dispose();
+      attendee.dispose();
     }
     state.customerEmailController.dispose();
     super.dispose();

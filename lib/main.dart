@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-import 'screens/ticket_order_screen.dart';
+import 'screens/select_ticket_screen.dart';
 import 'theme/app_theme.dart';
 
 void main() async {
@@ -33,8 +33,8 @@ class MyApp extends StatelessWidget {
       title: 'Neuschwanstein Castle Ticket',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system, // 自動根據系統設定切換主題
-      home: const TicketOrderScreen(),
+      themeMode: ThemeMode.system, // Auto switch theme based on system setting
+      home: const SelectTicketScreen(),
     );
   }
 }
