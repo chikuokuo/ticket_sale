@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'screens/ticket_order_screen.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    // To enable Riverpod for the entire project,
+    // we wrap the root widget in a "ProviderScope".
+    const ProviderScope(
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
