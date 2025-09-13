@@ -1,34 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_stripe/flutter_stripe.dart' hide Card;
-import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
-import 'dart:convert';
-import 'dart:io';
 
-Future<void> main() async {
-  // This is needed to trust self-signed certificates in development.
-  // DO NOT USE in production.
-  HttpOverrides.global = MyHttpOverrides();
-
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // Your Stripe publishable key is set here.
-  Stripe.publishableKey = 'pk_test_51S6oar2Z7txq4ZPOJ5dfijly6A17SUoXDsx9nK0JheaNo8XjLAMsLqLbm4fodqNdnD3XpB7S7c9TPFMlb8ZoXz9000Z5Wj34b6';
-  
-  await Stripe.instance.applySettings();
-  
+void main() {
   runApp(const MyApp());
 }
 
-class MyHttpOverrides extends HttpOverrides {
-  @override
-  HttpClient createHttpClient(SecurityContext? context) {
-    return super.createHttpClient(context)
-      ..badCertificateCallback =
-          (X509Certificate cert, String host, int port) => true;
-  }
-}
-
+// HttpOverrides class is no longer needed
+// class MyHttpOverrides extends HttpOverrides {
+// ...
+// }
 
 enum AttendeeType { adult, child }
 
@@ -65,12 +46,14 @@ class TicketOrderScreen extends StatefulWidget {
 
 class _TicketOrderScreenState extends State<TicketOrderScreen> {
   final _formKey = GlobalKey<FormState>();
-  final double _ticketPrice = 23.5;
+  final double _adultTicketPrice = 23.5;
+  final double _childTicketPrice = 2.5;
   List<Attendee> _attendees = [Attendee()];
 
+  final _lastFiveDigitsController = TextEditingController();
+  final _customerEmailController = TextEditingController();
   DateTime? _selectedDate;
   TimeSlot? _selectedTimeSlot;
-  bool _isProcessingPayment = false;
 
   void _addAttendee() {
     setState(() {
@@ -90,8 +73,8 @@ class _TicketOrderScreenState extends State<TicketOrderScreen> {
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate ?? DateTime.now(),
-      firstDate: DateTime.now(),
+      initialDate: _selectedDate ?? DateTime.now().add(const Duration(days: 2)),
+      firstDate: DateTime.now().add(const Duration(days: 2)),
       lastDate: DateTime(2101),
     );
     if (picked != null && picked != _selectedDate) {
@@ -101,160 +84,93 @@ class _TicketOrderScreenState extends State<TicketOrderScreen> {
     }
   }
 
-  Future<void> _handlePayAndSubmit() async {
-    if (_isProcessingPayment) return; // Prevent double taps
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    if (_selectedDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a date')),
-      );
-      return;
-    }
-    if (_selectedTimeSlot == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a time slot (AM/PM)')),
-      );
-      return;
-    }
-
-    setState(() {
-      _isProcessingPayment = true;
-    });
-
-    try {
-      // 1. Create payment intent on your server
-      final clientSecret = await _createPaymentIntent();
-      if (clientSecret == null) {
-        // Error is already shown in the function
-        setState(() { _isProcessingPayment = false; });
+  void _submitOrder() async {
+    if (_formKey.currentState!.validate()) {
+      if (_selectedDate == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select a date')),
+        );
+        return;
+      }
+      if (_selectedTimeSlot == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select a time slot (AM/PM)')),
+        );
         return;
       }
 
-      // 2. Present the payment sheet
-      await Stripe.instance.initPaymentSheet(
-        paymentSheetParameters: SetupPaymentSheetParameters(
-          paymentIntentClientSecret: clientSecret,
-          merchantDisplayName: 'Neuschwanstein Tickets',
-        ),
-      );
+      final int adultCount = _attendees.where((a) => a.type == AttendeeType.adult).length;
+      final int childCount = _attendees.where((a) => a.type == AttendeeType.child).length;
+      final double totalAmount = (adultCount * _adultTicketPrice) + (childCount * _childTicketPrice);
 
-      await Stripe.instance.presentPaymentSheet();
+      final String lastFive = _lastFiveDigitsController.text;
+      final String customerEmail = _customerEmailController.text;
+      final String date = DateFormat('yyyy-MM-dd').format(_selectedDate!);
+      final String timeSlot = _selectedTimeSlot == TimeSlot.am ? 'Morning' : 'Afternoon';
 
-      // 3. Payment successful, now submit the order to your server
-      await _submitOrderToServer();
+      final String attendeesDetails = _attendees.map((a) {
+        final type = a.type == AttendeeType.adult ? 'Adult' : 'Child';
+        return '- ${a.givenNameController.text} ${a.familyNameController.text} ($type)';
+      }).join('\n');
 
-    } on StripeException catch (e) {
-      if (e.error.code != FailureCode.Canceled) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Payment failed: ${e.error.localizedMessage}')),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred: $e')),
-      );
-    } finally {
-      setState(() {
-        _isProcessingPayment = false;
-      });
-    }
-  }
+      final Uri emailLaunchUri = Uri(
+        scheme: 'mailto',
+        path: 'chikuokuo@msn.com',
+        query: _encodeQueryParameters(<String, String>{
+          'subject': 'Ticket Order for Neuschwanstein Castle',
+          'body': '''
+Hello,
 
-  Future<String?> _createPaymentIntent() async {
-    try {
-      final totalAmount = _attendees.length * _ticketPrice;
-      // Convert to smallest currency unit (cents)
-      final amountInCents = (totalAmount * 100).toInt();
+Here are my order details:
+Customer Email: $customerEmail
+Date: $date ($timeSlot)
+Number of Tickets: ${_attendees.length} (Adults: $adultCount, Children: $childCount)
+Total Amount: €$totalAmount
+Last 5 digits of bank account: $lastFive
 
-      final url = Uri.parse('https://192.168.24.108:44372/create-payment-intent');
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'amount': amountInCents,
-          'currency': 'eur',
+Attendees:
+$attendeesDetails
+
+Thank you.
+''',
         }),
       );
 
-      if (response.statusCode == 200) {
-        return jsonDecode(response.body)['clientSecret'];
-      } else {
+      try {
+        await launchUrl(emailLaunchUri);
+        
         // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to create payment intent. Server responded with ${response.statusCode}')),
+          const SnackBar(content: Text('Order submitted successfully!')),
         );
-        return null;
-      }
-    } catch (e) {
-      // ignore: use_build_context_synchronously
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not connect to payment server: $e')),
-      );
-      return null;
-    }
-  }
 
-  Future<void> _submitOrderToServer() async {
-    final String date = DateFormat('yyyy-MM-dd').format(_selectedDate!);
-    final String timeSlot = _selectedTimeSlot == TimeSlot.am ? 'AM' : 'PM';
-    
-    final attendeesList = _attendees.map((a) {
-      return {
-        'givenName': a.givenNameController.text,
-        'familyName': a.familyNameController.text,
-        'type': a.type.name,
-      };
-    }).toList();
-
-    final body = jsonEncode({
-      'date': date,
-      'timeSlot': timeSlot,
-      'attendees': attendeesList,
-    });
-
-    const String url = 'https://172.20.10.3:44372/Order';
-    
-    final response = await http.post(
-      Uri.parse(url),
-      headers: {'Content-Type': 'application/json'},
-      body: body,
-    );
-
-    // ignore: use_build_context_synchronously
-    if (!context.mounted) return;
-
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Order submitted successfully!')),
-      );
-
-      // Reset the form
-      setState(() {
-        for (var attendee in _attendees) {
-          attendee.givenNameController.dispose();
-          attendee.familyNameController.dispose();
-        }
-        _attendees = [Attendee()];
-        _selectedDate = null;
-        _selectedTimeSlot = null;
-      });
-    } else {
+        // Reset the form
+        _lastFiveDigitsController.clear();
+        _customerEmailController.clear();
+        setState(() {
+          for (var attendee in _attendees) {
+            attendee.givenNameController.dispose();
+            attendee.familyNameController.dispose();
+          }
+          _attendees = [Attendee()];
+          _selectedDate = null;
+          _selectedTimeSlot = null;
+        });
+      } catch (e) {
+        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Payment was successful, but failed to save order. Status code: ${response.statusCode}')),
-      );
+          SnackBar(content: Text('Could not launch email client: $e')),
+        );
+      }
     }
   }
 
-  // This function is no longer needed as we are not using mailto links anymore.
-  // String? _encodeQueryParameters(Map<String, String> params) {
-  //   return params.entries
-  //       .map((MapEntry<String, String> e) =>
-  //           '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
-  //       .join('&');
-  // }
+  String? _encodeQueryParameters(Map<String, String> params) {
+    return params.entries
+        .map((MapEntry<String, String> e) =>
+            '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+        .join('&');
+  }
 
   @override
   void dispose() {
@@ -262,12 +178,16 @@ class _TicketOrderScreenState extends State<TicketOrderScreen> {
       attendee.givenNameController.dispose();
       attendee.familyNameController.dispose();
     }
+    _lastFiveDigitsController.dispose();
+    _customerEmailController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final double totalAmount = _attendees.length * _ticketPrice;
+    final int adultCount = _attendees.where((a) => a.type == AttendeeType.adult).length;
+    final int childCount = _attendees.where((a) => a.type == AttendeeType.child).length;
+    final double totalAmount = (adultCount * _adultTicketPrice) + (childCount * _childTicketPrice);
 
     return Scaffold(
       appBar: AppBar(
@@ -282,12 +202,14 @@ class _TicketOrderScreenState extends State<TicketOrderScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 const Text(
-                  'Order Details',
+                  'Bank Transfer Information:',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
+                const SizedBox(height: 8),
+                const Text('Account: 1234-5678-9999', style: TextStyle(fontSize: 16)),
                 const SizedBox(height: 16),
                 Text(
-                  'Ticket Price: €$_ticketPrice per person',
+                  'Ticket Price: €$_adultTicketPrice (Adult), €$_childTicketPrice (Child)',
                   style: const TextStyle(fontSize: 16),
                 ),
                 const SizedBox(height: 24),
@@ -352,6 +274,42 @@ class _TicketOrderScreenState extends State<TicketOrderScreen> {
                     ),
                     const Text('PM'),
                   ],
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _customerEmailController,
+                  decoration: const InputDecoration(
+                    labelText: 'Customer Email',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter an email address';
+                    }
+                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                      return 'Please enter a valid email address';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _lastFiveDigitsController,
+                  decoration: const InputDecoration(
+                    labelText: 'Last 5 digits of your account',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter the last 5 digits';
+                    }
+                    if (value.length != 5) {
+                      return 'Must be exactly 5 digits';
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 24),
                 const Divider(),
@@ -443,18 +401,12 @@ class _TicketOrderScreenState extends State<TicketOrderScreen> {
                 const SizedBox(height: 24),
                 Center(
                   child: ElevatedButton(
-                    onPressed: _handlePayAndSubmit,
+                    onPressed: _submitOrder,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 40, vertical: 15),
-                      backgroundColor: Colors.deepPurple,
                     ),
-                    child: _isProcessingPayment
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : Text(
-                          'Pay €${totalAmount.toStringAsFixed(2)} with Stripe',
-                          style: const TextStyle(color: Colors.white, fontSize: 16),
-                        ),
+                    child: const Text('Submit'),
                   ),
                 ),
               ],
