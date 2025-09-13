@@ -15,59 +15,8 @@ class OrderSummaryScreen extends ConsumerWidget {
   Future<void> _confirmOrder(BuildContext context, WidgetRef ref) async {
     final orderNotifier = ref.read(ticketOrderProvider.notifier);
     
-    // Show confirmation dialog
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: Text(
-          'Confirm Order',
-          style: AppTheme.headlineSmall,
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Are you sure you want to proceed with the payment?',
-              style: AppTheme.bodyMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Once confirmed, you will be charged and tickets will be sent to your email.',
-              style: AppTheme.bodySmall.copyWith(
-                color: AppColorScheme.neutral600,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: AppColorScheme.neutral600),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: const Text('Confirm'),
-          ),
-        ],
-      ),
-    ) ?? false;
-
-    if (confirmed) {
-      // Process payment
-      await orderNotifier.processPayment(context);
-    }
+    // Process payment directly without confirmation dialog
+    await orderNotifier.processPayment(context);
   }
 
   void _backToBooking(BuildContext context) {
@@ -82,8 +31,8 @@ class OrderSummaryScreen extends ConsumerWidget {
 
     final int adultCount = orderState.attendees.where((a) => a.type == AttendeeType.adult).length;
     final int childCount = orderState.attendees.where((a) => a.type == AttendeeType.child).length;
-    final double adultPrice = 23.5;
-    final double childPrice = 2.5;
+    final double adultPrice = 21.0;
+    final double childPrice = 0.0;
     final double totalAmount = orderNotifier.getTotalAmount();
 
     // Listen to payment status changes
@@ -402,14 +351,14 @@ class OrderSummaryScreen extends ConsumerWidget {
         ),
         Expanded(
           child: Text(
-            '€${unitPrice.toStringAsFixed(2)}',
+            unitPrice == 0.0 ? 'Free' : '€${unitPrice.toStringAsFixed(2)}',
             style: AppTheme.bodyMedium,
             textAlign: TextAlign.center,
           ),
         ),
         Expanded(
           child: Text(
-            '€${totalPrice.toStringAsFixed(2)}',
+            totalPrice == 0.0 ? 'Free' : '€${totalPrice.toStringAsFixed(2)}',
             style: AppTheme.bodyMedium.copyWith(
               fontWeight: FontWeight.w600,
             ),
@@ -602,7 +551,7 @@ class OrderSummaryScreen extends ConsumerWidget {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColorScheme.success700, AppColorScheme.success500],
+          colors: [AppColorScheme.primary700, AppColorScheme.primary],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -656,7 +605,7 @@ class OrderSummaryScreen extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               elevation: 2,
-              backgroundColor: AppColorScheme.success,
+              backgroundColor: AppColorScheme.primary,
               foregroundColor: Colors.white,
             ),
             child: isProcessing 

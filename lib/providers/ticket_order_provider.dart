@@ -54,8 +54,8 @@ class TicketOrderState {
 
 // 2. Manages the state and business logic
 class TicketOrderNotifier extends StateNotifier<TicketOrderState> {
-  final double _adultTicketPrice = 23.5;
-  final double _childTicketPrice = 2.5;
+  final double _adultTicketPrice = 21.0;
+  final double _childTicketPrice = 0.0;
 
   TicketOrderNotifier()
       : super(TicketOrderState(

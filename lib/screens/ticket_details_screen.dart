@@ -358,7 +358,7 @@ class TicketDetailsScreen extends ConsumerWidget {
                 ),
                 const Spacer(),
                 Text(
-                  attendee.type == AttendeeType.adult ? '€23.50' : '€2.50',
+                  attendee.type == AttendeeType.adult ? '€21.00' : 'Free',
                   style: AppTheme.titleMedium.copyWith(
                     color: AppColorScheme.primary,
                     fontWeight: FontWeight.w600,

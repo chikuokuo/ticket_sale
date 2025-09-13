@@ -144,8 +144,8 @@ class TicketOrderScreen extends ConsumerWidget {
 
     final int adultCount = orderState.attendees.where((a) => a.type == AttendeeType.adult).length;
     final int childCount = orderState.attendees.where((a) => a.type == AttendeeType.child).length;
-    final double adultPrice = 23.5;
-    final double childPrice = 2.5;
+    final double adultPrice = 21.0;
+    final double childPrice = 0.0;
     final double totalAmount = (adultCount * adultPrice) + (childCount * childPrice);
 
     return Scaffold(
@@ -169,7 +169,7 @@ class TicketOrderScreen extends ConsumerWidget {
                 const Text('Account: 1234-5678-9999', style: TextStyle(fontSize: 16)),
                 const SizedBox(height: 16),
                 Text(
-                  'Ticket Price: €$adultPrice (Adult), €$childPrice (Child)',
+                  'Ticket Price: €${adultPrice.toStringAsFixed(2)} (Adult), ${childPrice == 0.0 ? 'Free' : '€${childPrice.toStringAsFixed(2)}'} (Child)',
                   style: const TextStyle(fontSize: 16),
                 ),
                 const SizedBox(height: 24),

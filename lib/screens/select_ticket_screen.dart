@@ -26,11 +26,12 @@ class SelectTicketScreen extends ConsumerWidget {
   Future<void> _selectDate(BuildContext context, WidgetRef ref) async {
     final notifier = ref.read(ticketOrderProvider.notifier);
     final selectedDate = ref.read(ticketOrderProvider).selectedDate;
+    final earliestDate = DateTime.now().add(const Duration(days: 2));
 
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: selectedDate ?? DateTime.now().add(const Duration(days: 1)),
-      firstDate: DateTime.now(),
+      initialDate: selectedDate ?? earliestDate,
+      firstDate: earliestDate, // Only allow dates 2 days from now
       lastDate: DateTime(2101),
       builder: (context, child) {
         return Theme(
@@ -53,7 +54,7 @@ class SelectTicketScreen extends ConsumerWidget {
     if (orderState.selectedDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Please select a date'),
+          content: const Text('Please select a visit date (minimum 2 days in advance)'),
           backgroundColor: AppColorScheme.warning,
           behavior: SnackBarBehavior.floating,
         ),
@@ -110,8 +111,8 @@ class SelectTicketScreen extends ConsumerWidget {
 
     final int adultCount = orderState.attendees.where((a) => a.type == AttendeeType.adult).length;
     final int childCount = orderState.attendees.where((a) => a.type == AttendeeType.child).length;
-    final double adultPrice = 23.5;
-    final double childPrice = 2.5;
+    final double adultPrice = 21.0;
+    final double childPrice = 0.0;
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -239,7 +240,17 @@ class SelectTicketScreen extends ConsumerWidget {
                               ),
                             ),
                             
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 4),
+                            
+                            Text(
+                              'Bookings must be made at least 2 days in advance',
+                              style: AppTheme.bodySmall.copyWith(
+                                color: AppColorScheme.neutral600,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                            
+                            const SizedBox(height: 16),
                             
                             InkWell(
                               onTap: () => _selectDate(context, ref),
@@ -272,7 +283,7 @@ class SelectTicketScreen extends ConsumerWidget {
                                     Expanded(
                                       child: Text(
                                         orderState.selectedDate == null
-                                            ? 'September 18, 2025'
+                                            ? DateFormat('MMMM dd, yyyy').format(DateTime.now().add(const Duration(days: 2)))
                                             : DateFormat('MMMM dd, yyyy').format(orderState.selectedDate!),
                                         style: TextStyle(
                                           fontSize: 16,
@@ -372,7 +383,7 @@ class SelectTicketScreen extends ConsumerWidget {
                             // Child tickets
                             _buildTicketCounter(
                               title: 'Child (0-17)',
-                              price: '€${childPrice.toStringAsFixed(2)}',
+                              price: childPrice == 0.0 ? 'Free' : '€${childPrice.toStringAsFixed(2)}',
                               count: childCount,
                               onDecrement: childCount > 0
                                 ? () {
@@ -420,23 +431,32 @@ class SelectTicketScreen extends ConsumerWidget {
                             
                             const SizedBox(height: 24),
                             
-                            // Find Available Times button
+                            // Continue to booking button
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
-                                onPressed: () => _navigateToNextPage(context, ref),
+                                onPressed: orderState.attendees.isNotEmpty 
+                                  ? () => _navigateToNextPage(context, ref)
+                                  : null,
                                 style: ElevatedButton.styleFrom(
                                   padding: const EdgeInsets.symmetric(vertical: 16),
-                                  backgroundColor: AppColorScheme.primary,
+                                  backgroundColor: orderState.attendees.isNotEmpty 
+                                    ? AppColorScheme.primary
+                                    : AppColorScheme.neutral300,
+                                  foregroundColor: orderState.attendees.isNotEmpty
+                                    ? Colors.white
+                                    : AppColorScheme.neutral500,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
-                                  elevation: 2,
+                                  elevation: orderState.attendees.isNotEmpty ? 2 : 0,
                                 ),
                                 child: Text(
-                                  'Find Available Times',
+                                  'Continue Booking',
                                   style: AppTheme.titleMedium.copyWith(
-                                    color: Colors.white,
+                                    color: orderState.attendees.isNotEmpty
+                                      ? Colors.white
+                                      : AppColorScheme.neutral500,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -609,25 +629,25 @@ class SelectTicketScreen extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? AppColorScheme.primary : AppColorScheme.neutral100,
+          color: isSelected ? AppColorScheme.primary50 : AppColorScheme.neutral100,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected ? AppColorScheme.primary : AppColorScheme.neutral300,
-            width: isSelected ? 2 : 1,
+            width: isSelected ? 3 : 1,
           ),
         ),
         child: Column(
           children: [
             Icon(
               icon,
-              color: isSelected ? Colors.white : AppColorScheme.neutral600,
+              color: isSelected ? AppColorScheme.primary : AppColorScheme.neutral600,
               size: 28,
             ),
             const SizedBox(height: 8),
             Text(
               title,
               style: AppTheme.titleSmall.copyWith(
-                color: isSelected ? Colors.white : AppColorScheme.neutral900,
+                color: isSelected ? AppColorScheme.primary : AppColorScheme.neutral900,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -635,7 +655,7 @@ class SelectTicketScreen extends ConsumerWidget {
             Text(
               subtitle,
               style: AppTheme.bodySmall.copyWith(
-                color: isSelected ? Colors.white.withOpacity(0.8) : AppColorScheme.neutral600,
+                color: isSelected ? AppColorScheme.primary700 : AppColorScheme.neutral600,
               ),
               textAlign: TextAlign.center,
             ),
