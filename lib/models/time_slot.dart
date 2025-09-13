@@ -1,0 +1,1 @@
+enum TimeSlot { am, pm }
