@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../models/attendee.dart';
 import '../models/time_slot.dart';
@@ -119,7 +118,7 @@ class TicketOrderScreen extends ConsumerWidget {
         if (current.paymentStatus == PaymentStatus.success) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('🎉 Payment successful! Ticket order confirmed.'),
+              content: Text('🎉 Payment successful! Please check your email for tickets.'),
               backgroundColor: Colors.green,
               duration: Duration(seconds: 4),
             ),
@@ -293,38 +292,7 @@ class TicketOrderScreen extends ConsumerWidget {
                   child: _buildPaymentButton(context, ref, orderState, orderNotifier, totalAmount),
                 ),
                 const SizedBox(height: 16),
-                // Original Submit Button (Email)
-                Center(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // Show snackbar if date/time is not selected
-                      if (orderState.selectedDate == null) {
-                         ScaffoldMessenger.of(context).showSnackBar(
-                           const SnackBar(content: Text('Please select a date')),
-                         );
-                         return;
-                      }
-                      if (orderState.selectedTimeSlot == null) {
-                         ScaffoldMessenger.of(context).showSnackBar(
-                           const SnackBar(content: Text('Please select a time slot (AM/PM)')),
-                         );
-                         return;
-                      }
-                      orderNotifier.submitOrder().catchError((e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Could not launch email client: $e')),
-                        );
-                      });
-                    },
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 40, vertical: 15),
-                      backgroundColor: Colors.grey[600],
-                      foregroundColor: Colors.white,
-                    ),
-                    child: const Text('Submit'),
-                  ),
-                ),
+                // Note: Submit button removed since payment automatically submits to n8n webhook
               ],
             ),
           ),
