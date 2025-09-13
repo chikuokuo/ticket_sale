@@ -7,6 +7,7 @@ import '../models/attendee.dart';
 import '../models/time_slot.dart';
 import '../providers/ticket_order_provider.dart';
 import '../widgets/attendee_card.dart';
+import '../services/stripe_service.dart';
 
 // 1. Convert StatefulWidget to ConsumerWidget
 class TicketOrderScreen extends ConsumerWidget {
@@ -28,13 +29,120 @@ class TicketOrderScreen extends ConsumerWidget {
     }
   }
 
+  // Build payment button with different states
+  Widget _buildPaymentButton(
+    BuildContext context,
+    WidgetRef ref,
+    TicketOrderState orderState,
+    TicketOrderNotifier orderNotifier,
+    double totalAmount,
+  ) {
+    final isProcessing = orderState.paymentStatus == PaymentStatus.processing;
+    final hasDate = orderState.selectedDate != null;
+    final hasTimeSlot = orderState.selectedTimeSlot != null;
+    final bool canPay = hasDate && hasTimeSlot && !isProcessing;
+
+    // Debug info
+    print('Payment button state: canPay=$canPay, hasDate=$hasDate, hasTimeSlot=$hasTimeSlot, isProcessing=$isProcessing');
+
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: canPay ? () => _handlePayment(context, ref, orderState, orderNotifier) : null,
+        icon: isProcessing
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            )
+          : const Icon(Icons.payment),
+        label: Text(
+          isProcessing
+            ? 'Processing Payment...'
+            : 'Pay €${totalAmount.toStringAsFixed(2)}',
+        ),
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+          backgroundColor: canPay ? Colors.blue : Colors.grey,
+          foregroundColor: Colors.white,
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+      ),
+    );
+  }
+
+  // Handle payment button press
+  Future<void> _handlePayment(
+    BuildContext context,
+    WidgetRef ref,
+    TicketOrderState orderState,
+    TicketOrderNotifier orderNotifier,
+  ) async {
+    // Validate date and time selection
+    if (orderState.selectedDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a date'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    if (orderState.selectedTimeSlot == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a time slot (AM/PM)'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    // Process payment
+    await orderNotifier.processPayment(context);
+  }
+
   // 2. The build method now receives a WidgetRef
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // 3. Watch the provider to get the current state
     final orderState = ref.watch(ticketOrderProvider);
     final orderNotifier = ref.read(ticketOrderProvider.notifier);
-    
+
+    // Listen for payment status changes to show notifications
+    ref.listen<TicketOrderState>(ticketOrderProvider, (previous, current) {
+      if (previous?.paymentStatus != current.paymentStatus) {
+        if (current.paymentStatus == PaymentStatus.success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('🎉 Payment successful! Ticket order confirmed.'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 4),
+            ),
+          );
+        } else if (current.paymentStatus == PaymentStatus.failed) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                current.paymentError ?? 'Payment failed. Please try again.',
+              ),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 5),
+              action: SnackBarAction(
+                label: 'Retry',
+                textColor: Colors.white,
+                onPressed: () => _handlePayment(context, ref, current, orderNotifier),
+              ),
+            ),
+          );
+        }
+      }
+    });
+
     final int adultCount = orderState.attendees.where((a) => a.type == AttendeeType.adult).length;
     final int childCount = orderState.attendees.where((a) => a.type == AttendeeType.child).length;
     final double adultPrice = 23.5;
@@ -141,24 +249,6 @@ class TicketOrderScreen extends ConsumerWidget {
                     return null;
                   },
                 ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: orderState.lastFiveDigitsController,
-                  decoration: const InputDecoration(
-                    labelText: 'Last 5 digits of your account',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter the last 5 digits';
-                    }
-                    if (value.length != 5) {
-                      return 'Must be exactly 5 digits';
-                    }
-                    return null;
-                  },
-                ),
                 const SizedBox(height: 24),
                 const Divider(),
                 const SizedBox(height: 16),
@@ -198,6 +288,12 @@ class TicketOrderScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
+                // Stripe Payment Button
+                Center(
+                  child: _buildPaymentButton(context, ref, orderState, orderNotifier, totalAmount),
+                ),
+                const SizedBox(height: 16),
+                // Original Submit Button (Email)
                 Center(
                   child: ElevatedButton(
                     onPressed: () {
@@ -223,6 +319,8 @@ class TicketOrderScreen extends ConsumerWidget {
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 40, vertical: 15),
+                      backgroundColor: Colors.grey[600],
+                      foregroundColor: Colors.white,
                     ),
                     child: const Text('Submit'),
                   ),
