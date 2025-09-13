@@ -1,0 +1,27 @@
+# IDE-specific files
+.idea/
+*.iml
+
+# Build artifacts
+build/
+.dart_tool/
+
+# Dependency lock file
+pubspec.lock
+
+# Generated files (can be regenerated)
+*.g.dart
+*.freezed.dart
+
+# Flutter-specific generated files
+/ios/Flutter/
+/ios/Pods/
+/ios/.symlinks/
+/android/.gradle/
+/android/local.properties
+/windows/flutter/ephemeral/
+/linux/flutter/ephemeral/
+/macos/flutter/ephemeral/
+
+# Log files
+*.log
