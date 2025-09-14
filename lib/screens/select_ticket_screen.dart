@@ -25,8 +25,8 @@ class SelectTicketScreen extends ConsumerWidget {
 
 
   Future<void> _selectDate(BuildContext context, WidgetRef ref) async {
-    final notifier = ref.read(ticketOrderProvider.notifier);
-    final selectedDate = ref.read(ticketOrderProvider).selectedDate;
+    final notifier = ref.read(ticketOrderProvider(TicketType.neuschwanstein).notifier);
+    final selectedDate = ref.read(ticketOrderProvider(TicketType.neuschwanstein)).selectedDate;
     final earliestDate = DateTime.now().add(const Duration(days: 2));
 
     final DateTime? picked = await showDatePicker(
@@ -49,7 +49,7 @@ class SelectTicketScreen extends ConsumerWidget {
   }
 
   void _navigateToNextPage(BuildContext context, WidgetRef ref) {
-    final orderState = ref.read(ticketOrderProvider);
+    final orderState = ref.read(ticketOrderProvider(TicketType.neuschwanstein));
     
     // Validate required fields
     if (orderState.selectedDate == null) {
@@ -88,7 +88,7 @@ class SelectTicketScreen extends ConsumerWidget {
     // Navigate to next page
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => const TicketDetailsScreen(),
+        builder: (context) => const TicketDetailsScreen(ticketType: TicketType.neuschwanstein),
       ),
     );
   }
@@ -107,8 +107,8 @@ class SelectTicketScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final orderState = ref.watch(ticketOrderProvider);
-    final orderNotifier = ref.read(ticketOrderProvider.notifier);
+    final orderState = ref.watch(ticketOrderProvider(TicketType.neuschwanstein));
+    final orderNotifier = ref.read(ticketOrderProvider(TicketType.neuschwanstein).notifier);
 
     final int adultCount = orderState.attendees.where((a) => a.type == AttendeeType.adult).length;
     final int childCount = orderState.attendees.where((a) => a.type == AttendeeType.child).length;

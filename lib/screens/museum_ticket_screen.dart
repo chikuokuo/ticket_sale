@@ -15,17 +15,18 @@ class MuseumTicketScreen extends ConsumerWidget {
   final List<String> importantInfo = const [
     'Tickets are excluded from exchange and refund.',
     'Please inform yourself about current visitor information and accessibility before purchasing your ticket and before your arrival.',
-    'Even babies and (small) children require their own ticket for the royal castles.',
-    'You must present proof of eligibility for free or reduced tickets at the castle entrance. Please have the appropriate documents and your ticket ready at the entrance.',
-    'Audio devices are only available in "Audio Guide" tours due to the limited number of devices.',
-    'Currently, there are only limited capacities for tours in the royal castles. An early sell-out must be expected.',
-    'If you wish to visit both castles (Hohenschwangau and Neuschwanstein) on the same day, we generally recommend allowing at least 2.5 hours between the admission times of the tours so that you have enough time to get from one castle to the other.',
-    'The Museum of the Bavarian Kings can be visited at any time on the booked day between 9:00 and 16:30 (closing at 17:00).',
+    'Even babies and (small) children require their own ticket for the Uffizi Galleries.',
+    'You must present proof of eligibility for free or reduced tickets at the museum entrance. Please have the appropriate documents and your ticket ready at the entrance.',
+    'Audio guides are only available in limited quantities due to the limited number of devices.',
+    'Currently, there are only limited capacities for tours in the Uffizi Galleries. An early sell-out must be expected.',
+    'If you wish to visit multiple museums on the same day, we generally recommend allowing at least 3 hours between the admission times.',
+    'The Uffizi Galleries can be visited at any time on the booked day between 8:15 and 18:30 (closing at 19:00).',
   ];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final orderState = ref.watch(ticketOrderProvider);
+    final orderState = ref.watch(ticketOrderProvider(TicketType.museum));
+    final orderNotifier = ref.read(ticketOrderProvider(TicketType.museum).notifier);
     
     return Scaffold(
       backgroundColor: AppColorScheme.neutral50,
@@ -33,110 +34,26 @@ class MuseumTicketScreen extends ConsumerWidget {
         child: Column(
           children: [
             // Background and Title Section
-            Container(
-              height: 320,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: _getBackgroundImage(),
-                  fit: BoxFit.cover,
-                  onError: (exception, stackTrace) {
-                    // Handle image loading error silently - fallback will be used
-                  },
-                ),
-              ),
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.black.withOpacity(0.3),
-                      Colors.black.withOpacity(0.7),
-                    ],
-                    stops: const [0.0, 1.0],
-                  ),
-                ),
-                child: SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text(
-                          'Uffizi Galleries',
-                          style: AppTheme.displayLarge.copyWith(
-                            color: Colors.white,
-                            fontSize: 36,
-                            fontWeight: FontWeight.bold,
-                            shadows: [
-                              Shadow(
-                                color: Colors.black.withOpacity(0.5),
-                                offset: const Offset(0, 2),
-                                blurRadius: 4,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Florence, Italy',
-                          style: AppTheme.titleLarge.copyWith(
-                            color: Colors.white.withOpacity(0.9),
-                            fontWeight: FontWeight.w400,
-                            shadows: [
-                              Shadow(
-                                color: Colors.black.withOpacity(0.5),
-                                offset: const Offset(0, 2),
-                                blurRadius: 4,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            _buildHeader(),
 
             // Main Content with Overlap
             Transform.translate(
-              offset: const Offset(0, -32), // Move cards up to overlap background
-              child: Column(
-                children: [
-                  // Ticket Selection Card
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Card(
-                      elevation: 8,
-                      shadowColor: Colors.black.withOpacity(0.15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: _buildTicketSelectionCard(context, ref, orderState),
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 16),
-                  
-                  // Important Information Card
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Card(
-                      elevation: 8,
-                      shadowColor: Colors.black.withOpacity(0.15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: _buildImportantInfoCard(),
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 32),
-                ],
+              offset: const Offset(0, -40),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  children: [
+                    // Ticket Selection Card
+                    _buildTicketSelectionCard(context, orderState, orderNotifier),
+                    
+                    const SizedBox(height: 20),
+                    
+                    // Important Information Card
+                    _buildImportantInfoCard(),
+                    
+                    const SizedBox(height: 40),
+                  ],
+                ),
               ),
             ),
           ],
@@ -145,10 +62,62 @@ class MuseumTicketScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildHeader() {
+    return Container(
+      height: 280,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        image: DecorationImage(
+          image: _getBackgroundImage(),
+          fit: BoxFit.cover,
+        ),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.black.withOpacity(0.3),
+              Colors.black.withOpacity(0.6),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Spacer(),
+                Text(
+                  'Uffizi Galleries',
+                  style: AppTheme.headlineLarge.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Florence, Italy',
+                  style: AppTheme.titleMedium.copyWith(
+                    color: Colors.white.withOpacity(0.9),
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   ImageProvider _getBackgroundImage() {
     // Try to load the background image with fallback
     try {
-      return const AssetImage('assets/images/Bg-UffiziGallery.jpg');
+      return const AssetImage('assets/images/Bg-UffiziGalleries.jpg');
     } catch (e) {
       // Fallback to network image if asset is not found
       return const NetworkImage(
@@ -157,78 +126,72 @@ class MuseumTicketScreen extends ConsumerWidget {
     }
   }
 
-  Widget _buildTicketSelectionCard(BuildContext context, WidgetRef ref, TicketOrderState orderState) {
-    return Padding(
-      padding: const EdgeInsets.all(24),
+  Widget _buildTicketSelectionCard(BuildContext context, TicketOrderState orderState, TicketOrderNotifier orderNotifier) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Book Your Visit',
-              style: AppTheme.headlineSmall.copyWith(
-                fontWeight: FontWeight.bold,
-                color: AppColorScheme.primary,
-              ),
-            ),
-            
-            const SizedBox(height: 8),
-            
-            Text(
-              'Official guided tours available',
-              style: AppTheme.bodyMedium.copyWith(
-                color: AppColorScheme.neutral600,
+              'Book Your Museum Visit',
+              style: AppTheme.titleLarge.copyWith(
+                color: AppColorScheme.neutral900,
+                fontWeight: FontWeight.w600,
               ),
             ),
             
             const SizedBox(height: 24),
             
             // Select Visit Date
-            _buildDateSelection(context, ref, orderState),
+            _buildDateSelection(context, orderState, orderNotifier),
             
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             
             // Select Time Slot
-            _buildTimeSlotSelection(ref, orderState),
+            _buildTimeSlotSelection(orderState, orderNotifier),
             
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             
             // Tickets Selection
-            _buildTicketCounters(ref, orderState),
+            _buildTicketCounters(orderState, orderNotifier),
             
             const SizedBox(height: 24),
             
             // Continue Booking Button
-            _buildContinueButton(context, ref, orderState),
+            _buildContinueButton(context, orderState),
           ],
         ),
+      ),
     );
   }
 
-  Widget _buildDateSelection(BuildContext context, WidgetRef ref, TicketOrderState orderState) {
+  Widget _buildDateSelection(BuildContext context, TicketOrderState orderState, TicketOrderNotifier orderNotifier) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Select Visit Date',
-          style: AppTheme.headlineSmall.copyWith(
+          style: AppTheme.titleMedium.copyWith(
             color: AppColorScheme.neutral900,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
           ),
         ),
-        
-        const SizedBox(height: 4),
-        
-        Text(
-          'Bookings must be made at least 2 days in advance',
-          style: AppTheme.bodySmall.copyWith(
-            color: AppColorScheme.neutral600,
-            fontStyle: FontStyle.italic,
-          ),
-        ),
-        
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         InkWell(
-          onTap: () => _selectDate(context, ref),
+          onTap: () => _selectDate(context, orderState, orderNotifier),
           borderRadius: BorderRadius.circular(12),
           child: Container(
             width: double.infinity,
@@ -268,35 +231,34 @@ class MuseumTicketScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildTimeSlotSelection(WidgetRef ref, TicketOrderState orderState) {
+  Widget _buildTimeSlotSelection(TicketOrderState orderState, TicketOrderNotifier orderNotifier) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Select Time Slot',
-          style: AppTheme.headlineSmall.copyWith(
+          style: AppTheme.titleMedium.copyWith(
             color: AppColorScheme.neutral900,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
           ),
         ),
         const SizedBox(height: 12),
         Row(
           children: [
-            Expanded(child: _buildTimeSlotCard(ref, TimeSlot.am, orderState)),
-            const SizedBox(width: 16),
-            Expanded(child: _buildTimeSlotCard(ref, TimeSlot.pm, orderState)),
+            Expanded(child: _buildTimeSlotCard(TimeSlot.am, orderState, orderNotifier)),
+            const SizedBox(width: 12),
+            Expanded(child: _buildTimeSlotCard(TimeSlot.pm, orderState, orderNotifier)),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildTimeSlotCard(WidgetRef ref, TimeSlot timeSlot, TicketOrderState orderState) {
+  Widget _buildTimeSlotCard(TimeSlot timeSlot, TicketOrderState orderState, TicketOrderNotifier orderNotifier) {
     final isSelected = orderState.selectedTimeSlot == timeSlot;
-    final notifier = ref.read(ticketOrderProvider.notifier);
     
     return InkWell(
-      onTap: () => notifier.selectTimeSlot(timeSlot),
+      onTap: () => orderNotifier.selectTimeSlot(timeSlot),
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -338,7 +300,7 @@ class MuseumTicketScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildTicketCounters(WidgetRef ref, TicketOrderState orderState) {
+  Widget _buildTicketCounters(TicketOrderState orderState, TicketOrderNotifier orderNotifier) {
     const double adultPrice = 21.0;
     const double childPrice = 0.0;
 
@@ -347,20 +309,19 @@ class MuseumTicketScreen extends ConsumerWidget {
       children: [
         Text(
           'Tickets',
-          style: AppTheme.headlineSmall.copyWith(
+          style: AppTheme.titleMedium.copyWith(
             color: AppColorScheme.neutral900,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
           ),
         ),
         const SizedBox(height: 12),
         
         // Adult Tickets
         _buildTicketCounter(
-          ref: ref,
           title: 'Adult',
           subtitle: adultPrice > 0 ? '€${adultPrice.toStringAsFixed(2)}' : 'Free',
           count: orderState.attendees.where((a) => a.type == AttendeeType.adult).length,
-          onIncrement: () => ref.read(ticketOrderProvider.notifier).addAttendee(AttendeeType.adult),
+          onIncrement: () => orderNotifier.addAttendee(AttendeeType.adult),
           onDecrement: () {
             final adults = orderState.attendees.where((a) => a.type == AttendeeType.adult).toList();
             if (adults.isNotEmpty) {
@@ -373,21 +334,20 @@ class MuseumTicketScreen extends ConsumerWidget {
                 }
               }
               if (lastAdultIndex != -1) {
-                ref.read(ticketOrderProvider.notifier).removeAttendee(lastAdultIndex);
+                orderNotifier.removeAttendee(lastAdultIndex);
               }
             }
           },
         ),
         
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         
         // Child Tickets
         _buildTicketCounter(
-          ref: ref,
           title: 'Child (0-17)',
           subtitle: childPrice > 0 ? '€${childPrice.toStringAsFixed(2)}' : 'Free',
           count: orderState.attendees.where((a) => a.type == AttendeeType.child).length,
-          onIncrement: () => ref.read(ticketOrderProvider.notifier).addAttendee(AttendeeType.child),
+          onIncrement: () => orderNotifier.addAttendee(AttendeeType.child),
           onDecrement: () {
             final children = orderState.attendees.where((a) => a.type == AttendeeType.child).toList();
             if (children.isNotEmpty) {
@@ -400,7 +360,7 @@ class MuseumTicketScreen extends ConsumerWidget {
                 }
               }
               if (lastChildIndex != -1) {
-                ref.read(ticketOrderProvider.notifier).removeAttendee(lastChildIndex);
+                orderNotifier.removeAttendee(lastChildIndex);
               }
             }
           },
@@ -410,7 +370,6 @@ class MuseumTicketScreen extends ConsumerWidget {
   }
 
   Widget _buildTicketCounter({
-    required WidgetRef ref,
     required String title,
     required String subtitle,
     required int count,
@@ -471,9 +430,9 @@ class MuseumTicketScreen extends ConsumerWidget {
                 alignment: Alignment.center,
                 child: Text(
                   count.toString(),
-                  style: AppTheme.headlineSmall.copyWith(
+                  style: AppTheme.titleMedium.copyWith(
                     color: AppColorScheme.neutral900,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
@@ -501,37 +460,63 @@ class MuseumTicketScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildContinueButton(BuildContext context, WidgetRef ref, TicketOrderState orderState) {
+  Widget _buildContinueButton(BuildContext context, TicketOrderState orderState) {
     final hasTickets = orderState.attendees.isNotEmpty;
     
-    return Container(
+    return SizedBox(
       width: double.infinity,
       height: 56,
       child: ElevatedButton(
-        onPressed: hasTickets ? () => _navigateToNextPage(context, ref) : null,
+        onPressed: hasTickets ? () {
+          // Navigate to next page
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => const TicketDetailsScreen(ticketType: TicketType.museum),
+            ),
+          );
+        } : null,
         style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 16),
           backgroundColor: hasTickets ? AppColorScheme.primary : AppColorScheme.neutral300,
-          foregroundColor: hasTickets ? Colors.white : AppColorScheme.neutral500,
+          foregroundColor: Colors.white,
+          elevation: hasTickets ? 4 : 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          elevation: hasTickets ? 2 : 0,
         ),
-        child: Text(
-          'Continue Booking',
-          style: AppTheme.titleMedium.copyWith(
-            color: hasTickets ? Colors.white : AppColorScheme.neutral500,
-            fontWeight: FontWeight.w600,
-          ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Continue Booking',
+              style: AppTheme.titleMedium.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Icon(Icons.arrow_forward, size: 20),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildImportantInfoCard() {
-    return Padding(
-      padding: const EdgeInsets.all(24),
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -539,15 +524,15 @@ class MuseumTicketScreen extends ConsumerWidget {
               children: [
                 Icon(
                   Icons.info_outline,
-                  color: AppColorScheme.info,
+                  color: AppColorScheme.primary,
                   size: 24,
                 ),
                 const SizedBox(width: 12),
                 Text(
                   'Important Information',
-                  style: AppTheme.headlineSmall.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColorScheme.info700,
+                  style: AppTheme.titleLarge.copyWith(
+                    color: AppColorScheme.neutral900,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
@@ -556,6 +541,7 @@ class MuseumTicketScreen extends ConsumerWidget {
             ...importantInfo.map((text) => _buildInfoItem(text)).toList(),
           ],
         ),
+      ),
     );
   }
 
@@ -590,65 +576,18 @@ class MuseumTicketScreen extends ConsumerWidget {
     );
   }
 
-  void _navigateToNextPage(BuildContext context, WidgetRef ref) {
-    final orderState = ref.read(ticketOrderProvider);
-    
-    // Validate required fields
-    if (orderState.selectedDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Please select a visit date (minimum 2 days in advance)'),
-          backgroundColor: AppColorScheme.warning,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
-    }
-
-    if (orderState.selectedTimeSlot == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Please select time slot (AM/PM)'),
-          backgroundColor: AppColorScheme.warning,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
-    }
-
-    if (orderState.attendees.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Please select at least one ticket'),
-          backgroundColor: AppColorScheme.warning,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
-    }
-
-    // Navigate to next page
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const TicketDetailsScreen(),
-      ),
-    );
-  }
-
-  Future<void> _selectDate(BuildContext context, WidgetRef ref) async {
-    final notifier = ref.read(ticketOrderProvider.notifier);
-    final selectedDate = ref.read(ticketOrderProvider).selectedDate;
+  Future<void> _selectDate(BuildContext context, TicketOrderState orderState, TicketOrderNotifier orderNotifier) async {
     final earliestDate = DateTime.now().add(const Duration(days: 2));
 
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: selectedDate ?? earliestDate,
+      initialDate: orderState.selectedDate ?? earliestDate,
       firstDate: earliestDate,
       lastDate: DateTime.now().add(const Duration(days: 90)),
     );
 
     if (picked != null) {
-      notifier.selectDate(picked);
+      orderNotifier.selectDate(picked);
     }
   }
 }

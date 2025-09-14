@@ -8,14 +8,18 @@ import '../providers/ticket_order_provider.dart';
 import '../services/stripe_service.dart';
 import '../theme/colors.dart';
 import '../theme/app_theme.dart';
+import 'main_navigation_screen.dart';
 
 class OrderSummaryScreen extends ConsumerWidget {
-  const OrderSummaryScreen({super.key});
+  final TicketType ticketType;
 
-  Future<void> _confirmOrder(BuildContext context, WidgetRef ref) async {
-    final orderNotifier = ref.read(ticketOrderProvider.notifier);
-    
-    // Process payment directly without confirmation dialog
+  const OrderSummaryScreen({
+    super.key,
+    required this.ticketType,
+  });
+
+  Future<void> _handlePayment(BuildContext context, WidgetRef ref) async {
+    final orderNotifier = ref.read(ticketOrderProvider(ticketType).notifier);
     await orderNotifier.processPayment(context);
   }
 
@@ -26,17 +30,8 @@ class OrderSummaryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final orderState = ref.watch(ticketOrderProvider);
-    final orderNotifier = ref.read(ticketOrderProvider.notifier);
-
-    final int adultCount = orderState.attendees.where((a) => a.type == AttendeeType.adult).length;
-    final int childCount = orderState.attendees.where((a) => a.type == AttendeeType.child).length;
-    final double adultPrice = 21.0;
-    final double childPrice = 0.0;
-    final double totalAmount = orderNotifier.getTotalAmount();
-
-    // Listen to payment status changes
-    ref.listen<TicketOrderState>(ticketOrderProvider, (previous, current) {
+    // Listen for payment status changes to show notifications
+    ref.listen<TicketOrderState>(ticketOrderProvider(ticketType), (previous, current) {
       if (previous?.paymentStatus != current.paymentStatus) {
         if (current.paymentStatus == PaymentStatus.success) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -63,6 +58,11 @@ class OrderSummaryScreen extends ConsumerWidget {
         }
       }
     });
+
+    final orderState = ref.watch(ticketOrderProvider(ticketType));
+    final orderNotifier = ref.read(ticketOrderProvider(ticketType).notifier);
+
+    final double totalAmount = orderNotifier.getTotalAmount();
 
     return Scaffold(
       appBar: AppBar(
@@ -97,10 +97,8 @@ class OrderSummaryScreen extends ConsumerWidget {
 
               // Ticket details
               _buildTicketDetailsCard(
-                adultCount,
-                childCount,
-                adultPrice,
-                childPrice,
+                orderState,
+                orderNotifier,
               ),
 
               const SizedBox(height: 24),
@@ -250,11 +248,14 @@ class OrderSummaryScreen extends ConsumerWidget {
   }
 
   Widget _buildTicketDetailsCard(
-    int adultCount,
-    int childCount,
-    double adultPrice,
-    double childPrice,
+    TicketOrderState orderState,
+    TicketOrderNotifier orderNotifier,
   ) {
+    final int adultCount = orderState.attendees.where((a) => a.type == AttendeeType.adult).length;
+    final int childCount = orderState.attendees.where((a) => a.type == AttendeeType.child).length;
+    final double adultPrice = orderNotifier.getTotalAmount() / (adultCount + (childCount > 0 ? childCount : 0)); // Simplified price logic
+    final double childPrice = 0.0;
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -598,7 +599,7 @@ class OrderSummaryScreen extends ConsumerWidget {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: isProcessing ? null : () => _confirmOrder(context, ref),
+            onPressed: isProcessing ? null : () => _handlePayment(context, ref),
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
