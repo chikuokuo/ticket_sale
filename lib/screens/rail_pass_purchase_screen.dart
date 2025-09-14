@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
 
 import '../theme/app_theme.dart';
 import '../theme/colors.dart';
@@ -29,6 +31,7 @@ class _RailPassPurchaseScreenState extends ConsumerState<RailPassPurchaseScreen>
   final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _addressController = TextEditingController();
+  final _atmLastFiveController = TextEditingController();
 
   // Selected options
   final TicketCategory _selectedCategory = TicketCategory.individual;
@@ -49,6 +52,7 @@ class _RailPassPurchaseScreenState extends ConsumerState<RailPassPurchaseScreen>
     _lastNameController.dispose();
     _emailController.dispose();
     _addressController.dispose();
+    _atmLastFiveController.dispose();
     super.dispose();
   }
 
@@ -102,8 +106,8 @@ class _RailPassPurchaseScreenState extends ConsumerState<RailPassPurchaseScreen>
               _buildOrderTotalCard(),
               const SizedBox(height: 32),
 
-              // Purchase Button
-              _buildPurchaseButton(),
+              // Action Buttons
+              _buildActionButtons(),
             ],
           ),
         ),
@@ -416,7 +420,7 @@ class _RailPassPurchaseScreenState extends ConsumerState<RailPassPurchaseScreen>
           ),
 
           RadioListTile<app_models.PaymentMethod>(
-            title: const Text('Bank Transfer'),
+            title: const Text('ATM Transfer'),
             subtitle: const Text('Transfer to our bank account'),
             value: app_models.PaymentMethod.atmTransfer,
             groupValue: _selectedPaymentMethod,
@@ -427,6 +431,73 @@ class _RailPassPurchaseScreenState extends ConsumerState<RailPassPurchaseScreen>
             },
             activeColor: AppColorScheme.primary,
           ),
+
+          if (_selectedPaymentMethod == app_models.PaymentMethod.atmTransfer)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColorScheme.primary50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColorScheme.primary200),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.account_balance,
+                              color: AppColorScheme.primary,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Bank Transfer Information',
+                              style: AppTheme.titleMedium.copyWith(
+                                color: AppColorScheme.primary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Account: 1234-5678-9999',
+                          style: AppTheme.bodyLarge.copyWith(
+                            color: AppColorScheme.neutral800,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _atmLastFiveController,
+                    decoration: const InputDecoration(
+                      labelText: 'Last 5 digits of bank account',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.account_balance),
+                    ),
+                    keyboardType: TextInputType.number,
+                    maxLength: 5,
+                    validator: (value) {
+                      if (_selectedPaymentMethod == app_models.PaymentMethod.atmTransfer &&
+                          (value == null || value.length < 5)) {
+                        return 'Please enter 5 digits';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );
@@ -508,58 +579,89 @@ class _RailPassPurchaseScreenState extends ConsumerState<RailPassPurchaseScreen>
     );
   }
 
-  Widget _buildPurchaseButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 56,
-      child: ElevatedButton(
-        onPressed: _paymentStatus == PaymentStatus.processing ? null : _handlePurchase,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColorScheme.primary,
-          foregroundColor: Colors.white,
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          disabledBackgroundColor: AppColorScheme.neutral300,
-        ),
-        child: _paymentStatus == PaymentStatus.processing
-            ? Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'Processing...',
-                    style: AppTheme.titleMedium.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              )
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.payment, size: 24),
-                  const SizedBox(width: 12),
-                  Text(
-                    'Complete Purchase',
-                    style: AppTheme.titleMedium.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
+  Widget _buildActionButtons() {
+    final isProcessing = _paymentStatus == PaymentStatus.processing;
+
+    final buttonText = _selectedPaymentMethod == app_models.PaymentMethod.creditCard
+        ? 'Confirm & Pay'
+        : 'Confirm ATM Transfer';
+
+    return Column(
+      children: [
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: isProcessing ? null : _handlePurchase,
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
-      ),
+              elevation: 4,
+              backgroundColor: AppColorScheme.primary,
+              foregroundColor: Colors.white,
+              disabledBackgroundColor: AppColorScheme.neutral300,
+            ),
+            child: isProcessing
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Processing...',
+                        style: AppTheme.titleMedium.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.payment, size: 24),
+                      const SizedBox(width: 12),
+                      Text(
+                        buttonText,
+                        style: AppTheme.titleMedium.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton(
+            onPressed: isProcessing ? null : () => Navigator.of(context).pop(),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              side: BorderSide(color: AppColorScheme.primary),
+            ),
+            child: Text(
+              'Back to Modify',
+              style: AppTheme.titleMedium.copyWith(
+                color: AppColorScheme.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -627,6 +729,9 @@ class _RailPassPurchaseScreenState extends ConsumerState<RailPassPurchaseScreen>
       // Send confirmation via RailPassService
       await RailPassService.sendConfirmationEmail(_buildPurchaseData());
 
+      // Send data to n8n webhook
+      await _sendWebhookData();
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -645,6 +750,9 @@ class _RailPassPurchaseScreenState extends ConsumerState<RailPassPurchaseScreen>
   Future<void> _processAtmTransferPayment() async {
     // For ATM transfer, just save order and send instructions
     await RailPassService.sendAtmTransferInstructions(_buildPurchaseData());
+
+    // Send data to n8n webhook
+    await _sendWebhookData();
 
     setState(() {
       _paymentStatus = PaymentStatus.success;
@@ -674,7 +782,43 @@ class _RailPassPurchaseScreenState extends ConsumerState<RailPassPurchaseScreen>
         'address': _addressController.text,
       },
       'paymentMethod': _selectedPaymentMethod,
+      'atmLastFive': _selectedPaymentMethod == app_models.PaymentMethod.atmTransfer
+          ? _atmLastFiveController.text
+          : null,
       'totalAmount': _currentPrice,
     };
+  }
+
+  Future<void> _sendWebhookData() async {
+    try {
+      final Map<String, dynamic> webhookData = {
+        'customerEmail': _emailController.text,
+        'customerAddress': _addressController.text,
+        'ticketName': widget.railPass.name,
+        'days': _selectedPricing?.days.toString() ?? '0',
+        'attendees': [
+          {
+            'name': '${_firstNameController.text} ${_lastNameController.text}',
+          }
+        ],
+      };
+
+      final response = await http.post(
+        Uri.parse('https://dream-ticket.app.n8n.cloud/webhook/790b561b-9a44-4b3d-89a2-8d879f058493'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(webhookData),
+      );
+
+      if (response.statusCode == 200) {
+        print('Webhook data sent successfully to n8n');
+      } else {
+        print('Failed to send webhook data. Status code: ${response.statusCode}');
+        print('Response body: ${response.body}');
+      }
+    } catch (e) {
+      print('Error sending webhook data to n8n: $e');
+    }
   }
 }
