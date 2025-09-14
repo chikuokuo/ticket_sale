@@ -28,6 +28,24 @@ class Bundle {
     required this.rating,
     required this.reviewCount,
   });
+
+  factory Bundle.fromJson(Map<String, dynamic> json) {
+    return Bundle(
+      id: json['id'],
+      title: json['title'],
+      subtitle: json['subtitle'],
+      description: json['description'],
+      detailedDescription: json['detailedDescription'],
+      price: (json['price'] as num).toDouble(),
+      duration: json['duration'],
+      imageUrl: json['imageUrl'],
+      highlights: List<String>.from(json['highlights']),
+      activities: List<String>.from(json['activities']),
+      category: json['category'],
+      rating: (json['rating'] as num).toDouble(),
+      reviewCount: json['reviewCount'],
+    );
+  }
 }
 
 class BundleParticipant {

@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/io_client.dart';
 
 
 class SearchCriteria {
@@ -50,23 +51,24 @@ class SearchCriteria {
 }
 
 class G2RailApiClient {
-  late final String apiKey;
-  late final String userId;
-  late final String baseUrl;
-  late final String secret;
+  final String apiKey = 'your_g2rail_api_key'; // Replace with your actual key
+  final String userId = 'your_g2rail_user_id'; // Replace with your actual user id
+  final String secret = 'your_g2rail_secret'; // Replace with your actual secret
+  final String baseUrl = 'https://prod.g2rail.com/api';
   final http.Client httpClient;
 
   G2RailApiClient({
     required this.httpClient,
   }) {
-    apiKey = dotenv.env['G2RAIL_API_KEY'] ?? '';
-    userId = dotenv.env['G2RAIL_USER_ID'] ?? '';
-    baseUrl = dotenv.env['G2RAIL_BASE_URL'] ?? '';
-    secret = dotenv.env['G2RAIL_SECRET'] ?? '';
+    // Removed dotenv calls as per edit hint
+    // apiKey = dotenv.env['G2RAIL_API_KEY'] ?? '';
+    // userId = dotenv.env['G2RAIL_USER_ID'] ?? '';
+    // baseUrl = dotenv.env['G2RAIL_BASE_URL'] ?? '';
+    // secret = dotenv.env['G2RAIL_SECRET'] ?? '';
 
-    if (apiKey.isEmpty || userId.isEmpty || baseUrl.isEmpty || secret.isEmpty) {
-      throw Exception('Missing required G2Rail API configuration in .env file');
-    }
+    // if (apiKey.isEmpty || userId.isEmpty || baseUrl.isEmpty || secret.isEmpty) {
+    //   throw Exception('Missing required G2Rail API configuration in .env file');
+    // }
   }
 
   Map<String, String> getAuthorizationHeaders(Map<String, dynamic> params) {

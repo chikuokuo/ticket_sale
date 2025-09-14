@@ -1,17 +1,12 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
 enum PaymentStatus { idle, processing, success, failed }
 
 class StripeService {
-  static final StripeService _instance = StripeService._internal();
-  factory StripeService() => _instance;
-  StripeService._internal();
-
-  static String get _secretKey => dotenv.env['STRIPE_SECRET_KEY']!;
+  final String _secretKey = 'sk_test_...'; // Replace with your actual secret test key
 
   // Create payment intent on Stripe
   Future<Map<String, dynamic>> createPaymentIntent({

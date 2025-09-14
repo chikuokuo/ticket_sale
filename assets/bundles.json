@@ -1,0 +1,57 @@
+[
+  {
+    "id": "bundle_001",
+    "title": "Bavarian Kings Tour",
+    "subtitle": "Neuschwanstein & Linderhof",
+    "description": "Visit the fairytale castles of King Ludwig II of Bavaria. An enchanting day trip from Munich.",
+    "detailedDescription": "Embark on a magical journey to the legendary castles of Neuschwanstein and Linderhof, built by the enigmatic King Ludwig II. This full-day tour from Munich takes you through the breathtaking landscapes of the Bavarian Alps. You'll explore the opulent interiors of Linderhof Palace, a rococo masterpiece, and marvel at the iconic Neuschwanstein Castle, the inspiration for Disney's Sleeping Beauty castle. Our expert guide will share fascinating stories about the life of the 'Fairytale King'.",
+    "price": 120.0,
+    "duration": "10 hours",
+    "imageUrl": "assets/images/bundle_neuschwanstein.jpg",
+    "highlights": [
+      "Skip-the-line tickets to Neuschwanstein Castle",
+      "Guided tour of Linderhof Palace and gardens",
+      "Comfortable, air-conditioned coach travel",
+      "Photo stop in the charming village of Oberammergau",
+      "Live commentary from a professional guide"
+    ],
+    "activities": [
+      "Depart from Munich city center.",
+      "Travel to Linderhof Palace for a guided tour.",
+      "Stop in Oberammergau, famous for its passion play and woodcarvings.",
+      "Continue to Neuschwanstein Castle.",
+      "Enjoy a guided tour inside the fairytale castle.",
+      "Return journey to Munich."
+    ],
+    "category": "Day Trip",
+    "rating": 4.8,
+    "reviewCount": 1250
+  },
+  {
+    "id": "bundle_002",
+    "title": "Munich City Discovery",
+    "subtitle": "History, Art & Beer",
+    "description": "A comprehensive tour of Munich's highlights, from historic squares to world-class museums and beer gardens.",
+    "detailedDescription": "Experience the best of Munich on this engaging city tour. Start at Marienplatz to see the famous Glockenspiel, then wander through the historic Old Town. Visit the Frauenkirche, Munich's iconic cathedral, and explore the vibrant Viktualienmarkt. In the afternoon, dive into the world of art at the Alte Pinakothek, home to masterpieces by European painters. The tour concludes with a refreshing stein of beer at the legendary Hofbräuhaus, immersing you in true Bavarian culture.",
+    "price": 75.0,
+    "duration": "8 hours",
+    "imageUrl": "assets/images/bundle_munich.jpg",
+    "highlights": [
+      "Guided walking tour of Munich's Old Town",
+      "Visit to the iconic Frauenkirche cathedral",
+      "Entry to the Alte Pinakothek art museum",
+      "A complimentary beer at the Hofbräuhaus",
+      "Insights into Bavarian history and culture"
+    ],
+    "activities": [
+      "Meet at Marienplatz and watch the Glockenspiel.",
+      "Walking tour of the Old Town, including St. Peter's Church and Viktualienmarkt.",
+      "Visit the Frauenkirche.",
+      "Guided tour of the Alte Pinakothek.",
+      "Enjoy a beer at the Hofbräuhaus."
+    ],
+    "category": "City Tour",
+    "rating": 4.7,
+    "reviewCount": 980
+  }
+]

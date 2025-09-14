@@ -1,25 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'screens/main_navigation_screen.dart';
 import 'theme/app_theme.dart';
+import 'providers/bundle_provider.dart'; // Import the provider
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Load environment variables
-  await dotenv.load(fileName: ".env");
+  // Initialize Stripe with a hardcoded key
+  Stripe.publishableKey = 'pk_test_51PFe4sRxH7bTG8bM636XAAo3w1Y21pY23t9FXu8219uJb1n2Xy5E0f3X4qY5Z6a7B8c9D0eF1gH2iJ3kL4mN5oP6qR7s'; // Replace with your actual test key
 
-  // Initialize Stripe
-  Stripe.publishableKey = dotenv.env['STRIPE_PUBLISHABLE_KEY']!;
+  // Create a ProviderContainer to interact with providers before runApp
+  final container = ProviderContainer();
+
+  // Pre-warm the bundlesProvider.
+  // This will load the JSON data into memory.
+  // If there's an error, it will be thrown here.
+  await container.read(bundlesProvider.future);
 
   runApp(
     // To enable Riverpod for the entire project,
     // we wrap the root widget in a "ProviderScope".
-    const ProviderScope(
-      child: MyApp(),
+    UncontrolledProviderScope(
+      container: container,
+      child: const MyApp(),
     ),
   );
 }
