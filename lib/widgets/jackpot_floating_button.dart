@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import 'mega_jackpot_dialog.dart';
 
 class JackpotFloatingButton extends StatefulWidget {
   final double amount;
@@ -143,7 +144,21 @@ class _JackpotFloatingButtonState extends State<JackpotFloatingButton>
           });
         },
         child: GestureDetector(
-          onTap: widget.onTap,
+          onTap: () {
+            if (widget.onTap != null) {
+              widget.onTap!();
+            } else {
+              // Default behavior: show jackpot dialog
+              showDialog(
+                context: context,
+                barrierDismissible: true,
+                barrierColor: Colors.black.withOpacity(0.7),
+                builder: (context) => MegaJackpotDialog(
+                  jackpotAmount: widget.amount * 1000000, // Convert M to actual amount
+                ),
+              );
+            }
+          },
           child: _buildButtonContent(),
         ),
       ),

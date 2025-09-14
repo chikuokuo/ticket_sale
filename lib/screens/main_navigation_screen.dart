@@ -51,17 +51,9 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
             children: _pages,
           ),
           // Jackpot floating button
-          JackpotFloatingButton(
+          const JackpotFloatingButton(
             amount: 9.0,
-            onTap: () {
-              // Handle jackpot button tap
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Jackpot feature coming soon!'),
-                  duration: Duration(seconds: 2),
-                ),
-              );
-            },
+            // Uses default onTap behavior to show MegaJackpotDialog
           ),
         ],
       ),
