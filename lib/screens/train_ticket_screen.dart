@@ -1,9 +1,88 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart';
+import 'package:http/io_client.dart';
+import 'package:intl/intl.dart';
 import '../theme/app_theme.dart';
 import '../theme/colors.dart';
+import '../services/g2rail_api_client.dart';
 
-class TrainTicketScreen extends StatelessWidget {
+class TrainTicketScreen extends StatefulWidget {
   const TrainTicketScreen({super.key});
+
+  @override
+  State<TrainTicketScreen> createState() => _TrainTicketScreenState();
+}
+
+class _TrainTicketScreenState extends State<TrainTicketScreen> {
+  String? _apiResponse;
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  Client baseClient() {
+    HttpClient httpClient = HttpClient();
+    httpClient.badCertificateCallback =
+        (X509Certificate cert, String host, int port) {
+      return true;
+    };
+    Client c = IOClient(httpClient);
+    return c;
+  }
+
+  void _callG2RailAPI() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+      _apiResponse = null;
+    });
+
+    try {
+      final baseUrl = dotenv.env['G2RAIL_BASE_URL'] ?? '';
+      final apiKey = dotenv.env['G2RAIL_API_KEY'] ?? '';
+      final secret = dotenv.env['G2RAIL_SECRET'] ?? '';
+
+      if (baseUrl.isEmpty || apiKey.isEmpty || secret.isEmpty) {
+        throw Exception('G2Rail API credentials not found in environment variables');
+      }
+
+      var gac = GrailApiClient(
+        httpClient: baseClient(),
+        baseUrl: baseUrl,
+        apiKey: apiKey,
+        secret: secret,
+      );
+
+      var response = await gac.getSolutions(
+        "Frankfurt",
+        "Berlin",
+        DateFormat("yyyy-MM-dd")
+            .format(DateTime.now().add(const Duration(days: 7))),
+        "08:00",
+        1,
+        0,
+        0,
+        0,
+        0,
+      );
+
+      var asyncKey = response['async'];
+      await Future.delayed(Duration(seconds: 2));
+      var result = await gac.getAsyncResult(asyncKey);
+
+      setState(() {
+        _isLoading = false;
+        _apiResponse = const JsonEncoder.withIndent('  ').convert(result);
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'API 調用失敗: $e';
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -121,6 +200,146 @@ class TrainTicketScreen extends StatelessWidget {
                   title: 'Operating Hours',
                   description: 'Trains run every 1-2 hours, 6:00 AM - 10:00 PM',
                 ),
+              ],
+            ),
+
+            const SizedBox(height: 24),
+
+            // Real-time Train Search Section
+            _buildSectionCard(
+              title: 'Real-time Train Search',
+              children: [
+                Text(
+                  'Search for available train connections using G2Rail API',
+                  style: AppTheme.bodyMedium.copyWith(
+                    color: AppColorScheme.neutral700,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _isLoading ? null : _callG2RailAPI,
+                    icon: _isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : const Icon(Icons.search),
+                    label: Text(
+                      _isLoading ? 'Searching...' : 'Search Frankfurt → Berlin',
+                      style: AppTheme.titleMedium.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColorScheme.tertiary,
+                      foregroundColor: Colors.white,
+                      elevation: 4,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                if (_errorMessage != null) ...[
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.red.withOpacity(0.3)),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          color: Colors.red,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _errorMessage!,
+                            style: AppTheme.bodyMedium.copyWith(
+                              color: Colors.red,
+                            ),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: _callG2RailAPI,
+                          child: Text('重試'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ] else if (_apiResponse != null) ...[
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColorScheme.primary100,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColorScheme.primary.withOpacity(0.3)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'API 響應結果：',
+                              style: AppTheme.titleMedium.copyWith(
+                                color: AppColorScheme.primary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                setState(() {
+                                  _apiResponse = null;
+                                });
+                              },
+                              child: Text(
+                                '清除',
+                                style: TextStyle(color: AppColorScheme.primary),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          width: double.infinity,
+                          height: 200,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.grey.withOpacity(0.3)),
+                          ),
+                          child: SingleChildScrollView(
+                            child: SelectableText(
+                              _apiResponse!,
+                              style: const TextStyle(
+                                fontFamily: 'monospace',
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
 
