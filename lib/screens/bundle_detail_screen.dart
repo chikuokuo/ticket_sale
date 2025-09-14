@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../models/bundle.dart';
-import '../models/order_type.dart';
 import '../providers/bundle_provider.dart';
-import '../screens/order_summary_screen.dart';
 import '../theme/app_theme.dart';
 import '../theme/colors.dart';
+import 'bundle_participant_screen.dart';
 
 class BundleDetailScreen extends ConsumerStatefulWidget {
   final Bundle bundle;
@@ -674,8 +673,8 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
 
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => const OrderSummaryScreen(
-          orderType: OrderType.bundle,
+        builder: (context) => BundleParticipantScreen(
+          bundle: widget.bundle,
         ),
       ),
     );

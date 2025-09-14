@@ -39,6 +39,19 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
+
+    applicationVariants.all {
+        val variant = this
+        variant.outputs.all {
+            val output = this
+            val project = "futuredreamticket"
+            val separator = "-"
+            val buildType = variant.buildType.name
+            val versionName = variant.versionName
+            val newApkName = "$project$separator$versionName$separator$buildType.apk"
+            (output as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName = newApkName
+        }
+    }
 }
 
 flutter {
