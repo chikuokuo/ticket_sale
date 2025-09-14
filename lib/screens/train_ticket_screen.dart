@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart';
 import 'package:http/io_client.dart';
@@ -32,6 +33,62 @@ class _TrainTicketScreenState extends State<TrainTicketScreen> {
     return c;
   }
 
+  void _copyToClipboard() {
+    if (_apiResponse != null) {
+      Clipboard.setData(ClipboardData(text: _apiResponse!));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('API response copied to clipboard!'),
+          backgroundColor: AppColorScheme.primary,
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  Future<Map<String, dynamic>> _pollForAsyncResult(
+    GrailApiClient gac,
+    String asyncKey, {
+    Duration pollInterval = const Duration(milliseconds: 500),
+    Duration timeout = const Duration(seconds: 30),
+  }) async {
+    final startTime = DateTime.now();
+
+    while (DateTime.now().difference(startTime) < timeout) {
+      try {
+        final result = await gac.getAsyncResult(asyncKey);
+
+        if (result != null && result is Map<String, dynamic>) {
+          // 檢查是否有 data 字段且包含 code
+          if (result.containsKey('data') && result['data'] is Map<String, dynamic>) {
+            final data = result['data'] as Map<String, dynamic>;
+            final code = data['code'];
+
+            if (code == 'async_not_ready') {
+              // 結果還沒準備好，繼續輪詢
+              print('異步結果還未準備好，繼續輪詢...');
+            } else {
+              // 其他情況認為是有效結果
+              return result;
+            }
+          } else {
+            // 沒有 data.code 結構，可能是成功的結果
+            return result;
+          }
+        }
+      } catch (e) {
+        // 如果是網路錯誤或其他錯誤，可能需要重試
+        print('輪詢錯誤: $e');
+      }
+
+      // 等待一段時間後再次輪詢
+      await Future.delayed(pollInterval);
+    }
+
+    throw Exception('獲取異步結果超時 (${timeout.inSeconds}秒)');
+  }
+
   void _callG2RailAPI() async {
     setState(() {
       _isLoading = true;
@@ -56,8 +113,8 @@ class _TrainTicketScreenState extends State<TrainTicketScreen> {
       );
 
       var response = await gac.getSolutions(
-        "Frankfurt",
-        "Berlin",
+        "ST_EMYRPQ9N",
+        "ST_E7G93QNJ",
         DateFormat("yyyy-MM-dd")
             .format(DateTime.now().add(const Duration(days: 7))),
         "08:00",
@@ -69,8 +126,7 @@ class _TrainTicketScreenState extends State<TrainTicketScreen> {
       );
 
       var asyncKey = response['async'];
-      await Future.delayed(Duration(seconds: 2));
-      var result = await gac.getAsyncResult(asyncKey);
+      var result = await _pollForAsyncResult(gac, asyncKey);
 
       setState(() {
         _isLoading = false;
@@ -303,16 +359,32 @@ class _TrainTicketScreenState extends State<TrainTicketScreen> {
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            TextButton(
-                              onPressed: () {
-                                setState(() {
-                                  _apiResponse = null;
-                                });
-                              },
-                              child: Text(
-                                '清除',
-                                style: TextStyle(color: AppColorScheme.primary),
-                              ),
+                            Row(
+                              children: [
+                                TextButton.icon(
+                                  onPressed: _copyToClipboard,
+                                  icon: Icon(
+                                    Icons.copy,
+                                    size: 16,
+                                    color: AppColorScheme.primary,
+                                  ),
+                                  label: Text(
+                                    '複製',
+                                    style: TextStyle(color: AppColorScheme.primary),
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      _apiResponse = null;
+                                    });
+                                  },
+                                  child: Text(
+                                    '清除',
+                                    style: TextStyle(color: AppColorScheme.primary),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
