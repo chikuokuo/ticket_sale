@@ -233,26 +233,7 @@ class _OrderSummaryScreenState extends ConsumerState<OrderSummaryScreen> {
                   },
                 ),
               ),
-            ] else
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                child: TextFormField(
-                  controller: orderState.atmLastFiveController,
-                  decoration: const InputDecoration(
-                    labelText: 'Last 5 digits of bank account',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.account_balance),
-                  ),
-                  keyboardType: TextInputType.number,
-                  maxLength: 5,
-                  validator: (value) {
-                    if (value == null || value.length < 5) {
-                      return 'Please enter 5 digits';
-                    }
-                    return null;
-                  },
-                ),
-              ),
+            ],
           ],
         ),
       ),
