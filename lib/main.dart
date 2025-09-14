@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-import 'screens/select_ticket_screen.dart';
+import 'screens/main_navigation_screen.dart';
 import 'theme/app_theme.dart';
 
 void main() async {
@@ -34,7 +34,7 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system, // Auto switch theme based on system setting
-      home: const SelectTicketScreen(),
+      home: const MainNavigationScreen(),
     );
   }
 }

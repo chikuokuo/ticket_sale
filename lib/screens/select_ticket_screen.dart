@@ -8,7 +8,6 @@ import '../providers/ticket_order_provider.dart';
 import '../theme/colors.dart';
 import '../theme/app_theme.dart';
 import 'ticket_details_screen.dart';
-import 'train_ticket_screen.dart';
 
 class SelectTicketScreen extends ConsumerWidget {
   const SelectTicketScreen({super.key});
@@ -24,48 +23,6 @@ class SelectTicketScreen extends ConsumerWidget {
     'The Museum of the Bavarian Kings can be visited at any time on the booked day between 9:00 and 16:30 (closing at 17:00).',
   ];
 
-  void _handleNavTap(BuildContext context, String navItem) {
-    switch (navItem) {
-      case 'Train Ticket':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => const TrainTicketScreen(),
-          ),
-        );
-        break;
-      case 'Castle Info':
-        // Current page, do nothing
-        break;
-      case 'My Tickets':
-        // TODO: Implement My Tickets page
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('My Tickets feature coming soon!'),
-            backgroundColor: AppColorScheme.primary,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-        break;
-      case 'Profile':
-        // TODO: Implement Profile page
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Profile feature coming soon!'),
-            backgroundColor: AppColorScheme.primary,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-        break;
-      default:
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Tapped on $navItem'),
-            backgroundColor: AppColorScheme.primary,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-    }
-  }
 
   Future<void> _selectDate(BuildContext context, WidgetRef ref) async {
     final notifier = ref.read(ticketOrderProvider.notifier);
@@ -614,53 +571,6 @@ class SelectTicketScreen extends ConsumerWidget {
           ],
         ),
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: AppColorScheme.neutral900.withOpacity(0.1),
-              offset: const Offset(0, -2),
-              blurRadius: 8,
-              spreadRadius: 0,
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildBottomNavItem(
-                  icon: Icons.castle,
-                  label: 'Castle Info',
-                  isSelected: true,
-                  onTap: () => _handleNavTap(context, 'Castle Info'),
-                ),
-                _buildBottomNavItem(
-                  icon: Icons.train,
-                  label: 'Train Ticket',
-                  isSelected: false,
-                  onTap: () => _handleNavTap(context, 'Train Ticket'),
-                ),
-                _buildBottomNavItem(
-                  icon: Icons.confirmation_number,
-                  label: 'My Tickets',
-                  isSelected: false,
-                  onTap: () => _handleNavTap(context, 'My Tickets'),
-                ),
-                _buildBottomNavItem(
-                  icon: Icons.person,
-                  label: 'Profile',
-                  isSelected: false,
-                  onTap: () => _handleNavTap(context, 'Profile'),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 
@@ -829,36 +739,4 @@ class SelectTicketScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildBottomNavItem({
-    required IconData icon,
-    required String label,
-    required bool isSelected,
-    VoidCallback? onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? AppColorScheme.primary : AppColorScheme.neutral500,
-              size: 24,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: AppTheme.labelSmall.copyWith(
-                color: isSelected ? AppColorScheme.primary : AppColorScheme.neutral500,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
