@@ -233,6 +233,7 @@ class TicketOrderNotifier extends StateNotifier<TicketOrderState> {
       // Rethrow the error to be handled by the caller
       throw Exception('Failed to submit order to webhook: $e');
     }
+
   }
 
 
@@ -334,3 +335,4 @@ class TicketOrderNotifier extends StateNotifier<TicketOrderState> {
 final ticketOrderProvider = StateNotifierProvider.autoDispose.family<TicketOrderNotifier, TicketOrderState, TicketType>(
   (ref, ticketType) => TicketOrderNotifier(ticketType),
 );
+
