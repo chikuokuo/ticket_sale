@@ -32,6 +32,29 @@ class _TicketDetailsScreenState extends ConsumerState<TicketDetailsScreen> {
     }
 
     final orderState = ref.read(ticketOrderProvider(widget.ticketType));
+
+    // Validate date and time slot
+    if (orderState.selectedDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Please select a date.'),
+          backgroundColor: AppColorScheme.warning,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    if (widget.ticketType == TicketType.neuschwanstein && orderState.selectedTimeSlot == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Please select a time slot.'),
+          backgroundColor: AppColorScheme.warning,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     // Validate contact information
     if (orderState.customerEmailController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(

@@ -17,6 +17,45 @@ class SelectTicketScreen extends ConsumerStatefulWidget {
 }
 
 class _SelectTicketScreenState extends ConsumerState<SelectTicketScreen> {
+  bool _submitted = false;
+
+  void _handleContinue() {
+    setState(() {
+      _submitted = true;
+    });
+
+    final orderState = ref.read(ticketOrderProvider(TicketType.neuschwanstein));
+
+    if (orderState.selectedDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Please select a date.'),
+          backgroundColor: AppColorScheme.warning,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    if (orderState.selectedTimeSlot == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Please select a time slot.'),
+          backgroundColor: AppColorScheme.warning,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const TicketDetailsScreen(
+          ticketType: TicketType.neuschwanstein,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final orderState = ref.watch(ticketOrderProvider(TicketType.neuschwanstein));
@@ -76,23 +115,16 @@ class _SelectTicketScreenState extends ConsumerState<SelectTicketScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: orderState.attendees.isNotEmpty
-                      ? () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const TicketDetailsScreen(
-                                ticketType: TicketType.neuschwanstein,
-                              ),
-                            ),
-                          );
-                        }
-                      : null,
+                  onPressed: orderState.attendees.isNotEmpty ? _handleContinue : null,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     elevation: 2,
+                    backgroundColor: orderState.attendees.isNotEmpty
+                        ? AppColorScheme.primary
+                        : AppColorScheme.neutral300,
                   ),
                   child: const Text(
                     'Continue',
@@ -123,7 +155,10 @@ class _SelectTicketScreenState extends ConsumerState<SelectTicketScreen> {
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              border: Border.all(color: AppColorScheme.neutral300),
+              border: Border.all(
+                  color: _submitted && orderState.selectedDate == null
+                      ? AppColorScheme.error
+                      : AppColorScheme.neutral300),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -177,6 +212,7 @@ class _SelectTicketScreenState extends ConsumerState<SelectTicketScreen> {
                 'Morning',
                 '9:00 AM - 12:00 PM',
                 Icons.wb_sunny,
+                orderState,
                 orderState.selectedTimeSlot == TimeSlot.am,
                 () => orderNotifier.selectTimeSlot(TimeSlot.am),
               ),
@@ -187,6 +223,7 @@ class _SelectTicketScreenState extends ConsumerState<SelectTicketScreen> {
                 'Afternoon',
                 '1:00 PM - 5:00 PM',
                 Icons.brightness_3,
+                orderState,
                 orderState.selectedTimeSlot == TimeSlot.pm,
                 () => orderNotifier.selectTimeSlot(TimeSlot.pm),
               ),
@@ -201,9 +238,12 @@ class _SelectTicketScreenState extends ConsumerState<SelectTicketScreen> {
     String title,
     String subtitle,
     IconData icon,
+    TicketOrderState orderState,
     bool isSelected,
     VoidCallback onTap,
   ) {
+    final bool showError = _submitted && orderState.selectedTimeSlot == null;
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12.0),
@@ -212,7 +252,9 @@ class _SelectTicketScreenState extends ConsumerState<SelectTicketScreen> {
         decoration: BoxDecoration(
           color: isSelected ? AppColorScheme.primary.withAlpha(26) : Colors.white,
           border: Border.all(
-            color: isSelected ? AppColorScheme.primary : AppColorScheme.neutral300,
+            color: isSelected
+                ? AppColorScheme.primary
+                : (showError ? AppColorScheme.error : AppColorScheme.neutral300),
             width: isSelected ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(12),

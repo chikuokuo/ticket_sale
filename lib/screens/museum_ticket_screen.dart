@@ -16,6 +16,35 @@ class MuseumTicketScreen extends ConsumerStatefulWidget {
 }
 
 class _MuseumTicketScreenState extends ConsumerState<MuseumTicketScreen> {
+  bool _submitted = false;
+
+  void _handleContinue() {
+    setState(() {
+      _submitted = true;
+    });
+
+    final orderState = ref.read(ticketOrderProvider(TicketType.museum));
+
+    if (orderState.selectedDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Please select a date before continuing.'),
+          backgroundColor: AppColorScheme.warning,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const TicketDetailsScreen(
+          ticketType: TicketType.museum,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final orderState = ref.watch(ticketOrderProvider(TicketType.museum));
@@ -71,24 +100,16 @@ class _MuseumTicketScreenState extends ConsumerState<MuseumTicketScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: orderState.attendees.isNotEmpty
-                      ? () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const TicketDetailsScreen(
-                                ticketType: TicketType.museum,
-                              ),
-                            ),
-                          );
-                        }
-                      : null,
+                  onPressed: orderState.attendees.isNotEmpty ? _handleContinue : null,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     elevation: 2,
-                    backgroundColor: AppColorScheme.primary,
+                    backgroundColor: orderState.attendees.isNotEmpty
+                        ? AppColorScheme.primary
+                        : AppColorScheme.neutral300,
                   ),
                   child: const Text(
                     'Continue',
@@ -119,7 +140,10 @@ class _MuseumTicketScreenState extends ConsumerState<MuseumTicketScreen> {
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              border: Border.all(color: AppColorScheme.neutral300),
+              border: Border.all(
+                  color: _submitted && orderState.selectedDate == null
+                      ? AppColorScheme.error
+                      : AppColorScheme.neutral300),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
