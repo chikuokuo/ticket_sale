@@ -41,9 +41,6 @@ class TicketOrderScreen extends ConsumerWidget {
     final hasTimeSlot = orderState.selectedTimeSlot != null;
     final bool canPay = hasDate && hasTimeSlot && !isProcessing;
 
-    // Debug info
-    print('Payment button state: canPay=$canPay, hasDate=$hasDate, hasTimeSlot=$hasTimeSlot, isProcessing=$isProcessing');
-
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
