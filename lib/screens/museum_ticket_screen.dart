@@ -144,7 +144,7 @@ class MuseumTicketScreen extends ConsumerWidget {
   ImageProvider _getBackgroundImage() {
     // Try to load the background image with fallback
     try {
-      return const AssetImage('assets/images/Bg-UffiziGalleries.jpg');
+      return const AssetImage('assets/images/Bg-UffiziGallery.jpg');
     } catch (e) {
       // Fallback to network image if asset is not found
       return const NetworkImage(

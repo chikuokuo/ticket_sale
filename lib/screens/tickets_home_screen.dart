@@ -18,7 +18,7 @@ class TicketsHomeScreen extends StatelessWidget {
         return const NetworkImage(
           'https://images.unsplash.com/photo-1551632811-561732d1e306?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80'
         );
-      } else if (imagePath.contains('UffiziGalleries')) {
+      } else if (imagePath.contains('UffiziGallery')) {
         return const NetworkImage(
           'https://images.unsplash.com/photo-1541362939442-1cf2d9e45d96?w=800&h=600&fit=crop'
         );
@@ -69,7 +69,7 @@ class TicketsHomeScreen extends StatelessWidget {
               context: context,
               title: 'Uffizi Galleries',
               subtitle: 'World-Class Art Museum',
-              imagePath: 'assets/images/Bg-UffiziGalleries.jpg',
+              imagePath: 'assets/images/Bg-UffiziGallery.jpg',
               price: 'from €20.00',
               onTap: () {
                 Navigator.push(
@@ -137,8 +137,8 @@ class TicketsHomeScreen extends StatelessWidget {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Colors.transparent,
-                      Colors.black.withOpacity(0.4),
+                      Colors.black.withOpacity(0.1),
+                      Colors.black.withOpacity(0.6),
                     ],
                   ),
                 ),
