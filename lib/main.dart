@@ -10,7 +10,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Stripe with a hardcoded key
-  Stripe.publishableKey = 'pk_test_51PFe4sRxH7bTG8bM636XAAo3w1Y21pY23t9FXu8219uJb1n2Xy5E0f3X4qY5Z6a7B8c9D0eF1gH2iJ3kL4mN5oP6qR7s'; // Replace with your actual test key
+  Stripe.publishableKey = 'pk_test_51S6oar2Z7txq4ZPOJ5dfijly6A17SUoXDsx9nK0JheaNo8XjLAMsLqLbm4fodqNdnD3XpB7S7c9TPFMlb8ZoXz9000Z5Wj34b6'; // Replace with your actual test key
+  await Stripe.instance.applySettings();
 
   // Create a ProviderContainer to interact with providers before runApp
   final container = ProviderContainer();
