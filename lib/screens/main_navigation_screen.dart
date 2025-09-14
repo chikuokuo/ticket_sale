@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../screens/tickets_home_screen.dart';
+import '../screens/bundle_screen.dart';
+import '../screens/museum_ticket_screen.dart';
+import '../screens/select_ticket_screen.dart';
 import '../screens/train_ticket_screen.dart';
 import '../theme/app_theme.dart';
 import '../theme/colors.dart';
@@ -18,6 +21,7 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
 
   static const List<Widget> _pages = <Widget>[
     TicketsHomeScreen(),
+    BundleScreen(),
     TrainTicketScreen(),
     ProfileScreen(),
   ];
@@ -40,7 +44,11 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.confirmation_number_outlined),
             activeIcon: Icon(Icons.confirmation_number),
-            label: 'Tickets',
+            label: 'Tickets'),
+            BottomNavigationBarItem(
+            icon: Icon(Icons.card_giftcard_outlined),
+            activeIcon: Icon(Icons.card_giftcard),
+            label: 'Bundle',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.train_outlined),
