@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../theme/colors.dart';
 import 'select_ticket_screen.dart';
+import 'museum_ticket_screen.dart';
 import 'train_ticket_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
@@ -17,9 +18,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   // List of screens for each navigation item
   final List<Widget> _screens = [
     const SelectTicketScreen(),
+    const MuseumTicketScreen(),
     const TrainTicketScreen(),
-    const MyTicketsScreen(), // TODO: Implement
-    const ProfileScreen(),   // TODO: Implement
+    const ProfileScreen(), // TODO: Implement
   ];
 
   void _onNavTap(int index) {
@@ -59,13 +60,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   index: 0,
                 ),
                 _buildBottomNavItem(
-                  icon: Icons.train,
-                  label: 'Train Ticket',
+                  icon: Icons.museum,
+                  label: 'Museum',
                   index: 1,
                 ),
                 _buildBottomNavItem(
-                  icon: Icons.confirmation_number,
-                  label: 'My Tickets',
+                  icon: Icons.train,
+                  label: 'Train Ticket',
                   index: 2,
                 ),
                 _buildBottomNavItem(
@@ -116,55 +117,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 }
 
-// Placeholder screens for My Tickets and Profile
-class MyTicketsScreen extends StatelessWidget {
-  const MyTicketsScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColorScheme.neutral50,
-      appBar: AppBar(
-        title: const Text('My Tickets'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        titleTextStyle: AppTheme.headlineSmall.copyWith(
-          color: AppColorScheme.neutral900,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.confirmation_number_outlined,
-              size: 64,
-              color: AppColorScheme.neutral400,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'My Tickets',
-              style: AppTheme.headlineMedium.copyWith(
-                color: AppColorScheme.neutral700,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Coming Soon!',
-              style: AppTheme.bodyLarge.copyWith(
-                color: AppColorScheme.neutral500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
+// Placeholder screen for Profile
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
