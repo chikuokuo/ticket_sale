@@ -5,6 +5,7 @@ import '../models/train_trip.dart';
 import '../models/train_passenger.dart';
 import '../models/train_order.dart';
 import '../services/stripe_service.dart';
+import '../services/train_api_service.dart';
 
 class TrainOrderState {
   final TrainSearchCriteria searchCriteria;
@@ -15,6 +16,8 @@ class TrainOrderState {
   final String contactEmail;
   final bool isLoading;
   final String? errorMessage;
+  final Map<String, dynamic>? rawApiResponse;
+  final bool showApiResponse;
 
   const TrainOrderState({
     this.searchCriteria = const TrainSearchCriteria(),
@@ -25,6 +28,8 @@ class TrainOrderState {
     this.contactEmail = '',
     this.isLoading = false,
     this.errorMessage,
+    this.rawApiResponse,
+    this.showApiResponse = false,
   });
 
   TrainOrderState copyWith({
@@ -36,6 +41,8 @@ class TrainOrderState {
     String? contactEmail,
     bool? isLoading,
     String? errorMessage,
+    Map<String, dynamic>? rawApiResponse,
+    bool? showApiResponse,
   }) {
     return TrainOrderState(
       searchCriteria: searchCriteria ?? this.searchCriteria,
@@ -46,6 +53,8 @@ class TrainOrderState {
       contactEmail: contactEmail ?? this.contactEmail,
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage ?? this.errorMessage,
+      rawApiResponse: rawApiResponse ?? this.rawApiResponse,
+      showApiResponse: showApiResponse ?? this.showApiResponse,
     );
   }
 
@@ -168,23 +177,24 @@ class TrainOrderNotifier extends StateNotifier<TrainOrderState> {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
     try {
-      // Simulate API call delay
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      final results = TrainTripsData.getTripsForRoute(
-        from: state.searchCriteria.fromStation!,
-        to: state.searchCriteria.toStation!,
-        date: state.searchCriteria.departureDate!,
+      // Use real G2Rail API
+      final searchResult = await TrainApiService.instance.searchTrains(
+        fromStation: state.searchCriteria.fromStation!,
+        toStation: state.searchCriteria.toStation!,
+        departureDate: state.searchCriteria.departureDate!,
+        adultCount: state.searchCriteria.adultCount,
+        childCount: state.searchCriteria.childCount,
       );
 
       state = state.copyWith(
-        searchResults: results,
+        searchResults: searchResult.trips,
+        rawApiResponse: searchResult.rawApiResponse,
         isLoading: false,
       );
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Failed to search trains. Please try again.',
+        errorMessage: 'Failed to search trains: ${e.toString()}',
       );
     }
   }
@@ -310,6 +320,10 @@ class TrainOrderNotifier extends StateNotifier<TrainOrderState> {
     }
 
     state = const TrainOrderState();
+  }
+
+  void toggleApiResponseVisibility() {
+    state = state.copyWith(showApiResponse: !state.showApiResponse);
   }
 
   void clearError() {

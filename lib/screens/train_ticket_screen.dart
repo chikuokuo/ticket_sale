@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -15,6 +16,19 @@ class TrainTicketScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final trainState = ref.watch(trainOrderProvider);
     final trainNotifier = ref.read(trainOrderProvider.notifier);
+
+    // Initialize default values if not set
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (trainState.searchCriteria.fromStation == null) {
+        trainNotifier.setFromStation(TrainStations.findById('milan_centrale'));
+      }
+      if (trainState.searchCriteria.toStation == null) {
+        trainNotifier.setToStation(TrainStations.findById('florence_smn'));
+      }
+      if (trainState.searchCriteria.departureDate == null) {
+        trainNotifier.setDepartureDate(DateTime.now().add(const Duration(days: 1)));
+      }
+    });
 
     return Scaffold(
       backgroundColor: AppColorScheme.neutral50,
@@ -122,6 +136,12 @@ class TrainTicketScreen extends ConsumerWidget {
                   ],
                 ),
               ),
+
+            // API Response Display
+            if (trainState.rawApiResponse != null) ...[
+              _buildApiResponseSection(context, ref, trainState, trainNotifier),
+              const SizedBox(height: 24),
+            ],
           ],
         ),
       ),
@@ -165,7 +185,7 @@ class TrainTicketScreen extends ConsumerWidget {
               // From Station
               _buildStationDropdown(
                 label: 'From',
-                value: trainState.searchCriteria.fromStation,
+                value: trainState.searchCriteria.fromStation ?? TrainStations.findById('milan_centrale'),
                 onChanged: trainNotifier.setFromStation,
                 excludeStation: trainState.searchCriteria.toStation,
               ),
@@ -204,7 +224,7 @@ class TrainTicketScreen extends ConsumerWidget {
               // To Station
               _buildStationDropdown(
                 label: 'To',
-                value: trainState.searchCriteria.toStation,
+                value: trainState.searchCriteria.toStation ?? TrainStations.findById('florence_smn'),
                 onChanged: trainNotifier.setToStation,
                 excludeStation: trainState.searchCriteria.fromStation,
               ),
@@ -583,6 +603,119 @@ class TrainTicketScreen extends ConsumerWidget {
           builder: (context) => const TrainResultsScreen(),
         ),
       );
+    }
+  }
+
+  Widget _buildApiResponseSection(
+    BuildContext context,
+    WidgetRef ref,
+    TrainOrderState trainState,
+    TrainOrderNotifier trainNotifier,
+  ) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header with toggle button
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'API Response',
+                style: AppTheme.titleLarge.copyWith(
+                  color: AppColorScheme.neutral900,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Row(
+                children: [
+                  Text(
+                    trainState.showApiResponse ? 'Hide' : 'Show',
+                    style: AppTheme.bodyMedium.copyWith(
+                      color: AppColorScheme.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  InkWell(
+                    onTap: trainNotifier.toggleApiResponseVisibility,
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColorScheme.primary100,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Icon(
+                        trainState.showApiResponse
+                            ? Icons.keyboard_arrow_up
+                            : Icons.keyboard_arrow_down,
+                        color: AppColorScheme.primary,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+
+          // Response content (collapsible)
+          if (trainState.showApiResponse) ...[
+            const SizedBox(height: 16),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColorScheme.neutral100,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColorScheme.neutral300),
+              ),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: SelectableText(
+                  _formatJsonResponse(trainState.rawApiResponse!),
+                  style: const TextStyle(
+                    fontFamily: 'monospace',
+                    fontSize: 12,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Passenger Count: ${trainState.searchCriteria.adultCount} adults, ${trainState.searchCriteria.childCount} children',
+              style: AppTheme.bodySmall.copyWith(
+                color: AppColorScheme.neutral600,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  String _formatJsonResponse(Map<String, dynamic> response) {
+    try {
+      const encoder = JsonEncoder.withIndent('  ');
+      return encoder.convert(response);
+    } catch (e) {
+      return response.toString();
     }
   }
 }

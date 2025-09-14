@@ -70,6 +70,18 @@ class TrainStations {
       code: 'FUS',
       city: 'Füssen',
     ),
+    TrainStation(
+      id: 'milan_centrale',
+      name: 'Milano Centrale',
+      code: 'MIL',
+      city: 'Milan',
+    ),
+    TrainStation(
+      id: 'florence_smn',
+      name: 'Firenze Santa Maria Novella',
+      code: 'FLR',
+      city: 'Florence',
+    ),
   ];
   
   static TrainStation? findById(String id) {
