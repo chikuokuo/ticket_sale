@@ -19,14 +19,11 @@ class TrainSearchResult {
 
 class TrainApiService {
   static TrainApiService? _instance;
-  late final GrailApiClient _apiClient;
+  late final G2RailApiClient _apiClient;
 
   TrainApiService._() {
-    _apiClient = GrailApiClient(
+    _apiClient = G2RailApiClient(
       httpClient: _createHttpClient(),
-      baseUrl: dotenv.env['G2RAIL_BASE_URL']!,
-      apiKey: dotenv.env['G2RAIL_API_KEY']!,
-      secret: dotenv.env['G2RAIL_SECRET']!,
     );
   }
 
