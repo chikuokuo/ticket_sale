@@ -1,7 +1,5 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http/http.dart' as http;
 
 import '../theme/app_theme.dart';
 import '../theme/colors.dart';
@@ -10,6 +8,7 @@ import '../models/payment_method.dart' as app_models;
 import '../models/payment_status.dart';
 import '../services/rail_pass_service.dart';
 import '../services/stripe_service.dart';
+import '../services/webhook_service.dart';
 
 class RailPassPurchaseScreen extends ConsumerStatefulWidget {
   final RailPass railPass;
@@ -791,34 +790,24 @@ class _RailPassPurchaseScreenState extends ConsumerState<RailPassPurchaseScreen>
 
   Future<void> _sendWebhookData() async {
     try {
-      final Map<String, dynamic> webhookData = {
-        'customerEmail': _emailController.text,
-        'customerAddress': _addressController.text,
-        'ticketName': widget.railPass.name,
-        'days': _selectedPricing?.days.toString() ?? '0',
-        'attendees': [
-          {
-            'name': '${_firstNameController.text} ${_lastNameController.text}',
-          }
-        ],
-      };
+      final webhookService = WebhookService();
 
-      final response = await http.post(
-        Uri.parse('https://dream-ticket.app.n8n.cloud/webhook/790b561b-9a44-4b3d-89a2-8d879f058493'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(webhookData),
+      final attendees = [
+        {
+          'name': '${_firstNameController.text} ${_lastNameController.text}',
+        }
+      ];
+
+      await webhookService.sendRailPassOrder(
+        customerEmail: _emailController.text,
+        customerAddress: _addressController.text,
+        ticketName: widget.railPass.name,
+        days: _selectedPricing?.days.toString() ?? '0',
+        attendees: attendees,
       );
-
-      if (response.statusCode == 200) {
-        print('Webhook data sent successfully to n8n');
-      } else {
-        print('Failed to send webhook data. Status code: ${response.statusCode}');
-        print('Response body: ${response.body}');
-      }
     } catch (e) {
       print('Error sending webhook data to n8n: $e');
+      rethrow;
     }
   }
 }

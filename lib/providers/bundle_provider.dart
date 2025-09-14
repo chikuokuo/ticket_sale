@@ -3,13 +3,14 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
 import '../models/bundle.dart';
 import '../models/attendee.dart';
 import '../models/payment_method.dart';
+import '../models/payment_status.dart';
 import '../services/stripe_service.dart';
+import '../services/webhook_service.dart';
 
 enum SubmissionStatus {
   idle,
@@ -153,7 +154,7 @@ class BundleOrderNotifier extends StateNotifier<BundleOrderState> {
         },
       );
 
-      if (result.status == SubmissionStatus.success) {
+      if (result.status == PaymentStatus.success) {
         await _submitToWebhook();
         state = state.copyWith(paymentStatus: SubmissionStatus.success);
         _resetForm();
@@ -172,30 +173,19 @@ class BundleOrderNotifier extends StateNotifier<BundleOrderState> {
       return {'name': fullName, 'ticketType': ticketType};
     }).toList();
 
-    final Map<String, dynamic> bundleData = {
-      'ticketId': 'TR__22697P8',
-      'tourName': 'TXXXXXXXX',
-      'customerEmail': state.customerEmailController.text,
-      'orderDate': DateFormat('yyyy-MM-dd').format(state.selectedDate!),
-      'attendees': attendeesData,
-      'paymentMethod': state.selectedPaymentMethod.name,
-    };
-    
-    if (state.selectedPaymentMethod == PaymentMethod.atmTransfer) {
-      bundleData['bankAccount'] = {'last5': atmLastFive ?? ''};
-    } else {
-      bundleData['totalAmount'] = {'value': getTotalAmount(), 'currency': 'EUR'};
-    }
+    final webhookService = WebhookService();
 
-    final response = await http.post(
-      Uri.parse('https://dream-ticket.app.n8n.cloud/webhook/ae7619b9-fbb4-496f-8876-ec5443de6b4b'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(bundleData),
+    // Use bundle-specific information
+    final ticketId = state.selectedBundle?.id ?? 'TR__22697P8';
+    final tourName = state.selectedBundle?.title ?? 'Bundle Tour';
+
+    await webhookService.sendBundleOrder(
+      customerEmail: state.customerEmailController.text,
+      ticketId: ticketId,
+      tourName: tourName,
+      orderDate: state.selectedDate!,
+      attendees: attendeesData,
     );
-
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception('Webhook call failed with status ${response.statusCode}: ${response.body}');
-    }
   }
 
   void _resetForm() {

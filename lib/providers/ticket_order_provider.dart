@@ -9,6 +9,7 @@ import '../models/payment_method.dart';
 import '../models/payment_status.dart';
 import '../models/time_slot.dart';
 import '../services/stripe_service.dart';
+import '../services/webhook_service.dart';
 
 enum TicketType {
   neuschwanstein,
@@ -235,47 +236,19 @@ class TicketOrderNotifier extends StateNotifier<TicketOrderState> {
       };
     }).toList();
 
-    // Prepare JSON data for n8n webhook
-    final Map<String, dynamic> webhookData = {
-      'customerEmail': state.customerEmailController.text,
-      'orderDate': DateFormat('yyyy-MM-dd').format(state.selectedDate!),
-      'session': state.selectedTimeSlot == TimeSlot.am ? 'morning' : 'afternoon',
-      'tickets': {
-        'total': state.attendees.length,
-        'adults': adultCount,
-        'children': childCount,
-      },
-      'totalAmount': {
-        'value': totalAmount,
-        'currency': 'EUR',
-      },
-      'bankAccount': {
-        'last5': atmLastFive ?? 'N/A', // Use ATM info if available
-      },
-      'attendees': attendeesData,
-      'paymentMethod': state.selectedPaymentMethod.name,
-    };
+    final webhookService = WebhookService();
 
-    try {
-      // Send POST request to n8n webhook
-      final response = await http.post(
-        Uri.parse('https://dream-ticket.app.n8n.cloud/webhook/ae7619b9-fbb4-496f-8876-ec5443de6b4b'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(webhookData),
-      );
-
-      if (response.statusCode != 200 && response.statusCode != 201) {
-        // Error - webhook call failed
-        throw Exception('Webhook call failed with status: ${response.statusCode}');
-      }
-      // Success - webhook received the data, no need to do anything extra here
-    } catch (e) {
-      // Rethrow the error to be handled by the caller
-      throw Exception('Failed to submit order to webhook: $e');
-    }
-
+    await webhookService.sendTicketOrder(
+      customerEmail: state.customerEmailController.text,
+      orderDate: state.selectedDate!,
+      session: state.selectedTimeSlot == TimeSlot.am ? 'morning' : 'afternoon',
+      totalTickets: state.attendees.length,
+      adults: adultCount,
+      children: childCount,
+      totalAmount: totalAmount,
+      bankAccountLast5: atmLastFive ?? 'N/A',
+      attendees: attendeesData,
+    );
   }
 
 
