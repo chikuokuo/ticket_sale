@@ -8,6 +8,7 @@ import '../screens/select_ticket_screen.dart';
 import '../screens/train_ticket_screen.dart';
 import '../theme/app_theme.dart';
 import '../theme/colors.dart';
+import '../widgets/jackpot_floating_button.dart';
 
 class MainNavigationScreen extends ConsumerStatefulWidget {
   final int initialTabIndex;
@@ -43,9 +44,26 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _pages,
+      body: Stack(
+        children: [
+          IndexedStack(
+            index: _selectedIndex,
+            children: _pages,
+          ),
+          // Jackpot floating button
+          JackpotFloatingButton(
+            amount: 9.0,
+            onTap: () {
+              // Handle jackpot button tap
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Jackpot feature coming soon!'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
