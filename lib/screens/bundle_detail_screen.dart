@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../models/bundle.dart';
+import '../models/order_type.dart';
 import '../providers/bundle_provider.dart';
-import '../screens/bundle_participant_screen.dart';
+import '../screens/order_summary_screen.dart';
 import '../theme/app_theme.dart';
 import '../theme/colors.dart';
 
@@ -299,7 +300,7 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
             width: double.infinity,
             height: 56,
             child: ElevatedButton(
-              onPressed: _canProceed(bundleOrder) ? () => _proceedToParticipantInfo() : null,
+              onPressed: _canProceed(bundleOrder) ? () => _proceedToSummary(context, ref) : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: _canProceed(bundleOrder) 
                   ? AppColorScheme.primary 
@@ -519,7 +520,7 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'What\'s Included',
+          "What's Included",
           style: AppTheme.headlineSmall.copyWith(
             color: AppColorScheme.neutral900,
             fontWeight: FontWeight.bold,
@@ -538,7 +539,7 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
                   color: AppColorScheme.success,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.check,
                   color: Colors.white,
                   size: 12,
@@ -659,17 +660,23 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
       for (int i = 0; i < currentCount - count; i++) {
         // Find last index to remove
         final lastIndex = ref.read(bundleOrderProvider).attendees.length - 1;
-        if(lastIndex >= 0) {
+        if (lastIndex >= 0) {
           notifier.removeAttendee(lastIndex);
         }
       }
     }
   }
 
-  void _proceedToParticipantInfo() {
+  void _proceedToSummary(BuildContext context, WidgetRef ref) {
+    // Before navigating, ensure the latest bundle details are in the provider
+    final notifier = ref.read(bundleOrderProvider.notifier);
+    notifier.selectBundle(widget.bundle);
+
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => const BundleParticipantScreen(),
+        builder: (context) => const OrderSummaryScreen(
+          orderType: OrderType.bundle,
+        ),
       ),
     );
   }

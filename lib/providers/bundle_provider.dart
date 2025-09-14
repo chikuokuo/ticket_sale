@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart' show rootBundle;
@@ -7,9 +9,16 @@ import 'package:intl/intl.dart';
 
 import '../models/bundle.dart';
 import '../models/attendee.dart';
+import '../models/payment_method.dart';
+import '../models/payment_status.dart';
 import '../services/stripe_service.dart';
 
-enum PaymentMethod { creditCard, atmTransfer }
+enum SubmissionStatus {
+  idle,
+  inProgress,
+  success,
+  error,
+}
 
 @immutable
 class BundleOrderState {
@@ -19,7 +28,7 @@ class BundleOrderState {
   final GlobalKey<FormState> formKey;
   final TextEditingController customerEmailController;
   final TextEditingController atmLastFiveController;
-  final PaymentStatus paymentStatus;
+  final SubmissionStatus paymentStatus;
   final String? paymentError;
   final PaymentMethod selectedPaymentMethod;
 
@@ -30,7 +39,7 @@ class BundleOrderState {
     required this.formKey,
     required this.customerEmailController,
     required this.atmLastFiveController,
-    this.paymentStatus = PaymentStatus.idle,
+    this.paymentStatus = SubmissionStatus.idle,
     this.paymentError,
     this.selectedPaymentMethod = PaymentMethod.creditCard,
   });
@@ -39,7 +48,7 @@ class BundleOrderState {
     Bundle? selectedBundle,
     List<Attendee>? attendees,
     DateTime? selectedDate,
-    PaymentStatus? paymentStatus,
+    SubmissionStatus? paymentStatus,
     String? paymentError,
     PaymentMethod? selectedPaymentMethod,
     bool clearDate = false,
@@ -112,20 +121,20 @@ class BundleOrderNotifier extends StateNotifier<BundleOrderState> {
     }
     if (state.atmLastFiveController.text.length < 5) {
       state = state.copyWith(
-        paymentStatus: PaymentStatus.failed,
+        paymentStatus: SubmissionStatus.error,
         paymentError: 'Please enter the last 5 digits of your account.',
       );
       return;
     }
 
-    state = state.copyWith(paymentStatus: PaymentStatus.processing, clearPaymentError: true);
+    state = state.copyWith(paymentStatus: SubmissionStatus.inProgress, clearPaymentError: true);
     try {
       await _submitToWebhook(atmLastFive: state.atmLastFiveController.text);
-      state = state.copyWith(paymentStatus: PaymentStatus.success);
+      state = state.copyWith(paymentStatus: SubmissionStatus.success);
       _resetForm();
     } catch (e) {
       state = state.copyWith(
-        paymentStatus: PaymentStatus.failed,
+        paymentStatus: SubmissionStatus.error,
         paymentError: e.toString(),
       );
     }
@@ -135,7 +144,7 @@ class BundleOrderNotifier extends StateNotifier<BundleOrderState> {
     if (!state.formKey.currentState!.validate() || state.selectedDate == null) {
       return;
     }
-    state = state.copyWith(paymentStatus: PaymentStatus.processing, clearPaymentError: true);
+    state = state.copyWith(paymentStatus: SubmissionStatus.inProgress, clearPaymentError: true);
     try {
       final stripeService = StripeService();
       final totalAmount = getTotalAmount();
@@ -152,15 +161,15 @@ class BundleOrderNotifier extends StateNotifier<BundleOrderState> {
         },
       );
 
-      if (result.status == PaymentStatus.success) {
+      if (result.status == SubmissionStatus.success) {
         await _submitToWebhook();
-        state = state.copyWith(paymentStatus: PaymentStatus.success);
+        state = state.copyWith(paymentStatus: SubmissionStatus.success);
         _resetForm();
       } else {
-        state = state.copyWith(paymentStatus: PaymentStatus.failed, paymentError: result.error);
+        state = state.copyWith(paymentStatus: SubmissionStatus.error, paymentError: result.error);
       }
     } catch (e) {
-      state = state.copyWith(paymentStatus: PaymentStatus.failed, paymentError: e.toString());
+      state = state.copyWith(paymentStatus: SubmissionStatus.error, paymentError: e.toString());
     }
   }
 
@@ -206,7 +215,7 @@ class BundleOrderNotifier extends StateNotifier<BundleOrderState> {
     }
     state = state.copyWith(
       attendees: [Attendee()],
-      paymentStatus: PaymentStatus.idle,
+      paymentStatus: SubmissionStatus.idle,
       clearDate: true,
       clearPaymentError: true,
     );

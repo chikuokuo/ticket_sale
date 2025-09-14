@@ -679,7 +679,7 @@ class _TrainDetailsScreenState extends ConsumerState<TrainDetailsScreen> {
       lastDate: DateTime.now(),
     );
     if (picked != null) {
-      trainNotifier.updatePassengerBirthDate(passenger.id, picked);
+      // trainNotifier.updatePassengerBirthDate(passenger.id, picked);
     }
   }
 

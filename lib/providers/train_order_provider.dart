@@ -4,6 +4,7 @@ import '../models/train_station.dart';
 import '../models/train_trip.dart';
 import '../models/train_passenger.dart';
 import '../models/train_order.dart';
+import '../models/payment_status.dart';
 import '../services/stripe_service.dart';
 import '../services/train_api_service.dart';
 
