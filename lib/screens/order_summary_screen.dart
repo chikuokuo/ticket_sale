@@ -5,6 +5,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 
 import '../models/order_type.dart';
 import '../models/payment_method.dart';
+import '../models/payment_status.dart';
 import '../models/time_slot.dart';
 import '../providers/bundle_provider.dart';
 import '../providers/ticket_order_provider.dart';
@@ -75,21 +76,40 @@ class _OrderSummaryScreenState extends ConsumerState<OrderSummaryScreen> {
 
     ref.listen(provider, (previous, current) {
       if (previous?.paymentStatus != current.paymentStatus) {
-        if (current.paymentStatus == SubmissionStatus.success) {
+        if (current.paymentStatus == PaymentStatus.success) {
           final isAtmTransfer = current.selectedPaymentMethod == PaymentMethod.atmTransfer;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (dialogContext) => AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: Row(
+                children: [
+                  Icon(
+                    isAtmTransfer ? Icons.pending_actions : Icons.check_circle,
+                    color: isAtmTransfer ? AppColorScheme.info : AppColorScheme.success,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(isAtmTransfer ? 'Order Received' : 'Payment Successful'),
+                ],
+              ),
               content: Text(
                 isAtmTransfer
-                    ? '✅ Order received! We will confirm your payment within 24 hours.'
-                    : '🎉 Payment successful! Details sent to your email.',
+                    ? 'We have received your order and will confirm your payment within 24 hours. Thank you for your purchase!'
+                    : 'Your payment was successful! A confirmation and your ticket details have been sent to your email.',
               ),
-              backgroundColor: AppColorScheme.success,
-              duration: const Duration(seconds: 5),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(dialogContext).pop();
+                    _backToBooking(context);
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
             ),
           );
-          _backToBooking(context);
-        } else if (current.paymentStatus == SubmissionStatus.error && current.paymentError != null) {
+        } else if (current.paymentStatus == PaymentStatus.failed && current.paymentError != null) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Error: ${current.paymentError}'),
@@ -440,7 +460,7 @@ class _OrderSummaryScreenState extends ConsumerState<OrderSummaryScreen> {
   }
 
   Widget _buildActionButtons(BuildContext context, WidgetRef ref, dynamic orderState) {
-    final isProcessing = orderState.paymentStatus == SubmissionStatus.inProgress;
+    final isProcessing = orderState.paymentStatus == PaymentStatus.processing;
 
     final paymentMethod = orderState.selectedPaymentMethod;
     final buttonText = paymentMethod == PaymentMethod.creditCard

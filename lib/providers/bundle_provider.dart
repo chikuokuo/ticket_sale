@@ -12,13 +12,6 @@ import '../models/payment_status.dart';
 import '../services/stripe_service.dart';
 import '../services/webhook_service.dart';
 
-enum SubmissionStatus {
-  idle,
-  inProgress,
-  success,
-  error,
-}
-
 @immutable
 class BundleOrderState {
   final Bundle? selectedBundle;
@@ -26,7 +19,7 @@ class BundleOrderState {
   final DateTime? selectedDate;
   final TextEditingController customerEmailController;
   final TextEditingController atmLastFiveController;
-  final SubmissionStatus paymentStatus;
+  final PaymentStatus paymentStatus;
   final String? paymentError;
   final PaymentMethod selectedPaymentMethod;
 
@@ -36,7 +29,7 @@ class BundleOrderState {
     this.attendees = const [],
     required this.customerEmailController,
     required this.atmLastFiveController,
-    this.paymentStatus = SubmissionStatus.idle,
+    this.paymentStatus = PaymentStatus.idle,
     this.paymentError,
     this.selectedPaymentMethod = PaymentMethod.creditCard,
   });
@@ -45,7 +38,7 @@ class BundleOrderState {
     Bundle? selectedBundle,
     DateTime? selectedDate,
     List<Attendee>? attendees,
-    SubmissionStatus? paymentStatus,
+    PaymentStatus? paymentStatus,
     String? paymentError,
     PaymentMethod? selectedPaymentMethod,
     bool clearDate = false,
@@ -114,20 +107,20 @@ class BundleOrderNotifier extends StateNotifier<BundleOrderState> {
     }
     if (state.atmLastFiveController.text.length < 5) {
       state = state.copyWith(
-        paymentStatus: SubmissionStatus.error,
+        paymentStatus: PaymentStatus.failed,
         paymentError: 'Please enter the last 5 digits of your account.',
       );
       return;
     }
 
-    state = state.copyWith(paymentStatus: SubmissionStatus.inProgress, clearPaymentError: true);
+    state = state.copyWith(paymentStatus: PaymentStatus.processing, clearPaymentError: true);
     try {
       await _submitToWebhook(atmLastFive: state.atmLastFiveController.text);
-      state = state.copyWith(paymentStatus: SubmissionStatus.success);
+      state = state.copyWith(paymentStatus: PaymentStatus.success);
       _resetForm();
     } catch (e) {
       state = state.copyWith(
-        paymentStatus: SubmissionStatus.error,
+        paymentStatus: PaymentStatus.failed,
         paymentError: e.toString(),
       );
     }
@@ -137,7 +130,7 @@ class BundleOrderNotifier extends StateNotifier<BundleOrderState> {
     if (state.selectedDate == null) {
       return;
     }
-    state = state.copyWith(paymentStatus: SubmissionStatus.inProgress, clearPaymentError: true);
+    state = state.copyWith(paymentStatus: PaymentStatus.processing, clearPaymentError: true);
     try {
       final stripeService = StripeService();
       final totalAmount = getTotalAmount();
@@ -156,13 +149,13 @@ class BundleOrderNotifier extends StateNotifier<BundleOrderState> {
 
       if (result.status == PaymentStatus.success) {
         await _submitToWebhook();
-        state = state.copyWith(paymentStatus: SubmissionStatus.success);
+        state = state.copyWith(paymentStatus: PaymentStatus.success);
         _resetForm();
       } else {
-        state = state.copyWith(paymentStatus: SubmissionStatus.error, paymentError: result.error);
+        state = state.copyWith(paymentStatus: PaymentStatus.failed, paymentError: result.error);
       }
     } catch (e) {
-      state = state.copyWith(paymentStatus: SubmissionStatus.error, paymentError: e.toString());
+      state = state.copyWith(paymentStatus: PaymentStatus.failed, paymentError: e.toString());
     }
   }
 
@@ -196,7 +189,7 @@ class BundleOrderNotifier extends StateNotifier<BundleOrderState> {
     }
     state = state.copyWith(
       attendees: [Attendee()],
-      paymentStatus: SubmissionStatus.idle,
+      paymentStatus: PaymentStatus.idle,
       clearDate: true,
       clearPaymentError: true,
     );
