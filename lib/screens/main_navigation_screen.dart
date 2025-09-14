@@ -10,14 +10,22 @@ import '../theme/app_theme.dart';
 import '../theme/colors.dart';
 
 class MainNavigationScreen extends ConsumerStatefulWidget {
-  const MainNavigationScreen({super.key});
+  final int initialTabIndex;
+
+  const MainNavigationScreen({super.key, this.initialTabIndex = 0});
 
   @override
   ConsumerState<MainNavigationScreen> createState() => _MainNavigationScreenState();
 }
 
 class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
-  int _selectedIndex = 0;
+  late int _selectedIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIndex = widget.initialTabIndex;
+  }
 
   static const List<Widget> _pages = <Widget>[
     TicketsHomeScreen(),

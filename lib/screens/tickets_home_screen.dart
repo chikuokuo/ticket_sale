@@ -36,7 +36,7 @@ class TicketsHomeScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColorScheme.neutral50,
       appBar: AppBar(
-        title: const Text('Select Tickets'),
+        title: const Text('FUTURE DREAM'),
         backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -45,10 +45,15 @@ class TicketsHomeScreen extends StatelessWidget {
           fontWeight: FontWeight.w600,
         ),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            _buildWelcomeHeader(),
+            const SizedBox(height: 32),
+            _buildSectionTitle(),
+            const SizedBox(height: 20),
             _buildTicketCard(
               context: context,
               title: 'Neuschwanstein Castle',
@@ -197,6 +202,123 @@ class TicketsHomeScreen extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle() {
+    return Row(
+      children: [
+        Container(
+          width: 4,
+          height: 24,
+          decoration: BoxDecoration(
+            color: AppColorScheme.primary,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          'Popular Destinations',
+          style: AppTheme.headlineSmall.copyWith(
+            color: AppColorScheme.neutral900,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const Spacer(),
+        TextButton(
+          onPressed: () {
+            // TODO: Navigate to all destinations
+          },
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'View All',
+                style: AppTheme.bodyMedium.copyWith(
+                  color: AppColorScheme.primary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Icon(
+                Icons.arrow_forward_ios,
+                size: 14,
+                color: AppColorScheme.primary,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWelcomeHeader() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColorScheme.primary,
+            AppColorScheme.primary.withOpacity(0.8),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppColorScheme.primary.withOpacity(0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.flight_takeoff,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'future dream',
+                style: AppTheme.headlineLarge.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Welcome to your dream journey',
+            style: AppTheme.bodyLarge.copyWith(
+              color: Colors.white.withOpacity(0.9),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Discover amazing destinations and create unforgettable memories',
+            style: AppTheme.bodyMedium.copyWith(
+              color: Colors.white.withOpacity(0.7),
+            ),
+          ),
+        ],
       ),
     );
   }

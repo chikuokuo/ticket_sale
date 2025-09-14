@@ -10,12 +10,42 @@ import '../services/stripe_service.dart';
 import '../theme/app_theme.dart';
 import '../theme/colors.dart';
 import '../widgets/attendee_info_card.dart';
+import '../widgets/train_recommendation_dialog.dart';
+import '../screens/main_navigation_screen.dart';
 
 class BundleOrderSummaryScreen extends ConsumerWidget {
   const BundleOrderSummaryScreen({super.key});
 
   void _backToBooking(BuildContext context) {
     Navigator.of(context).popUntil((route) => route.isFirst);
+  }
+
+  void _showTrainRecommendation(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => TrainRecommendationDialog(
+        onBookTrain: () {
+          Navigator.of(context).pop(); // Close dialog
+          _navigateToTrainTab(context);
+        },
+        onSkip: () {
+          Navigator.of(context).pop(); // Close dialog
+          _backToBooking(context);
+        },
+      ),
+    );
+  }
+
+  void _navigateToTrainTab(BuildContext context) {
+    Navigator.of(context).popUntil((route) => route.isFirst);
+
+    // Navigate to MainNavigationScreen with train tab selected (index 2)
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (context) => const MainNavigationScreen(initialTabIndex: 2),
+      ),
+    );
   }
 
   Future<void> _handleConfirm(BuildContext context, WidgetRef ref) async {
@@ -43,10 +73,16 @@ class BundleOrderSummaryScreen extends ConsumerWidget {
                     : '🎉 支付成功！详情已发送至您的电子邮箱。',
               ),
               backgroundColor: AppColorScheme.success,
-              duration: const Duration(seconds: 5),
+              duration: const Duration(seconds: 3),
             ),
           );
-          _backToBooking(context);
+
+          // Show train recommendation after a short delay
+          Future.delayed(const Duration(milliseconds: 2000), () {
+            if (context.mounted) {
+              _showTrainRecommendation(context);
+            }
+          });
         } else if (current.paymentStatus == PaymentStatus.failed && current.paymentError != null) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
