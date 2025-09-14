@@ -209,7 +209,14 @@ class BundleOrderSummaryScreen extends ConsumerWidget {
           width: double.infinity,
           child: ElevatedButton(
             onPressed: isProcessing ? null : () => _handleConfirm(context, ref),
-            style: AppTheme.primaryButton,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColorScheme.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
             child: isProcessing
                 ? const SizedBox(
                     width: 24,
