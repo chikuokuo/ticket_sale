@@ -121,6 +121,8 @@ class G2RailApiClient {
     final solutionUrl =
         '$baseUrl/api/v2/online_solutions/?${criteria.toQuery()}';
 
+    print('Requesting URL: $solutionUrl'); // Print the URL for debugging
+
     // Add timeout to the HTTP request (10 seconds)
     final solutionResponse = await httpClient.get(
       Uri.parse(solutionUrl),

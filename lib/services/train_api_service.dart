@@ -51,7 +51,7 @@ class TrainApiService {
       final searchTime = departureTime ?? "08:00"; // Use provided time or default to 08:00
 
       print('🚂 Searching for train trips...');
-      print('📍 Route: ST_L6NN3P6K → ST_DKRRM9Q4');
+      print('📍 Route: Milan Central → Florence Santa Maria Novella');
       print('📅 Date: ${DateFormat("yyyy-MM-dd").format(departureDate)}');
       print('🕐 Time: $searchTime');
       print('👥 Passengers: $adultCount Adult(s), $childCount Child(ren)');
@@ -81,8 +81,8 @@ class TrainApiService {
     // For now, use the specified station codes
     // Later this can be made configurable or mapped from station data
     final response = await _apiClient.getSolutions(
-      "ST_L6NN3P6K", // from station code
-      "ST_DKRRM9Q4", // to station code
+      "ST_L6NN3P6K", // from station code: Milan Central
+      "ST_LO881QPR", // to station code: Florence Santa Maria Novella
       DateFormat("yyyy-MM-dd").format(departureDate),
       searchTime, // Use the departure time
       adultCount,
