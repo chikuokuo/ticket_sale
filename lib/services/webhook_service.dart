@@ -72,6 +72,7 @@ class WebhookService {
     required String ticketName,
     required String days,
     required List<Map<String, String>> attendees,
+    required String bankAccountLast5,
   }) async {
     final data = {
       'customerEmail': customerEmail,
@@ -79,6 +80,9 @@ class WebhookService {
       'ticketName': ticketName,
       'days': days,
       'attendees': attendees,
+      'bankAccount': {
+        'last5': bankAccountLast5,
+      },
     };
 
     await _sendWebhook(WebhookType.railPass, data);

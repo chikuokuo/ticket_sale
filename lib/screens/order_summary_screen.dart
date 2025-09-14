@@ -8,6 +8,7 @@ import '../models/payment_method.dart';
 import '../models/payment_status.dart';
 import '../models/time_slot.dart';
 import '../providers/bundle_provider.dart';
+import '../providers/rail_pass_order_provider.dart';
 import '../providers/ticket_order_provider.dart';
 import '../theme/app_theme.dart';
 import '../theme/colors.dart';
@@ -40,8 +41,10 @@ class _OrderSummaryScreenState extends ConsumerState<OrderSummaryScreen> {
 
     if (widget.orderType == OrderType.ticket) {
       orderNotifier = ref.read(ticketOrderProvider(widget.ticketType!).notifier);
-    } else {
+    } else if (widget.orderType == OrderType.bundle) {
       orderNotifier = ref.read(bundleOrderProvider.notifier);
+    } else {
+      orderNotifier = ref.read(railPassOrderProvider.notifier);
     }
 
     if (_formKey.currentState == null || !_formKey.currentState!.validate()) {
@@ -50,7 +53,9 @@ class _OrderSummaryScreenState extends ConsumerState<OrderSummaryScreen> {
 
     final dynamic orderState = (widget.orderType == OrderType.ticket)
         ? ref.read(ticketOrderProvider(widget.ticketType!))
-        : ref.read(bundleOrderProvider);
+        : (widget.orderType == OrderType.bundle
+            ? ref.read(bundleOrderProvider)
+            : ref.read(railPassOrderProvider));
 
     final paymentMethod = orderState.selectedPaymentMethod;
 
@@ -69,9 +74,12 @@ class _OrderSummaryScreenState extends ConsumerState<OrderSummaryScreen> {
     if (widget.orderType == OrderType.ticket) {
       provider = ticketOrderProvider(widget.ticketType!);
       orderNotifier = ref.read(ticketOrderProvider(widget.ticketType!).notifier);
-    } else {
+    } else if (widget.orderType == OrderType.bundle) {
       provider = bundleOrderProvider;
       orderNotifier = ref.read(bundleOrderProvider.notifier);
+    } else {
+      provider = railPassOrderProvider;
+      orderNotifier = ref.read(railPassOrderProvider.notifier);
     }
 
     ref.listen(provider, (previous, current) {
@@ -197,6 +205,22 @@ class _OrderSummaryScreenState extends ConsumerState<OrderSummaryScreen> {
           value: orderState.selectedDate != null
               ? DateFormat('yyyy-MM-dd').format(orderState.selectedDate!)
               : 'Not selected',
+        ),
+      ];
+    } else if (orderState is RailPassOrderState) {
+      title = orderState.railPass?.name ?? 'Rail Pass Details';
+      details = [
+        _buildInfoRow(
+          icon: Icons.train,
+          label: 'Pass',
+          value:
+              '${orderState.selectedPricing?.days ?? ''} Flexible Days',
+        ),
+        _buildInfoRow(
+          icon: Icons.person,
+          label: 'Passenger',
+          value:
+              '${orderState.firstNameController.text} ${orderState.lastNameController.text}',
         ),
       ];
     }

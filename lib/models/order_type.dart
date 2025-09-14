@@ -1,1 +1,1 @@
-enum OrderType { ticket, bundle }
+enum OrderType { ticket, bundle, railPass }

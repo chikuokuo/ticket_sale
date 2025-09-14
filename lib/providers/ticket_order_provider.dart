@@ -208,6 +208,15 @@ class TicketOrderNotifier extends StateNotifier<TicketOrderState> {
   // Submit ATM payment order to n8n webhook
   Future<void> submitAtmPayment() async {
     state = state.copyWith(paymentStatus: PaymentStatus.processing, clearPaymentError: true);
+
+    if (state.selectedDate == null) {
+      state = state.copyWith(
+        paymentStatus: PaymentStatus.failed,
+        paymentError: 'Please select a date before confirming.',
+      );
+      return;
+    }
+
     try {
       await _submitToWebhook(atmLastFive: state.atmLastFiveController.text);
       state = state.copyWith(paymentStatus: PaymentStatus.success);

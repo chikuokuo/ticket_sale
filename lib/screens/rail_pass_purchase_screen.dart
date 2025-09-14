@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../models/order_type.dart';
+import '../providers/rail_pass_order_provider.dart';
+import '../screens/order_summary_screen.dart';
 import '../theme/app_theme.dart';
 import '../theme/colors.dart';
 import '../models/rail_pass.dart';
@@ -20,46 +23,52 @@ class RailPassPurchaseScreen extends ConsumerStatefulWidget {
 class _RailPassPurchaseScreenState extends ConsumerState<RailPassPurchaseScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  // User information controllers
-  final _firstNameController = TextEditingController();
-  final _lastNameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _addressController = TextEditingController();
-
   // Selected options
-  final TicketCategory _selectedCategory = TicketCategory.individual;
   RailPassPricing? _selectedPricing;
 
   @override
   void initState() {
     super.initState();
     _selectedPricing = widget.railPass.pricing.first; // Default to first option
-  }
-
-  @override
-  void dispose() {
-    _firstNameController.dispose();
-    _lastNameController.dispose();
-    _emailController.dispose();
-    _addressController.dispose();
-    super.dispose();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Initialize controllers with provider's state if needed, or clear them
+      final notifier = ref.read(railPassOrderProvider.notifier);
+      notifier.state.firstNameController.clear();
+      notifier.state.lastNameController.clear();
+      notifier.state.emailController.clear();
+      notifier.state.addressController.clear();
+    });
   }
 
   void _navigateToSummary() {
-    if (!_formKey.currentState!.validate()) {
+    if (!_formKey.currentState!.validate() || _selectedPricing == null) {
       return;
     }
-    // TODO: Navigate to OrderSummaryScreen for rail passes
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Form is valid. Ready to proceed to summary.'),
-        backgroundColor: AppColorScheme.success,
+    _formKey.currentState!.save();
+
+    final notifier = ref.read(railPassOrderProvider.notifier);
+    notifier.setOrderDetails(
+      railPass: widget.railPass,
+      pricing: _selectedPricing!,
+      firstName: notifier.state.firstNameController.text,
+      lastName: notifier.state.lastNameController.text,
+      email: notifier.state.emailController.text,
+      address: notifier.state.addressController.text,
+    );
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const OrderSummaryScreen(
+          orderType: OrderType.railPass,
+        ),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final orderState = ref.watch(railPassOrderProvider);
+
     return Scaffold(
       backgroundColor: AppColorScheme.neutral50,
       appBar: AppBar(
@@ -92,7 +101,7 @@ class _RailPassPurchaseScreenState extends ConsumerState<RailPassPurchaseScreen>
               const SizedBox(height: 24),
 
               // Customer Information
-              _buildCustomerInfoCard(),
+              _buildCustomerInfoCard(orderState),
               const SizedBox(height: 32),
 
               // Action Buttons
@@ -262,7 +271,7 @@ class _RailPassPurchaseScreenState extends ConsumerState<RailPassPurchaseScreen>
     return pricing.individualPrice;
   }
 
-  Widget _buildCustomerInfoCard() {
+  Widget _buildCustomerInfoCard(RailPassOrderState orderState) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -294,7 +303,7 @@ class _RailPassPurchaseScreenState extends ConsumerState<RailPassPurchaseScreen>
             children: [
               Expanded(
                 child: TextFormField(
-                  controller: _firstNameController,
+                  controller: orderState.firstNameController,
                   decoration: const InputDecoration(
                     labelText: 'First Name *',
                     border: OutlineInputBorder(),
@@ -311,7 +320,7 @@ class _RailPassPurchaseScreenState extends ConsumerState<RailPassPurchaseScreen>
               const SizedBox(width: 16),
               Expanded(
                 child: TextFormField(
-                  controller: _lastNameController,
+                  controller: orderState.lastNameController,
                   decoration: const InputDecoration(
                     labelText: 'Last Name *',
                     border: OutlineInputBorder(),
@@ -330,7 +339,7 @@ class _RailPassPurchaseScreenState extends ConsumerState<RailPassPurchaseScreen>
 
           // Email
           TextFormField(
-            controller: _emailController,
+            controller: orderState.emailController,
             decoration: const InputDecoration(
               labelText: 'Email Address *',
               border: OutlineInputBorder(),
@@ -348,7 +357,7 @@ class _RailPassPurchaseScreenState extends ConsumerState<RailPassPurchaseScreen>
 
           // Address
           TextFormField(
-            controller: _addressController,
+            controller: orderState.addressController,
             decoration: const InputDecoration(
               labelText: 'Address *',
               border: OutlineInputBorder(),
