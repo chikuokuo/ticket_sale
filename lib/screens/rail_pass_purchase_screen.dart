@@ -4,11 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_theme.dart';
 import '../theme/colors.dart';
 import '../models/rail_pass.dart';
-import '../models/payment_method.dart' as app_models;
-import '../models/payment_status.dart';
-import '../services/rail_pass_service.dart';
-import '../services/stripe_service.dart';
-import '../services/webhook_service.dart';
 
 class RailPassPurchaseScreen extends ConsumerStatefulWidget {
   final RailPass railPass;
@@ -30,14 +25,10 @@ class _RailPassPurchaseScreenState extends ConsumerState<RailPassPurchaseScreen>
   final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _addressController = TextEditingController();
-  final _atmLastFiveController = TextEditingController();
 
   // Selected options
   final TicketCategory _selectedCategory = TicketCategory.individual;
   RailPassPricing? _selectedPricing;
-  app_models.PaymentMethod _selectedPaymentMethod = app_models.PaymentMethod.creditCard;
-  PaymentStatus _paymentStatus = PaymentStatus.idle;
-  String? _paymentError;
 
   @override
   void initState() {
@@ -51,13 +42,20 @@ class _RailPassPurchaseScreenState extends ConsumerState<RailPassPurchaseScreen>
     _lastNameController.dispose();
     _emailController.dispose();
     _addressController.dispose();
-    _atmLastFiveController.dispose();
     super.dispose();
   }
 
-  double get _currentPrice {
-    if (_selectedPricing == null) return 0;
-    return _selectedPricing!.individualPrice;
+  void _navigateToSummary() {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+    // TODO: Navigate to OrderSummaryScreen for rail passes
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Form is valid. Ready to proceed to summary.'),
+        backgroundColor: AppColorScheme.success,
+      ),
+    );
   }
 
   @override
@@ -95,14 +93,6 @@ class _RailPassPurchaseScreenState extends ConsumerState<RailPassPurchaseScreen>
 
               // Customer Information
               _buildCustomerInfoCard(),
-              const SizedBox(height: 24),
-
-              // Payment Method
-              _buildPaymentMethodCard(),
-              const SizedBox(height: 24),
-
-              // Order Total
-              _buildOrderTotalCard(),
               const SizedBox(height: 32),
 
               // Action Buttons
@@ -378,283 +368,46 @@ class _RailPassPurchaseScreenState extends ConsumerState<RailPassPurchaseScreen>
     );
   }
 
-  Widget _buildPaymentMethodCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(13), // 0.05 opacity
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Payment Method',
-            style: AppTheme.titleLarge.copyWith(
-              color: AppColorScheme.neutral900,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          RadioListTile<app_models.PaymentMethod>(
-            title: const Text('Credit Card'),
-            subtitle: const Text('Pay securely with your credit card'),
-            value: app_models.PaymentMethod.creditCard,
-            groupValue: _selectedPaymentMethod,
-            onChanged: (app_models.PaymentMethod? value) {
-              setState(() {
-                _selectedPaymentMethod = value!;
-              });
-            },
-            activeColor: AppColorScheme.primary,
-          ),
-
-          RadioListTile<app_models.PaymentMethod>(
-            title: const Text('ATM Transfer'),
-            subtitle: const Text('Transfer to our bank account'),
-            value: app_models.PaymentMethod.atmTransfer,
-            groupValue: _selectedPaymentMethod,
-            onChanged: (app_models.PaymentMethod? value) {
-              setState(() {
-                _selectedPaymentMethod = value!;
-              });
-            },
-            activeColor: AppColorScheme.primary,
-          ),
-
-          if (_selectedPaymentMethod == app_models.PaymentMethod.atmTransfer)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColorScheme.primary50,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColorScheme.primary200),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.account_balance,
-                              color: AppColorScheme.primary,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Bank Transfer Information',
-                              style: AppTheme.titleMedium.copyWith(
-                                color: AppColorScheme.primary,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Account: 1234-5678-9999',
-                          style: AppTheme.bodyLarge.copyWith(
-                            color: AppColorScheme.neutral800,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _atmLastFiveController,
-                    decoration: const InputDecoration(
-                      labelText: 'Last 5 digits of bank account',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.account_balance),
-                    ),
-                    keyboardType: TextInputType.number,
-                    maxLength: 5,
-                    validator: (value) {
-                      if (_selectedPaymentMethod == app_models.PaymentMethod.atmTransfer &&
-                          (value == null || value.length < 5)) {
-                        return 'Please enter 5 digits';
-                      }
-                      return null;
-                    },
-                  ),
-                ],
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildOrderTotalCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [AppColorScheme.primary100, AppColorScheme.primary50],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColorScheme.primary200, width: 2),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Order Summary',
-            style: AppTheme.titleLarge.copyWith(
-              color: AppColorScheme.primary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                widget.railPass.name,
-                style: AppTheme.bodyMedium.copyWith(
-                  color: AppColorScheme.neutral800,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '${_selectedPricing?.days} days • Individual',
-                style: AppTheme.bodySmall.copyWith(
-                  color: AppColorScheme.neutral600,
-                ),
-              ),
-            ],
-          ),
-
-          const Divider(height: 32),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Total Amount',
-                style: AppTheme.titleLarge.copyWith(
-                  color: AppColorScheme.primary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                '€${_currentPrice.toStringAsFixed(2)}',
-                style: AppTheme.headlineMedium.copyWith(
-                  color: AppColorScheme.primary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildActionButtons() {
-    final isProcessing = _paymentStatus == PaymentStatus.processing;
-
-    final buttonText = _selectedPaymentMethod == app_models.PaymentMethod.creditCard
-        ? 'Confirm & Pay'
-        : 'Confirm ATM Transfer';
-
     return Column(
       children: [
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: isProcessing ? null : _handlePurchase,
+            onPressed: _navigateToSummary,
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              elevation: 4,
+              elevation: 2,
               backgroundColor: AppColorScheme.primary,
               foregroundColor: Colors.white,
-              disabledBackgroundColor: AppColorScheme.neutral300,
             ),
-            child: isProcessing
-                ? Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Processing...',
-                        style: AppTheme.titleMedium.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  )
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.payment, size: 24),
-                      const SizedBox(width: 12),
-                      Text(
-                        buttonText,
-                        style: AppTheme.titleMedium.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
+            child: const Text(
+              'Continue to Summary',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ),
         const SizedBox(height: 16),
         SizedBox(
           width: double.infinity,
           child: OutlinedButton(
-            onPressed: isProcessing ? null : () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(context).pop(),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              side: BorderSide(color: AppColorScheme.primary),
             ),
-            child: Text(
-              'Back to Modify',
-              style: AppTheme.titleMedium.copyWith(
-                color: AppColorScheme.primary,
+            child: const Text(
+              'Back',
+              style: TextStyle(
+                fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -662,152 +415,5 @@ class _RailPassPurchaseScreenState extends ConsumerState<RailPassPurchaseScreen>
         ),
       ],
     );
-  }
-
-  Future<void> _handlePurchase() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    setState(() {
-      _paymentStatus = PaymentStatus.processing;
-      _paymentError = null;
-    });
-
-    try {
-      if (_selectedPaymentMethod == app_models.PaymentMethod.creditCard) {
-        await _processCreditCardPayment();
-      } else {
-        await _processAtmTransferPayment();
-      }
-    } catch (e) {
-      setState(() {
-        _paymentStatus = PaymentStatus.failed;
-        _paymentError = e.toString();
-      });
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${_paymentError ?? 'Payment failed'}'),
-            backgroundColor: AppColorScheme.error,
-            duration: const Duration(seconds: 5),
-            action: SnackBarAction(
-              label: 'Retry',
-              textColor: Colors.white,
-              onPressed: _handlePurchase,
-            ),
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> _processCreditCardPayment() async {
-    final stripeService = StripeService();
-
-    final result = await stripeService.processPayment(
-      context: context,
-      amount: _currentPrice,
-      currency: 'eur',
-      customerEmail: _emailController.text,
-      metadata: {
-        'railPass': widget.railPass.name,
-        'duration': '${_selectedPricing?.days} days',
-        'category': _selectedCategory.name,
-        'customerName': '${_firstNameController.text} ${_lastNameController.text}',
-        'address': _addressController.text,
-      },
-    );
-
-    if (result.status == PaymentStatus.success) {
-      setState(() {
-        _paymentStatus = PaymentStatus.success;
-      });
-
-      // Send confirmation via RailPassService
-      await RailPassService.sendConfirmationEmail(_buildPurchaseData());
-
-      // Send data to n8n webhook
-      await _sendWebhookData();
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('🎉 Payment successful! Rail pass details sent to your email.'),
-            backgroundColor: AppColorScheme.success,
-            duration: const Duration(seconds: 5),
-          ),
-        );
-        Navigator.of(context).popUntil((route) => route.isFirst);
-      }
-    } else {
-      throw Exception(result.error ?? 'Payment failed');
-    }
-  }
-
-  Future<void> _processAtmTransferPayment() async {
-    // For ATM transfer, just save order and send instructions
-    await RailPassService.sendAtmTransferInstructions(_buildPurchaseData());
-
-    // Send data to n8n webhook
-    await _sendWebhookData();
-
-    setState(() {
-      _paymentStatus = PaymentStatus.success;
-    });
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('✅ Order received! We will confirm your payment within 24 hours.'),
-          backgroundColor: AppColorScheme.success,
-          duration: const Duration(seconds: 5),
-        ),
-      );
-      Navigator.of(context).popUntil((route) => route.isFirst);
-    }
-  }
-
-  Map<String, dynamic> _buildPurchaseData() {
-    return {
-      'railPass': widget.railPass,
-      'selectedPricing': _selectedPricing,
-      'selectedCategory': _selectedCategory,
-      'customerInfo': {
-        'firstName': _firstNameController.text,
-        'lastName': _lastNameController.text,
-        'email': _emailController.text,
-        'address': _addressController.text,
-      },
-      'paymentMethod': _selectedPaymentMethod,
-      'atmLastFive': _selectedPaymentMethod == app_models.PaymentMethod.atmTransfer
-          ? _atmLastFiveController.text
-          : null,
-      'totalAmount': _currentPrice,
-    };
-  }
-
-  Future<void> _sendWebhookData() async {
-    try {
-      final webhookService = WebhookService();
-
-      final attendees = [
-        {
-          'name': '${_firstNameController.text} ${_lastNameController.text}',
-        }
-      ];
-
-      await webhookService.sendRailPassOrder(
-        customerEmail: _emailController.text,
-        customerAddress: _addressController.text,
-        ticketName: widget.railPass.name,
-        days: _selectedPricing?.days.toString() ?? '0',
-        attendees: attendees,
-      );
-    } catch (e) {
-      print('Error sending webhook data to n8n: $e');
-      rethrow;
-    }
   }
 }
