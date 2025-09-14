@@ -108,7 +108,7 @@ class TicketOrderNotifier extends StateNotifier<TicketOrderState> {
         _childTicketPrice = 0.0;
         break;
       case TicketType.museum:
-        _adultTicketPrice = 21.0; // Assuming same price for now, can be changed
+        _adultTicketPrice = 20.0;
         _childTicketPrice = 0.0;
         break;
     }

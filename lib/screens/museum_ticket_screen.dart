@@ -45,12 +45,12 @@ class _MuseumTicketScreenState extends ConsumerState<MuseumTicketScreen> {
             children: [
               // Header
               Text(
-                'Museum of Bavarian Kings',
+                'Uffizi Galleries',
                 style: AppTheme.displaySmall,
               ),
               const SizedBox(height: 8),
               Text(
-                'Explore the history of the Wittelsbach dynasty.',
+                'World-Class Art Museum',
                 style: AppTheme.bodyLarge.copyWith(color: AppColorScheme.neutral600),
               ),
               const SizedBox(height: 24),
@@ -172,7 +172,7 @@ class _MuseumTicketScreenState extends ConsumerState<MuseumTicketScreen> {
         _buildTicketCounter(
           title: 'Adults',
           subtitle: 'Ages 18+',
-          price: '€15.00',
+          price: '€20.00',
           count: adultCount,
           onIncrement: () => orderNotifier.addAttendee(AttendeeType.adult),
           onDecrement: () => orderNotifier.removeAttendee(AttendeeType.adult),
