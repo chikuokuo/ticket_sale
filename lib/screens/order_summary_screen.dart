@@ -27,18 +27,38 @@ class OrderSummaryScreen extends ConsumerWidget {
     Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
+  Future<void> _handleConfirm(BuildContext context, WidgetRef ref) async {
+    final orderState = ref.read(ticketOrderProvider(ticketType));
+    final orderNotifier = ref.read(ticketOrderProvider(ticketType).notifier);
+
+    // Defensively handle potential null value for payment method
+    final paymentMethod = orderState.selectedPaymentMethod ?? PaymentMethod.creditCard;
+
+    if (paymentMethod == PaymentMethod.creditCard) {
+      await orderNotifier.processPayment(context);
+    } else {
+      await orderNotifier.submitAtmPayment();
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Listen for payment status changes to show notifications
     ref.listen<TicketOrderState>(ticketOrderProvider(ticketType), (previous, current) {
       if (previous?.paymentStatus != current.paymentStatus) {
         if (current.paymentStatus == PaymentStatus.success) {
+          final isAtmTransfer = current.selectedPaymentMethod == PaymentMethod.atmTransfer;
+          
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('🎉 Payment successful! Tickets sent to your email.'),
+              content: Text(
+                isAtmTransfer
+                  ? '✅ Order received! We will confirm your payment within 24 hours.'
+                  : '🎉 Payment successful! Tickets sent to your email.',
+              ),
               backgroundColor: AppColorScheme.success,
               behavior: SnackBarBehavior.floating,
-              duration: const Duration(seconds: 4),
+              duration: const Duration(seconds: 5),
             ),
           );
           // Return to first page
@@ -104,6 +124,11 @@ class OrderSummaryScreen extends ConsumerWidget {
 
               // Visitor information
               _buildVisitorInfoCard(orderState),
+
+              const SizedBox(height: 24),
+
+              // Payment method
+              _buildPaymentMethodCard(orderState, orderNotifier),
 
               const SizedBox(height: 24),
 
@@ -208,6 +233,75 @@ class OrderSummaryScreen extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentMethodCard(
+    TicketOrderState orderState,
+    TicketOrderNotifier orderNotifier,
+  ) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.payment,
+                  color: AppColorScheme.primary,
+                  size: 24,
+                ),
+                const SizedBox(width: 8),
+                Text('Payment Method', style: AppTheme.titleLarge),
+              ],
+            ),
+            const SizedBox(height: 8),
+            RadioListTile<PaymentMethod>(
+              title: const Text('Credit Card'),
+              value: PaymentMethod.creditCard,
+              groupValue: orderState.selectedPaymentMethod,
+              onChanged: (PaymentMethod? value) {
+                if (value != null) {
+                  orderNotifier.selectPaymentMethod(value);
+                }
+              },
+            ),
+            RadioListTile<PaymentMethod>(
+              title: const Text('ATM Transfer'),
+              value: PaymentMethod.atmTransfer,
+              groupValue: orderState.selectedPaymentMethod,
+              onChanged: (PaymentMethod? value) {
+                if (value != null) {
+                  orderNotifier.selectPaymentMethod(value);
+                }
+              },
+            ),
+            if (orderState.selectedPaymentMethod == PaymentMethod.atmTransfer)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: TextFormField(
+                  controller: orderState.atmLastFiveController,
+                  decoration: const InputDecoration(
+                    labelText: 'Last 5 digits of your account',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.number,
+                  maxLength: 5,
+                  validator: (value) {
+                    if (value == null || value.length < 5) {
+                      return 'Please enter 5 digits';
+                    }
+                    return null;
+                  },
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -592,13 +686,19 @@ class OrderSummaryScreen extends ConsumerWidget {
 
   Widget _buildActionButtons(BuildContext context, WidgetRef ref, TicketOrderState orderState) {
     final isProcessing = orderState.paymentStatus == PaymentStatus.processing;
+
+    // Defensively handle potential null value for payment method
+    final paymentMethod = orderState.selectedPaymentMethod ?? PaymentMethod.creditCard;
+    final buttonText = paymentMethod == PaymentMethod.creditCard
+        ? 'Confirm Order & Pay'
+        : 'Confirm ATM Transfer';
     
     return Column(
       children: [
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: isProcessing ? null : () => _handlePayment(context, ref),
+            onPressed: isProcessing ? null : () => _handleConfirm(context, ref),
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
@@ -621,12 +721,12 @@ class OrderSummaryScreen extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    const Text('Processing Payment...'),
+                    const Text('Processing...'),
                   ],
                 )
-              : const Text(
-                  'Confirm Order & Pay',
-                  style: TextStyle(
+              : Text(
+                  buttonText,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
                   ),

@@ -13,6 +13,8 @@ enum TicketType {
   museum,
 }
 
+enum PaymentMethod { creditCard, atmTransfer }
+
 // 1. Defines the state of the ticket order form
 @immutable
 class TicketOrderState {
@@ -21,8 +23,10 @@ class TicketOrderState {
   final TimeSlot? selectedTimeSlot;
   final GlobalKey<FormState> formKey;
   final TextEditingController customerEmailController;
+  final TextEditingController atmLastFiveController;
   final PaymentStatus paymentStatus;
   final String? paymentError;
+  final PaymentMethod selectedPaymentMethod;
 
   const TicketOrderState({
     required this.attendees,
@@ -30,8 +34,10 @@ class TicketOrderState {
     this.selectedTimeSlot,
     required this.formKey,
     required this.customerEmailController,
+    required this.atmLastFiveController,
     this.paymentStatus = PaymentStatus.idle,
     this.paymentError,
+    this.selectedPaymentMethod = PaymentMethod.creditCard,
   });
 
   // Allows creating a copy of the state with modified fields
@@ -41,6 +47,7 @@ class TicketOrderState {
     TimeSlot? selectedTimeSlot,
     PaymentStatus? paymentStatus,
     String? paymentError,
+    PaymentMethod? selectedPaymentMethod,
     bool clearDate = false,
     bool clearTimeSlot = false,
     bool clearPaymentError = false,
@@ -51,8 +58,10 @@ class TicketOrderState {
       selectedTimeSlot: clearTimeSlot ? null : (selectedTimeSlot ?? this.selectedTimeSlot),
       formKey: formKey, // controllers and key are not copied
       customerEmailController: customerEmailController,
+      atmLastFiveController: atmLastFiveController,
       paymentStatus: paymentStatus ?? this.paymentStatus,
       paymentError: clearPaymentError ? null : (paymentError ?? this.paymentError),
+      selectedPaymentMethod: selectedPaymentMethod ?? this.selectedPaymentMethod,
     );
   }
 }
@@ -68,6 +77,7 @@ class TicketOrderNotifier extends StateNotifier<TicketOrderState> {
           attendees: [Attendee()],
           formKey: GlobalKey<FormState>(),
           customerEmailController: TextEditingController(),
+          atmLastFiveController: TextEditingController(),
         )) {
     _initializePrices();
   }
@@ -113,6 +123,10 @@ class TicketOrderNotifier extends StateNotifier<TicketOrderState> {
 
   void selectTimeSlot(TimeSlot? timeSlot) {
     state = state.copyWith(selectedTimeSlot: timeSlot);
+  }
+
+  void selectPaymentMethod(PaymentMethod method) {
+    state = state.copyWith(selectedPaymentMethod: method);
   }
 
   // Calculate total amount
@@ -178,8 +192,38 @@ class TicketOrderNotifier extends StateNotifier<TicketOrderState> {
     }
   }
 
+  // Submit ATM payment order to n8n webhook
+  Future<void> submitAtmPayment() async {
+    // Also validate the main form for email, etc.
+    if (!state.formKey.currentState!.validate()) {
+      return;
+    }
+    // Validate ATM specific field
+    if (state.atmLastFiveController.text.length < 5) {
+      state = state.copyWith(
+        paymentStatus: PaymentStatus.failed,
+        paymentError: 'Please enter the last 5 digits of your bank account.',
+      );
+      return;
+    }
+
+    state = state.copyWith(paymentStatus: PaymentStatus.processing, clearPaymentError: true);
+
+    try {
+      // Use the existing _submitToWebhook logic but add the bank account info
+      await _submitToWebhook(atmLastFive: state.atmLastFiveController.text);
+      state = state.copyWith(paymentStatus: PaymentStatus.success);
+      _resetForm();
+    } catch (e) {
+      state = state.copyWith(
+        paymentStatus: PaymentStatus.failed,
+        paymentError: 'Failed to submit ATM order: $e',
+      );
+    }
+  }
+
   // Submit order to n8n webhook after successful payment
-  Future<void> _submitToWebhook() async {
+  Future<void> _submitToWebhook({String? atmLastFive}) async {
     final int adultCount = state.attendees.where((a) => a.type == AttendeeType.adult).length;
     final int childCount = state.attendees.where((a) => a.type == AttendeeType.child).length;
     final double totalAmount = getTotalAmount();
@@ -209,9 +253,10 @@ class TicketOrderNotifier extends StateNotifier<TicketOrderState> {
         'currency': 'EUR',
       },
       'bankAccount': {
-        'last5': '12345', // Extract last 5 digits from "1234-5678-9999"
+        'last5': atmLastFive ?? 'N/A', // Use ATM info if available
       },
       'attendees': attendeesData,
+      'paymentMethod': state.selectedPaymentMethod.name,
     };
 
     try {
@@ -233,6 +278,7 @@ class TicketOrderNotifier extends StateNotifier<TicketOrderState> {
       // Rethrow the error to be handled by the caller
       throw Exception('Failed to submit order to webhook: $e');
     }
+
   }
 
 
@@ -304,6 +350,7 @@ class TicketOrderNotifier extends StateNotifier<TicketOrderState> {
   void _resetForm() {
     state.formKey.currentState!.reset();
     state.customerEmailController.clear();
+    state.atmLastFiveController.clear();
 
     // Dispose old controllers before creating a new list
     for (var attendee in state.attendees) {
@@ -326,6 +373,7 @@ class TicketOrderNotifier extends StateNotifier<TicketOrderState> {
       attendee.dispose();
     }
     state.customerEmailController.dispose();
+    state.atmLastFiveController.dispose();
     super.dispose();
   }
 }
@@ -334,3 +382,4 @@ class TicketOrderNotifier extends StateNotifier<TicketOrderState> {
 final ticketOrderProvider = StateNotifierProvider.autoDispose.family<TicketOrderNotifier, TicketOrderState, TicketType>(
   (ref, ticketType) => TicketOrderNotifier(ticketType),
 );
+
