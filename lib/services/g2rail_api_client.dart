@@ -52,10 +52,9 @@ class SearchCriteria {
 }
 
 class G2RailApiClient {
-  final String apiKey = 'your_g2rail_api_key'; // Replace with your actual key
-  final String userId = 'your_g2rail_user_id'; // Replace with your actual user id
-  final String secret = 'your_g2rail_secret'; // Replace with your actual secret
-  final String baseUrl = 'https://prod.g2rail.com/api';
+  final String apiKey = 'fa656e6b99d64f309d72d6a8e7284953'; // Replace with your actual keylace with your actual user id
+  final String secret = '9a52b1f7-7c96-4305-8569-1016a55048bc'; // Replace with your actual secret
+  final String baseUrl = 'http://alpha-api.g2rail.com';
   final http.Client httpClient;
 
   G2RailApiClient({

@@ -56,11 +56,11 @@ class TrainApiService {
       print('🕐 Time: $searchTime');
       print('👥 Passengers: $adultCount Adult(s), $childCount Child(ren)');
 
-      // Create a timeout for the entire search operation (30 seconds)
+      // Create a timeout for the entire search operation (50 seconds)
       return await Future.any([
         _performSearch(fromStation, toStation, departureDate, searchTime, adultCount, childCount),
-        Future.delayed(const Duration(seconds: 30), () {
-          throw Exception('Search timed out: Operation took longer than 30 seconds and was canceled');
+        Future.delayed(const Duration(seconds: 50), () {
+          throw Exception('Search timed out: Operation took longer than 50 seconds and was canceled');
         }),
       ]);
 
@@ -120,8 +120,8 @@ class TrainApiService {
   }
 
   Future<Map<String, dynamic>> _pollAsyncResult(String asyncKey) async {
-    const maxAttempts = 12; // Reduced to fit within 30s total timeout (12 * 2s = 24s)
-    const pollInterval = Duration(seconds: 2);
+    const maxAttempts = 15; // Increased to fit within 50s total timeout (15 * 3s = 45s)
+    const pollInterval = Duration(seconds: 3);
 
     for (int attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
