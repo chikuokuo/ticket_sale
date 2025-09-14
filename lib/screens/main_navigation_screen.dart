@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../screens/bundle_screen.dart';
 import '../screens/museum_ticket_screen.dart';
 import '../screens/select_ticket_screen.dart';
 import '../screens/train_ticket_screen.dart';
@@ -18,6 +19,7 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
   int _selectedIndex = 0;
 
   static const List<Widget> _pages = <Widget>[
+    BundleScreen(),
     SelectTicketScreen(),
     MuseumTicketScreen(),
     TrainTicketScreen(),
@@ -39,6 +41,11 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.card_giftcard_outlined),
+            activeIcon: Icon(Icons.card_giftcard),
+            label: 'Bundle',
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.castle_outlined),
             activeIcon: Icon(Icons.castle),
