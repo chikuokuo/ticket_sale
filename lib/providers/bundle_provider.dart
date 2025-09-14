@@ -33,10 +33,10 @@ class BundleOrderState {
   final PaymentMethod selectedPaymentMethod;
 
   const BundleOrderState({
-    this.selectedBundle,
-    required this.attendees,
-    this.selectedDate,
     required this.formKey,
+    this.selectedBundle,
+    this.selectedDate,
+    this.attendees = const [],
     required this.customerEmailController,
     required this.atmLastFiveController,
     this.paymentStatus = SubmissionStatus.idle,
@@ -45,9 +45,10 @@ class BundleOrderState {
   });
 
   BundleOrderState copyWith({
+    GlobalKey<FormState>? formKey,
     Bundle? selectedBundle,
-    List<Attendee>? attendees,
     DateTime? selectedDate,
+    List<Attendee>? attendees,
     SubmissionStatus? paymentStatus,
     String? paymentError,
     PaymentMethod? selectedPaymentMethod,
@@ -55,14 +56,14 @@ class BundleOrderState {
     bool clearPaymentError = false,
   }) {
     return BundleOrderState(
+      formKey: formKey ?? this.formKey,
       selectedBundle: selectedBundle ?? this.selectedBundle,
-      attendees: attendees ?? this.attendees,
       selectedDate: clearDate ? null : (selectedDate ?? this.selectedDate),
-      formKey: formKey,
+      attendees: attendees ?? this.attendees,
       customerEmailController: customerEmailController,
       atmLastFiveController: atmLastFiveController,
       paymentStatus: paymentStatus ?? this.paymentStatus,
-      paymentError: clearPaymentError ? null : (paymentError ?? this.paymentError as String?),
+      paymentError: clearPaymentError ? null : (paymentError ?? this.paymentError),
       selectedPaymentMethod: selectedPaymentMethod ?? this.selectedPaymentMethod,
     );
   }

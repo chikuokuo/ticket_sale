@@ -212,6 +212,6 @@ extension G2RailResponseExtensions on G2RailResponse {
     if (data?.error?.message != null) {
       return data!.error!.message!;
     }
-    return message ?? '未知錯誤';
+    return message ?? 'Unknown error';
   }
 }

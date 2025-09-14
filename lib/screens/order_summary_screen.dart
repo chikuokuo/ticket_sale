@@ -353,9 +353,9 @@ extension TimeSlotExtension on TimeSlot {
   String get displayName {
     switch (this) {
       case TimeSlot.am:
-        return '上午 (9:00 - 12:00)';
+        return 'AM (9:00 - 12:00)';
       case TimeSlot.pm:
-        return '下午 (1:00 - 5:00)';
+        return 'PM (1:00 - 5:00)';
     }
   }
 }

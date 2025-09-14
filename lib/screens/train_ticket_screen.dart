@@ -688,16 +688,16 @@ class TrainTicketScreen extends ConsumerWidget {
     WidgetRef ref,
     TrainOrderNotifier trainNotifier,
   ) async {
-    print('🔍 開始處理搜索請求...');
+    print('🔍 Starting to process search request...');
     await trainNotifier.searchTrains();
 
     final trainState = ref.read(trainOrderProvider);
-    print('🎯 搜索結果狀態: 結果數量=${trainState.searchResults.length}, 錯誤=${trainState.errorMessage}');
+    print('🎯 Search result status: Result count=${trainState.searchResults.length}, Error=${trainState.errorMessage}');
 
     if (trainState.errorMessage == null) {
       // Always navigate to results screen, even if no results found
       // The results screen should handle empty results appropriately
-      print('✅ 導航到結果頁面...');
+      print('✅ Navigating to results page...');
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => const TrainResultsScreen(),
@@ -705,7 +705,7 @@ class TrainTicketScreen extends ConsumerWidget {
       );
     } else {
       // Show error message if there was an actual error (not just empty results)
-      print('❌ 顯示錯誤訊息: ${trainState.errorMessage}');
+      print('❌ Displaying error message: ${trainState.errorMessage}');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

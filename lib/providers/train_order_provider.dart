@@ -201,7 +201,7 @@ class TrainOrderNotifier extends StateNotifier<TrainOrderState> {
       );
 
       // Log search completion
-      print('🏁 搜索完成: 找到 ${searchResult.trips.length} 個班次');
+      print('🏁 Search complete: Found ${searchResult.trips.length} trips');
 
       state = state.copyWith(
         searchResults: searchResult.trips,

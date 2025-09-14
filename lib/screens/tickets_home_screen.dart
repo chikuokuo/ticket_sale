@@ -121,7 +121,7 @@ class TicketsHomeScreen extends StatelessWidget {
           ),
           child: Stack(
             children: [
-              // 背景圖片
+              // Background image
               Container(
                 width: double.infinity,
                 height: double.infinity,
@@ -133,7 +133,7 @@ class TicketsHomeScreen extends StatelessWidget {
                 ),
               ),
 
-              // 漸變覆蓋層
+              // Gradient overlay
               Container(
                 width: double.infinity,
                 height: double.infinity,
@@ -149,7 +149,7 @@ class TicketsHomeScreen extends StatelessWidget {
                 ),
               ),
 
-              // 內容
+              // Content
               Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
@@ -182,7 +182,7 @@ class TicketsHomeScreen extends StatelessWidget {
                 ),
               ),
 
-              // 右上角箭頭圖示
+              // Top-right arrow icon
               Positioned(
                 top: 16,
                 right: 16,

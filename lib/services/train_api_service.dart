@@ -50,23 +50,23 @@ class TrainApiService {
     try {
       final searchTime = departureTime ?? "08:00"; // Use provided time or default to 08:00
 
-      print('🚂 開始搜索火車班次...');
-      print('📍 路線: ST_L6NN3P6K → ST_DKRRM9Q4');
-      print('📅 日期: ${DateFormat("yyyy-MM-dd").format(departureDate)}');
-      print('🕐 時間: $searchTime');
-      print('👥 乘客: $adultCount 成人, $childCount 兒童');
+      print('🚂 Searching for train trips...');
+      print('📍 Route: ST_L6NN3P6K → ST_DKRRM9Q4');
+      print('📅 Date: ${DateFormat("yyyy-MM-dd").format(departureDate)}');
+      print('🕐 Time: $searchTime');
+      print('👥 Passengers: $adultCount Adult(s), $childCount Child(ren)');
 
       // Create a timeout for the entire search operation (30 seconds)
       return await Future.any([
         _performSearch(fromStation, toStation, departureDate, searchTime, adultCount, childCount),
         Future.delayed(const Duration(seconds: 30), () {
-          throw Exception('搜索超時：操作已超過 30 秒，已自動取消');
+          throw Exception('Search timed out: Operation took longer than 30 seconds and was canceled');
         }),
       ]);
 
     } catch (e) {
-      print('❌ 搜索失敗: $e');
-      throw Exception('搜索火車班次失敗: $e');
+      print('❌ Search failed: $e');
+      throw Exception('Failed to search for train trips: $e');
     }
   }
 
@@ -92,25 +92,25 @@ class TrainApiService {
       0, // infant
     );
 
-    print('📤 API 回應: $response');
+    print('📤 API Response: $response');
 
     final asyncKey = response['async'];
     if (asyncKey == null) {
-      throw Exception('沒有收到異步鍵值，回應: $response');
+      throw Exception('Async key not received in response: $response');
     }
 
-    print('🔑 異步鍵值: $asyncKey');
-    print('⏳ 開始輪詢結果...');
+    print('🔑 Async Key: $asyncKey');
+    print('⏳ Starting to poll for results...');
 
     // Poll for results
     final result = await _pollAsyncResult(asyncKey);
 
-    print('✅ 獲得最終結果');
+    print('✅ Final result obtained');
 
     // Convert API response to TrainTrip list
     final trips = _parseApiResponse(result, fromStation, toStation);
 
-    print('🎫 解析出 ${trips.length} 個班次');
+    print('🎫 Parsed ${trips.length} trips');
 
     // Return both trips and raw API response
     return TrainSearchResult(
@@ -125,17 +125,17 @@ class TrainApiService {
 
     for (int attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
-        print('🔄 輪詢嘗試 $attempt/$maxAttempts...');
+        print('🔄 Polling attempt $attempt/$maxAttempts...');
 
         // Add timeout for individual polling requests (5 seconds each)
         final result = await Future.any([
           _apiClient.getAsyncResult(asyncKey),
           Future.delayed(const Duration(seconds: 5), () {
-            throw Exception('單次輪詢請求超時');
+            throw Exception('Single poll request timed out');
           }),
         ]);
 
-        print('📥 輪詢回應: $result');
+        print('📥 Poll response: $result');
 
         // Check if result is complete
         final data = result['data'];
@@ -159,38 +159,38 @@ class TrainApiService {
             }
           }
 
-          print('⏳ 加載狀態 - 全部完成: $allLoaded, 有結果: $hasSolutions');
+          print('⏳ Loading status - All loaded: $allLoaded, Has solutions: $hasSolutions');
 
           // Return if all are loaded OR if we have some solutions and reasonable time has passed
           // Also return if we've waited long enough even without solutions (to show "no results found")
           if (allLoaded || (hasSolutions && attempt > 3) || attempt >= 8) {
-            print('✅ 輪詢完成！${allLoaded ? ' (全部加載完成)' : hasSolutions ? ' (找到部分結果)' : ' (已等待足夠時間)'}');
+            print('✅ Polling complete! ${allLoaded ? ' (All loaded)' : hasSolutions ? ' (Partial results found)' : ' (Waited long enough)'}');
             return result;
           }
         } else if (data != null && data['status'] == 'completed') {
-          print('✅ 輪詢完成！');
+          print('✅ Polling complete!');
           return result;
         } else if (data != null) {
-          print('⏳ 狀態: ${data['status'] ?? 'unknown'}');
+          print('⏳ Status: ${data['status'] ?? 'unknown'}');
         }
 
         // If not the last attempt, wait before next poll
         if (attempt < maxAttempts) {
-          print('⏰ 等待 ${pollInterval.inSeconds} 秒後重試...');
+          print('⏰ Waiting ${pollInterval.inSeconds} seconds before retry...');
           await Future.delayed(pollInterval);
         }
       } catch (e) {
-        print('❌ 輪詢嘗試 $attempt 失敗: $e');
+        print('❌ Polling attempt $attempt failed: $e');
         // If this is the last attempt, throw the error
         if (attempt == maxAttempts) {
-          throw Exception('獲取結果失敗: $e');
+          throw Exception('Failed to get results: $e');
         }
         // Otherwise, continue polling
         await Future.delayed(pollInterval);
       }
     }
 
-    throw Exception('輪詢超時，API 響應時間過長');
+    throw Exception('Polling timed out, API response took too long');
   }
 
   List<TrainTrip> _parseApiResponse(
@@ -199,28 +199,28 @@ class TrainApiService {
     TrainStation toStation,
   ) {
     try {
-      print('🔍 開始解析 API 響應...');
-      print('📄 響應結構: ${apiResponse.keys}');
+      print('🔍 Starting to parse API response...');
+      print('📄 Response structure: ${apiResponse.keys}');
 
       final data = apiResponse['data'];
       if (data == null) {
-        print('⚠️ 沒有 data 字段');
+        print('⚠️ No data field found');
         return [];
       }
 
       if (data is! List) {
-        print('⚠️ data 字段不是 List 類型: ${data.runtimeType}');
+        print('⚠️ Data field is not a List: ${data.runtimeType}');
         return [];
       }
 
-      print('📊 Data 是包含 ${data.length} 個鐵路公司的列表');
+      print('📊 Data is a list with ${data.length} railway companies');
 
       // Collect all solutions from all railway companies
       final allSolutions = <Map<String, dynamic>>[];
 
       for (var railwayData in data) {
         if (railwayData is! Map<String, dynamic>) {
-          print('⚠️ 鐵路公司數據格式無效');
+          print('⚠️ Invalid railway company data format');
           continue;
         }
 
@@ -231,7 +231,7 @@ class TrainApiService {
 
         if (railwayInfo is Map<String, dynamic>) {
           final railwayName = railwayInfo['name'] ?? 'Unknown';
-          print('🚊 處理鐵路公司: $railwayName (loading: $loading)');
+          print('🚊 Processing railway company: $railwayName (loading: $loading)');
         }
 
         if (solutions is List && solutions.isNotEmpty) {
@@ -244,11 +244,11 @@ class TrainApiService {
         }
       }
 
-      print('🎫 總共找到 ${allSolutions.length} 個解決方案');
+      print('🎫 Found ${allSolutions.length} solutions in total');
 
       if (allSolutions.isEmpty) {
-        print('⚠️ 所有鐵路公司都沒有可用方案');
-        print('📋 搜索摘要:');
+        print('⚠️ No available solutions from any railway company');
+        print('📋 Search summary:');
         for (var railwayData in data) {
           if (railwayData is Map<String, dynamic>) {
             final railway = railwayData['railway'];
@@ -257,7 +257,7 @@ class TrainApiService {
             if (railway is Map<String, dynamic>) {
               final name = railway['name'] ?? 'Unknown';
               final code = railway['code'] ?? 'N/A';
-              print('   🚊 $name ($code): ${loading ? '仍在加載' : '加載完成'}, ${solutions?.length ?? 0} 個方案');
+              print('   🚊 $name ($code): ${loading ? 'Still loading' : 'Load complete'}, ${solutions?.length ?? 0} solutions');
             }
           }
         }
@@ -270,17 +270,17 @@ class TrainApiService {
       for (var i = 0; i < allSolutions.length; i++) {
         try {
           final solution = allSolutions[i];
-          print('🔄 處理解決方案 ${i + 1}/${allSolutions.length}');
+          print('🔄 Processing solution ${i + 1}/${allSolutions.length}');
 
           final segmentsData = solution['segments'];
           if (segmentsData == null || segmentsData is! List) {
-            print('⚠️ 解決方案 ${i + 1} 沒有有效的路段');
+            print('⚠️ Solution ${i + 1} has no valid segments');
             continue;
           }
 
           final segments = segmentsData as List;
           if (segments.isEmpty) {
-            print('⚠️ 解決方案 ${i + 1} 路段列表為空');
+            print('⚠️ Solution ${i + 1} has an empty segments list');
             continue;
           }
 
@@ -288,7 +288,7 @@ class TrainApiService {
           final lastSegment = segments.last as Map<String, dynamic>?;
 
           if (firstSegment == null || lastSegment == null) {
-            print('⚠️ 解決方案 ${i + 1} 路段數據無效');
+            print('⚠️ Solution ${i + 1} has invalid segment data');
             continue;
           }
 
@@ -297,7 +297,7 @@ class TrainApiService {
           final arrivalTimeStr = lastSegment['arrival_time'];
 
           if (departureTimeStr == null || arrivalTimeStr == null) {
-            print('⚠️ 解決方案 ${i + 1} 缺少時間信息');
+            print('⚠️ Solution ${i + 1} is missing time information');
             continue;
           }
 
@@ -346,18 +346,18 @@ class TrainApiService {
           );
 
           trips.add(trip);
-          print('✅ 成功創建班次: ${trip.trainNumber}');
+          print('✅ Successfully created trip: ${trip.trainNumber}');
         } catch (e) {
-          print('❌ 處理解決方案 ${i + 1} 時出錯: $e');
+          print('❌ Error processing solution ${i + 1}: $e');
           continue;
         }
       }
 
-      print('🎉 解析完成，共 ${trips.length} 個班次');
+      print('🎉 Parsing complete, found ${trips.length} trips');
       return trips;
     } catch (e) {
-      print('❌ 解析 API 響應失敗: $e');
-      throw Exception('解析 API 響應失敗: $e');
+      print('❌ Failed to parse API response: $e');
+      throw Exception('Failed to parse API response: $e');
     }
   }
 
