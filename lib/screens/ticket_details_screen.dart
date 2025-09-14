@@ -10,10 +10,15 @@ import '../theme/app_theme.dart';
 import 'order_summary_screen.dart';
 
 class TicketDetailsScreen extends ConsumerWidget {
-  const TicketDetailsScreen({super.key});
+  final TicketType ticketType;
+
+  const TicketDetailsScreen({
+    super.key,
+    required this.ticketType,
+  });
 
   void _navigateToSummary(BuildContext context, WidgetRef ref) {
-    final orderState = ref.read(ticketOrderProvider);
+    final orderState = ref.read(ticketOrderProvider(ticketType));
     
     // Validate form
     if (!orderState.formKey.currentState!.validate()) {
@@ -35,15 +40,15 @@ class TicketDetailsScreen extends ConsumerWidget {
     // Navigate to confirmation page
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => const OrderSummaryScreen(),
+        builder: (context) => OrderSummaryScreen(ticketType: ticketType),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final orderState = ref.watch(ticketOrderProvider);
-    final orderNotifier = ref.read(ticketOrderProvider.notifier);
+    final orderState = ref.watch(ticketOrderProvider(ticketType));
+    final orderNotifier = ref.read(ticketOrderProvider(ticketType).notifier);
 
     final int adultCount = orderState.attendees.where((a) => a.type == AttendeeType.adult).length;
     final int childCount = orderState.attendees.where((a) => a.type == AttendeeType.child).length;
@@ -64,7 +69,7 @@ class TicketDetailsScreen extends ConsumerWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              AppColorScheme.primary.withOpacity(0.05),
+              AppColorScheme.primary.withAlpha(13), // 0.05 opacity
               Colors.white,
             ],
             stops: const [0.0, 0.3],
@@ -342,8 +347,8 @@ class TicketDetailsScreen extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: attendee.type == AttendeeType.adult 
-                      ? AppColorScheme.primary.withOpacity(0.1)
-                      : AppColorScheme.secondary.withOpacity(0.1),
+                      ? AppColorScheme.primary.withAlpha(26) // 0.1 opacity
+                      : AppColorScheme.secondary.withAlpha(26), // 0.1 opacity
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(

@@ -1,30 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../screens/museum_ticket_screen.dart';
+import '../screens/select_ticket_screen.dart';
+import '../screens/train_ticket_screen.dart';
 import '../theme/app_theme.dart';
 import '../theme/colors.dart';
-import 'select_ticket_screen.dart';
-import 'train_ticket_screen.dart';
 
-class MainNavigationScreen extends StatefulWidget {
+class MainNavigationScreen extends ConsumerStatefulWidget {
   const MainNavigationScreen({super.key});
 
   @override
-  State<MainNavigationScreen> createState() => _MainNavigationScreenState();
+  ConsumerState<MainNavigationScreen> createState() => _MainNavigationScreenState();
 }
 
-class _MainNavigationScreenState extends State<MainNavigationScreen> {
-  int _currentIndex = 0;
+class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
+  int _selectedIndex = 0;
 
-  // List of screens for each navigation item
-  final List<Widget> _screens = [
-    const SelectTicketScreen(),
-    const TrainTicketScreen(),
-    const MyTicketsScreen(), // TODO: Implement
-    const ProfileScreen(),   // TODO: Implement
+  static const List<Widget> _pages = <Widget>[
+    SelectTicketScreen(),
+    MuseumTicketScreen(),
+    TrainTicketScreen(),
+    ProfileScreen(),
   ];
 
-  void _onNavTap(int index) {
+  void _onItemTapped(int index) {
     setState(() {
-      _currentIndex = index;
+      _selectedIndex = index;
     });
   }
 
@@ -32,139 +34,45 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
+        index: _selectedIndex,
+        children: _pages,
       ),
-      bottomNavigationBar: Container(
-        height: 90,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 8,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildBottomNavItem(
-                  icon: Icons.castle,
-                  label: 'Castle Info',
-                  index: 0,
-                ),
-                _buildBottomNavItem(
-                  icon: Icons.train,
-                  label: 'Train Ticket',
-                  index: 1,
-                ),
-                _buildBottomNavItem(
-                  icon: Icons.confirmation_number,
-                  label: 'My Tickets',
-                  index: 2,
-                ),
-                _buildBottomNavItem(
-                  icon: Icons.person,
-                  label: 'Profile',
-                  index: 3,
-                ),
-              ],
-            ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.castle_outlined),
+            activeIcon: Icon(Icons.castle),
+            label: 'Castle',
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBottomNavItem({
-    required IconData icon,
-    required String label,
-    required int index,
-  }) {
-    final bool isSelected = _currentIndex == index;
-    
-    return InkWell(
-      onTap: () => _onNavTap(index),
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? AppColorScheme.primary : AppColorScheme.neutral500,
-              size: 24,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: AppTheme.labelSmall.copyWith(
-                color: isSelected ? AppColorScheme.primary : AppColorScheme.neutral500,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-              ),
-            ),
-          ],
-        ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_balance_outlined),
+            activeIcon: Icon(Icons.account_balance),
+            label: 'Museum',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.train_outlined),
+            activeIcon: Icon(Icons.train),
+            label: 'Train',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        selectedItemColor: AppColorScheme.primary,
+        unselectedItemColor: AppColorScheme.neutral500,
+        backgroundColor: Colors.white,
+        elevation: 8,
+        type: BottomNavigationBarType.fixed,
       ),
     );
   }
 }
 
-// Placeholder screens for My Tickets and Profile
-class MyTicketsScreen extends StatelessWidget {
-  const MyTicketsScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColorScheme.neutral50,
-      appBar: AppBar(
-        title: const Text('My Tickets'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        titleTextStyle: AppTheme.headlineSmall.copyWith(
-          color: AppColorScheme.neutral900,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.confirmation_number_outlined,
-              size: 64,
-              color: AppColorScheme.neutral400,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'My Tickets',
-              style: AppTheme.headlineMedium.copyWith(
-                color: AppColorScheme.neutral700,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Coming Soon!',
-              style: AppTheme.bodyLarge.copyWith(
-                color: AppColorScheme.neutral500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
+// Placeholder screen for Profile
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 

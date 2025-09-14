@@ -8,6 +8,11 @@ import '../models/attendee.dart';
 import '../models/time_slot.dart';
 import '../services/stripe_service.dart';
 
+enum TicketType {
+  neuschwanstein,
+  museum,
+}
+
 // 1. Defines the state of the ticket order form
 @immutable
 class TicketOrderState {
@@ -54,15 +59,31 @@ class TicketOrderState {
 
 // 2. Manages the state and business logic
 class TicketOrderNotifier extends StateNotifier<TicketOrderState> {
-  final double _adultTicketPrice = 21.0;
-  final double _childTicketPrice = 0.0;
+  final TicketType ticketType;
+  late final double _adultTicketPrice;
+  late final double _childTicketPrice;
 
-  TicketOrderNotifier()
+  TicketOrderNotifier(this.ticketType)
       : super(TicketOrderState(
           attendees: [Attendee()],
           formKey: GlobalKey<FormState>(),
           customerEmailController: TextEditingController(),
-        ));
+        )) {
+    _initializePrices();
+  }
+
+  void _initializePrices() {
+    switch (ticketType) {
+      case TicketType.neuschwanstein:
+        _adultTicketPrice = 21.0;
+        _childTicketPrice = 0.0;
+        break;
+      case TicketType.museum:
+        _adultTicketPrice = 21.0; // Assuming same price for now, can be changed
+        _childTicketPrice = 0.0;
+        break;
+    }
+  }
 
   void addAttendee([AttendeeType? type]) {
     final newAttendee = Attendee();
@@ -310,6 +331,6 @@ class TicketOrderNotifier extends StateNotifier<TicketOrderState> {
 }
 
 // 3. Creates a global provider to access the notifier
-final ticketOrderProvider = StateNotifierProvider.autoDispose<TicketOrderNotifier, TicketOrderState>(
-  (ref) => TicketOrderNotifier(),
+final ticketOrderProvider = StateNotifierProvider.autoDispose.family<TicketOrderNotifier, TicketOrderState, TicketType>(
+  (ref, ticketType) => TicketOrderNotifier(ticketType),
 );

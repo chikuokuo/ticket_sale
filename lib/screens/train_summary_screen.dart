@@ -92,7 +92,7 @@ class TrainSummaryScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha(13), // 0.05 opacity
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -127,7 +127,6 @@ class TrainSummaryScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-              const Spacer(),
               Text(
                 DateFormat('MMM dd, yyyy').format(trip.departureTime),
                 style: AppTheme.bodyMedium.copyWith(
@@ -234,7 +233,7 @@ class TrainSummaryScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha(13), // 0.05 opacity
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -344,7 +343,7 @@ class TrainSummaryScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha(13), // 0.05 opacity
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -406,7 +405,7 @@ class TrainSummaryScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha(13), // 0.05 opacity
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -484,7 +483,7 @@ class TrainSummaryScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColorScheme.primary.withOpacity(0.3),
+            color: AppColorScheme.primary.withAlpha(51), // 0.2 opacity
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -498,8 +497,8 @@ class TrainSummaryScreen extends ConsumerWidget {
               children: [
                 Text(
                   'Total Amount',
-                  style: AppTheme.titleMedium.copyWith(
-                    color: Colors.white.withOpacity(0.9),
+                  style: AppTheme.headlineSmall.copyWith(
+                    color: Colors.white.withAlpha(230), // 0.9 opacity
                     fontWeight: FontWeight.w500,
                   ),
                 ),

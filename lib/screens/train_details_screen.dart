@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import '../theme/app_theme.dart';
 import '../theme/colors.dart';
@@ -117,7 +116,7 @@ class _TrainDetailsScreenState extends ConsumerState<TrainDetailsScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha(13), // 0.05 opacity
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -266,7 +265,7 @@ class _TrainDetailsScreenState extends ConsumerState<TrainDetailsScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha(13), // 0.05 opacity
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -393,7 +392,7 @@ class _TrainDetailsScreenState extends ConsumerState<TrainDetailsScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha(13), // 0.05 opacity
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -577,7 +576,7 @@ class _TrainDetailsScreenState extends ConsumerState<TrainDetailsScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha(13), // 0.05 opacity
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),

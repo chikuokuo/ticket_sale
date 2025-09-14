@@ -3,7 +3,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+
+import '../models/train_trip.dart';
 
 class SearchCriteria {
   final String from;
@@ -47,17 +50,14 @@ class SearchCriteria {
   }
 }
 
-class GrailApiClient {
-  final baseUrl;
-  final apiKey;
-  final secret;
+class G2RailApiClient {
+  final String apiKey = dotenv.env['G2RAIL_API_KEY']!;
+  final String userId = dotenv.env['G2RAIL_USER_ID']!;
+  final String baseUrl = dotenv.env['G2RAIL_BASE_URL']!;
   final http.Client httpClient;
 
-  GrailApiClient({
+  G2RailApiClient({
     required this.httpClient,
-    required this.baseUrl,
-    required this.apiKey,
-    required this.secret,
   });
 
   Map<String, String> getAuthorizationHeaders(Map<String, dynamic> params) {
@@ -71,7 +71,7 @@ class GrailApiClient {
       if (params[key] is List || params[key] is Map) continue;
       buffer.write('$key=${params[key].toString()}');
     }
-    buffer.write(secret);
+    buffer.write(dotenv.env['G2RAIL_SECRET']!);
 
     String hashString = buffer.toString();
     String authorization = md5.convert(utf8.encode(hashString)).toString();
@@ -132,3 +132,8 @@ class GrailApiClient {
     return {"data": jsonDecode(utf8.decode(asyncResult.bodyBytes))};
   }
 }
+
+// Global instances for easy access
+final G2RailApiClient g2railApiClient = G2RailApiClient(httpClient: http.Client());
+final http.Client httpClient = http.Client();
+final Utf8Encoder utf8Encoder = const Utf8Encoder();

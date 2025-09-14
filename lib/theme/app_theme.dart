@@ -128,7 +128,7 @@ class AppTheme {
   // Shadow styles
   static List<BoxShadow> get shadowSoft => [
     BoxShadow(
-      color: AppColorScheme.neutral900.withOpacity(0.08),
+      color: AppColorScheme.neutral900.withAlpha(20), // 0.08 opacity
       offset: const Offset(0, 2),
       blurRadius: 4,
       spreadRadius: 0,
@@ -137,7 +137,7 @@ class AppTheme {
 
   static List<BoxShadow> get shadowMedium => [
     BoxShadow(
-      color: AppColorScheme.neutral900.withOpacity(0.12),
+      color: AppColorScheme.neutral900.withAlpha(31), // 0.12 opacity
       offset: const Offset(0, 4),
       blurRadius: 8,
       spreadRadius: 0,
@@ -146,7 +146,7 @@ class AppTheme {
 
   static List<BoxShadow> get shadowStrong => [
     BoxShadow(
-      color: AppColorScheme.neutral900.withOpacity(0.16),
+      color: AppColorScheme.neutral900.withAlpha(41), // 0.16 opacity
       offset: const Offset(0, 8),
       blurRadius: 16,
       spreadRadius: 0,
@@ -293,7 +293,7 @@ class AppTheme {
     // Text selection theme
     textSelectionTheme: TextSelectionThemeData(
       cursorColor: AppColorScheme.primary,
-      selectionColor: AppColorScheme.primary.withOpacity(0.3),
+      selectionColor: AppColorScheme.primary.withAlpha(77), // 0.3 opacity
       selectionHandleColor: AppColorScheme.primary,
     ),
   );

@@ -25,8 +25,8 @@ class SelectTicketScreen extends ConsumerWidget {
 
 
   Future<void> _selectDate(BuildContext context, WidgetRef ref) async {
-    final notifier = ref.read(ticketOrderProvider.notifier);
-    final selectedDate = ref.read(ticketOrderProvider).selectedDate;
+    final notifier = ref.read(ticketOrderProvider(TicketType.neuschwanstein).notifier);
+    final selectedDate = ref.read(ticketOrderProvider(TicketType.neuschwanstein)).selectedDate;
     final earliestDate = DateTime.now().add(const Duration(days: 2));
 
     final DateTime? picked = await showDatePicker(
@@ -49,7 +49,7 @@ class SelectTicketScreen extends ConsumerWidget {
   }
 
   void _navigateToNextPage(BuildContext context, WidgetRef ref) {
-    final orderState = ref.read(ticketOrderProvider);
+    final orderState = ref.read(ticketOrderProvider(TicketType.neuschwanstein));
     
     // Validate required fields
     if (orderState.selectedDate == null) {
@@ -88,7 +88,7 @@ class SelectTicketScreen extends ConsumerWidget {
     // Navigate to next page
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => const TicketDetailsScreen(),
+        builder: (context) => const TicketDetailsScreen(ticketType: TicketType.neuschwanstein),
       ),
     );
   }
@@ -107,8 +107,8 @@ class SelectTicketScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final orderState = ref.watch(ticketOrderProvider);
-    final orderNotifier = ref.read(ticketOrderProvider.notifier);
+    final orderState = ref.watch(ticketOrderProvider(TicketType.neuschwanstein));
+    final orderNotifier = ref.read(ticketOrderProvider(TicketType.neuschwanstein).notifier);
 
     final int adultCount = orderState.attendees.where((a) => a.type == AttendeeType.adult).length;
     final int childCount = orderState.attendees.where((a) => a.type == AttendeeType.child).length;
@@ -138,8 +138,8 @@ class SelectTicketScreen extends ConsumerWidget {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Colors.black.withOpacity(0.3),
-                      Colors.black.withOpacity(0.7),
+                      Colors.black.withAlpha(77), // 0.3 opacity
+                      Colors.black.withAlpha(179), // 0.7 opacity
                     ],
                     stops: const [0.0, 1.0],
                   ),
@@ -160,7 +160,7 @@ class SelectTicketScreen extends ConsumerWidget {
                             fontWeight: FontWeight.bold,
                             shadows: [
                               Shadow(
-                                color: Colors.black.withOpacity(0.5),
+                                color: Colors.black.withAlpha(128), // 0.5 opacity
                                 offset: const Offset(0, 2),
                                 blurRadius: 4,
                               ),
@@ -174,11 +174,11 @@ class SelectTicketScreen extends ConsumerWidget {
                         Text(
                           'Hohenschwangau, Bavaria',
                           style: AppTheme.titleLarge.copyWith(
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withAlpha(230), // 0.9 opacity
                             fontWeight: FontWeight.w400,
                             shadows: [
                               Shadow(
-                                color: Colors.black.withOpacity(0.5),
+                                color: Colors.black.withAlpha(128), // 0.5 opacity
                                 offset: const Offset(0, 1),
                                 blurRadius: 2,
                               ),
@@ -204,7 +204,7 @@ class SelectTicketScreen extends ConsumerWidget {
                     margin: const EdgeInsets.symmetric(horizontal: 16),
                     child: Card(
                       elevation: 8,
-                      shadowColor: Colors.black.withOpacity(0.15),
+                      shadowColor: Colors.black.withAlpha(38), // 0.15 opacity
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
@@ -236,8 +236,9 @@ class SelectTicketScreen extends ConsumerWidget {
                             // Select Visit Date
                             Text(
                               'Select Visit Date',
-                              style: AppTheme.titleMedium.copyWith(
-                                fontWeight: FontWeight.w600,
+                              style: AppTheme.headlineSmall.copyWith(
+                                color: AppColorScheme.neutral900,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                             
@@ -309,8 +310,9 @@ class SelectTicketScreen extends ConsumerWidget {
                             // Select Time Slot
                             Text(
                               'Select Time Slot',
-                              style: AppTheme.titleMedium.copyWith(
-                                fontWeight: FontWeight.w600,
+                              style: AppTheme.headlineSmall.copyWith(
+                                color: AppColorScheme.neutral900,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                             
@@ -345,8 +347,9 @@ class SelectTicketScreen extends ConsumerWidget {
                             // Tickets
                             Text(
                               'Tickets',
-                              style: AppTheme.titleMedium.copyWith(
-                                fontWeight: FontWeight.w600,
+                              style: AppTheme.headlineSmall.copyWith(
+                                color: AppColorScheme.neutral900,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                             
@@ -497,7 +500,7 @@ class SelectTicketScreen extends ConsumerWidget {
                     margin: const EdgeInsets.symmetric(horizontal: 16),
                     child: Card(
                       elevation: 8,
-                      shadowColor: Colors.black.withOpacity(0.15),
+                      shadowColor: Colors.black.withAlpha(38), // 0.15 opacity
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),

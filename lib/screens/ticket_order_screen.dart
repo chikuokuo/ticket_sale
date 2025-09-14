@@ -14,8 +14,8 @@ class TicketOrderScreen extends ConsumerWidget {
 
   // Helper method to reduce nesting in the build method
   Future<void> _selectDate(BuildContext context, WidgetRef ref) async {
-    final notifier = ref.read(ticketOrderProvider.notifier);
-    final selectedDate = ref.read(ticketOrderProvider).selectedDate;
+    final notifier = ref.read(ticketOrderProvider(TicketType.neuschwanstein).notifier);
+    final selectedDate = ref.read(ticketOrderProvider(TicketType.neuschwanstein)).selectedDate;
 
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -106,11 +106,11 @@ class TicketOrderScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // 3. Watch the provider to get the current state
-    final orderState = ref.watch(ticketOrderProvider);
-    final orderNotifier = ref.read(ticketOrderProvider.notifier);
+    final orderState = ref.watch(ticketOrderProvider(TicketType.neuschwanstein));
+    final orderNotifier = ref.read(ticketOrderProvider(TicketType.neuschwanstein).notifier);
 
     // Listen for payment status changes to show notifications
-    ref.listen<TicketOrderState>(ticketOrderProvider, (previous, current) {
+    ref.listen<TicketOrderState>(ticketOrderProvider(TicketType.neuschwanstein), (previous, current) {
       if (previous?.paymentStatus != current.paymentStatus) {
         if (current.paymentStatus == PaymentStatus.success) {
           ScaffoldMessenger.of(context).showSnackBar(
