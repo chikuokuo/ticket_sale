@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:sale_ticket_app/models/payment_status.dart';
 
-import '../models/attendee.dart';
 import '../models/order_type.dart';
 import '../models/payment_method.dart';
 import '../models/time_slot.dart';
@@ -76,7 +74,7 @@ class _OrderSummaryScreenState extends ConsumerState<OrderSummaryScreen> {
 
     ref.listen(provider, (previous, current) {
       if (previous?.paymentStatus != current.paymentStatus) {
-        if (current.paymentStatus == PaymentStatus.success) {
+        if (current.paymentStatus == SubmissionStatus.success) {
           final isAtmTransfer = current.selectedPaymentMethod == PaymentMethod.atmTransfer;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -90,7 +88,7 @@ class _OrderSummaryScreenState extends ConsumerState<OrderSummaryScreen> {
             ),
           );
           _backToBooking(context);
-        } else if (current.paymentStatus == PaymentStatus.failed && current.paymentError != null) {
+        } else if (current.paymentStatus == SubmissionStatus.error && current.paymentError != null) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Error: ${current.paymentError}'),
@@ -251,7 +249,7 @@ class _OrderSummaryScreenState extends ConsumerState<OrderSummaryScreen> {
             Text('Total Amount', style: AppTheme.titleLarge),
             Text(
               '€${totalAmount.toStringAsFixed(2)}',
-              style: AppTheme.titleLarge?.copyWith(color: AppColorScheme.primary),
+              style: AppTheme.titleLarge.copyWith(color: AppColorScheme.primary),
             ),
           ],
         ),
@@ -260,7 +258,7 @@ class _OrderSummaryScreenState extends ConsumerState<OrderSummaryScreen> {
   }
 
   Widget _buildActionButtons(BuildContext context, WidgetRef ref, dynamic orderState) {
-    final isProcessing = orderState.paymentStatus == PaymentStatus.processing;
+    final isProcessing = orderState.paymentStatus == SubmissionStatus.inProgress;
 
     final paymentMethod = orderState.selectedPaymentMethod;
     final buttonText = paymentMethod == PaymentMethod.creditCard

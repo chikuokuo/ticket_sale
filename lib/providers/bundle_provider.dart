@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,7 +9,6 @@ import 'package:intl/intl.dart';
 import '../models/bundle.dart';
 import '../models/attendee.dart';
 import '../models/payment_method.dart';
-import '../models/payment_status.dart';
 import '../services/stripe_service.dart';
 
 enum SubmissionStatus {
@@ -25,7 +23,6 @@ class BundleOrderState {
   final Bundle? selectedBundle;
   final List<Attendee> attendees;
   final DateTime? selectedDate;
-  final GlobalKey<FormState> formKey;
   final TextEditingController customerEmailController;
   final TextEditingController atmLastFiveController;
   final SubmissionStatus paymentStatus;
@@ -33,7 +30,6 @@ class BundleOrderState {
   final PaymentMethod selectedPaymentMethod;
 
   const BundleOrderState({
-    required this.formKey,
     this.selectedBundle,
     this.selectedDate,
     this.attendees = const [],
@@ -45,7 +41,6 @@ class BundleOrderState {
   });
 
   BundleOrderState copyWith({
-    GlobalKey<FormState>? formKey,
     Bundle? selectedBundle,
     DateTime? selectedDate,
     List<Attendee>? attendees,
@@ -56,7 +51,6 @@ class BundleOrderState {
     bool clearPaymentError = false,
   }) {
     return BundleOrderState(
-      formKey: formKey ?? this.formKey,
       selectedBundle: selectedBundle ?? this.selectedBundle,
       selectedDate: clearDate ? null : (selectedDate ?? this.selectedDate),
       attendees: attendees ?? this.attendees,
@@ -77,7 +71,6 @@ class BundleOrderNotifier extends StateNotifier<BundleOrderState> {
   BundleOrderNotifier()
       : super(BundleOrderState(
           attendees: [Attendee()],
-          formKey: GlobalKey<FormState>(),
           customerEmailController: TextEditingController(),
           atmLastFiveController: TextEditingController(),
         ));
@@ -117,7 +110,7 @@ class BundleOrderNotifier extends StateNotifier<BundleOrderState> {
   }
 
   Future<void> submitAtmPayment() async {
-    if (!state.formKey.currentState!.validate() || state.selectedDate == null) {
+    if (state.selectedDate == null) {
       return;
     }
     if (state.atmLastFiveController.text.length < 5) {
@@ -142,7 +135,7 @@ class BundleOrderNotifier extends StateNotifier<BundleOrderState> {
   }
 
   Future<void> processPayment(BuildContext context) async {
-    if (!state.formKey.currentState!.validate() || state.selectedDate == null) {
+    if (state.selectedDate == null) {
       return;
     }
     state = state.copyWith(paymentStatus: SubmissionStatus.inProgress, clearPaymentError: true);
@@ -208,7 +201,6 @@ class BundleOrderNotifier extends StateNotifier<BundleOrderState> {
   }
 
   void _resetForm() {
-    state.formKey.currentState?.reset();
     state.customerEmailController.clear();
     state.atmLastFiveController.clear();
     for (var attendee in state.attendees) {
