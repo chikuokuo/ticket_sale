@@ -236,8 +236,9 @@ class SelectTicketScreen extends ConsumerWidget {
                             // Select Visit Date
                             Text(
                               'Select Visit Date',
-                              style: AppTheme.titleMedium.copyWith(
-                                fontWeight: FontWeight.w600,
+                              style: AppTheme.headlineSmall.copyWith(
+                                color: AppColorScheme.neutral900,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                             
@@ -309,8 +310,9 @@ class SelectTicketScreen extends ConsumerWidget {
                             // Select Time Slot
                             Text(
                               'Select Time Slot',
-                              style: AppTheme.titleMedium.copyWith(
-                                fontWeight: FontWeight.w600,
+                              style: AppTheme.headlineSmall.copyWith(
+                                color: AppColorScheme.neutral900,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                             
@@ -345,8 +347,9 @@ class SelectTicketScreen extends ConsumerWidget {
                             // Tickets
                             Text(
                               'Tickets',
-                              style: AppTheme.titleMedium.copyWith(
-                                fontWeight: FontWeight.w600,
+                              style: AppTheme.headlineSmall.copyWith(
+                                color: AppColorScheme.neutral900,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                             

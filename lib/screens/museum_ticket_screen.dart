@@ -197,25 +197,39 @@ class MuseumTicketScreen extends ConsumerWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              border: Border.all(color: AppColorScheme.neutral300),
+              border: Border.all(
+                color: orderState.selectedDate != null 
+                  ? AppColorScheme.primary 
+                  : AppColorScheme.neutral300,
+                width: orderState.selectedDate != null ? 2 : 1,
+              ),
               borderRadius: BorderRadius.circular(12),
+              color: orderState.selectedDate != null 
+                ? AppColorScheme.primary50 
+                : AppColorScheme.neutral50,
             ),
             child: Row(
               children: [
                 Icon(
                   Icons.calendar_today,
-                  color: AppColorScheme.primary,
-                  size: 20,
+                  color: orderState.selectedDate != null 
+                    ? AppColorScheme.primary 
+                    : AppColorScheme.neutral500,
+                  size: 24,
                 ),
                 const SizedBox(width: 12),
-                Text(
-                  orderState.selectedDate != null
-                      ? DateFormat('EEEE, MMM dd, yyyy').format(orderState.selectedDate!)
-                      : 'Available from ${DateFormat('MMM dd').format(DateTime.now().add(const Duration(days: 2)))}',
-                  style: AppTheme.bodyMedium.copyWith(
-                    color: orderState.selectedDate != null
-                        ? AppColorScheme.neutral900
+                Expanded(
+                  child: Text(
+                    orderState.selectedDate == null
+                        ? DateFormat('MMMM dd, yyyy').format(DateTime.now().add(const Duration(days: 2)))
+                        : DateFormat('MMMM dd, yyyy').format(orderState.selectedDate!),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: orderState.selectedDate != null 
+                        ? AppColorScheme.primary 
                         : AppColorScheme.neutral600,
+                    ),
                   ),
                 ),
                 const Spacer(),
@@ -263,32 +277,32 @@ class MuseumTicketScreen extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? AppColorScheme.primary100 : Colors.white,
+          color: isSelected ? AppColorScheme.primary50 : AppColorScheme.neutral100,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected ? AppColorScheme.primary : AppColorScheme.neutral300,
-            width: isSelected ? 2 : 1,
+            width: isSelected ? 3 : 1,
           ),
         ),
         child: Column(
           children: [
             Icon(
-              timeSlot == TimeSlot.am ? Icons.wb_sunny : Icons.nights_stay,
-              color: isSelected ? AppColorScheme.primary700 : AppColorScheme.neutral500,
+              timeSlot == TimeSlot.am ? Icons.wb_sunny : Icons.wb_sunny_outlined,
+              color: isSelected ? AppColorScheme.primary : AppColorScheme.neutral900,
               size: 28,
             ),
             const SizedBox(height: 8),
             Text(
               timeSlot == TimeSlot.am ? 'Morning' : 'Afternoon',
               style: AppTheme.titleSmall.copyWith(
-                color: isSelected ? AppColorScheme.primary700 : AppColorScheme.neutral700,
+                color: isSelected ? AppColorScheme.primary : AppColorScheme.neutral900,
                 fontWeight: FontWeight.w600,
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 4),
             Text(
-              timeSlot == TimeSlot.am ? '08:15 - 13:00' : '13:30 - 18:30',
+              timeSlot == TimeSlot.am ? '9:00 AM - 12:00 PM' : '1:00 PM - 5:00 PM',
               style: AppTheme.bodySmall.copyWith(
                 color: isSelected ? AppColorScheme.primary700 : AppColorScheme.neutral600,
               ),
@@ -314,15 +328,25 @@ class MuseumTicketScreen extends ConsumerWidget {
             fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(height: 12),
+        
+        const SizedBox(height: 8),
+        
+        Text(
+          'Select number of visitors',
+          style: AppTheme.bodyMedium.copyWith(
+            color: AppColorScheme.neutral600,
+          ),
+        ),
+        
+        const SizedBox(height: 16),
         
         // Adult Tickets
         _buildTicketCounter(
-          title: 'Adult',
-          subtitle: adultPrice > 0 ? '€${adultPrice.toStringAsFixed(2)}' : 'Free',
+          title: 'Adult (18+)',
+          price: '€${adultPrice.toStringAsFixed(2)}',
           count: orderState.attendees.where((a) => a.type == AttendeeType.adult).length,
-          onIncrement: () => orderNotifier.addAttendee(AttendeeType.adult),
-          onDecrement: () {
+          onIncrement: () => ref.read(ticketOrderProvider.notifier).addAttendee(AttendeeType.adult),
+          onDecrement: orderState.attendees.where((a) => a.type == AttendeeType.adult).isNotEmpty ? () {
             final adults = orderState.attendees.where((a) => a.type == AttendeeType.adult).toList();
             if (adults.isNotEmpty) {
               // Find the last adult index and remove it
@@ -337,7 +361,7 @@ class MuseumTicketScreen extends ConsumerWidget {
                 orderNotifier.removeAttendee(lastAdultIndex);
               }
             }
-          },
+          } : null,
         ),
         
         const SizedBox(height: 12),
@@ -345,10 +369,10 @@ class MuseumTicketScreen extends ConsumerWidget {
         // Child Tickets
         _buildTicketCounter(
           title: 'Child (0-17)',
-          subtitle: childPrice > 0 ? '€${childPrice.toStringAsFixed(2)}' : 'Free',
+          price: childPrice == 0.0 ? 'Free' : '€${childPrice.toStringAsFixed(2)}',
           count: orderState.attendees.where((a) => a.type == AttendeeType.child).length,
-          onIncrement: () => orderNotifier.addAttendee(AttendeeType.child),
-          onDecrement: () {
+          onIncrement: () => ref.read(ticketOrderProvider.notifier).addAttendee(AttendeeType.child),
+          onDecrement: orderState.attendees.where((a) => a.type == AttendeeType.child).isNotEmpty ? () {
             final children = orderState.attendees.where((a) => a.type == AttendeeType.child).toList();
             if (children.isNotEmpty) {
               // Find the last child index and remove it
@@ -363,7 +387,7 @@ class MuseumTicketScreen extends ConsumerWidget {
                 orderNotifier.removeAttendee(lastChildIndex);
               }
             }
-          },
+          } : null,
         ),
       ],
     );
@@ -371,92 +395,93 @@ class MuseumTicketScreen extends ConsumerWidget {
 
   Widget _buildTicketCounter({
     required String title,
-    required String subtitle,
+    required String price,
     required int count,
+    VoidCallback? onDecrement,
     required VoidCallback onIncrement,
-    required VoidCallback onDecrement,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColorScheme.neutral50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColorScheme.neutral200),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: AppTheme.titleSmall.copyWith(
-                    color: AppColorScheme.neutral900,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                Text(
-                  subtitle,
-                  style: AppTheme.bodySmall.copyWith(
-                    color: AppColorScheme.primary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Row(
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              InkWell(
-                onTap: count > 0 ? onDecrement : null,
-                borderRadius: BorderRadius.circular(20),
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: count > 0 ? AppColorScheme.primary100 : AppColorScheme.neutral200,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Icon(
-                    Icons.remove,
-                    color: count > 0 ? AppColorScheme.primary : AppColorScheme.neutral400,
-                    size: 20,
-                  ),
+              Text(
+                title,
+                style: AppTheme.titleMedium.copyWith(
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-              Container(
-                width: 50,
-                alignment: Alignment.center,
-                child: Text(
-                  count.toString(),
-                  style: AppTheme.titleMedium.copyWith(
-                    color: AppColorScheme.neutral900,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              InkWell(
-                onTap: onIncrement,
-                borderRadius: BorderRadius.circular(20),
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: AppColorScheme.primary100,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Icon(
-                    Icons.add,
-                    color: AppColorScheme.primary,
-                    size: 20,
-                  ),
+              Text(
+                price,
+                style: AppTheme.bodyMedium.copyWith(
+                  color: AppColorScheme.neutral600,
                 ),
               ),
             ],
           ),
-        ],
-      ),
+        ),
+        Row(
+          children: [
+            // Decrement button
+            InkWell(
+              onTap: onDecrement,
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: onDecrement != null 
+                    ? AppColorScheme.neutral200
+                    : AppColorScheme.neutral100,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.remove,
+                  color: onDecrement != null 
+                    ? AppColorScheme.neutral700
+                    : AppColorScheme.neutral400,
+                  size: 18,
+                ),
+              ),
+            ),
+            
+            // Count display
+            Container(
+              width: 50,
+              height: 40,
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              alignment: Alignment.center,
+              child: Text(
+                count.toString(),
+                style: AppTheme.titleMedium.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: AppColorScheme.neutral900,
+                ),
+              ),
+            ),
+            
+            // Increment button
+            InkWell(
+              onTap: onIncrement,
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColorScheme.primary,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.add,
+                  color: Colors.white,
+                  size: 18,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -527,7 +552,7 @@ class MuseumTicketScreen extends ConsumerWidget {
                   color: AppColorScheme.primary,
                   size: 24,
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 Text(
                   'Important Information',
                   style: AppTheme.titleLarge.copyWith(
@@ -538,43 +563,45 @@ class MuseumTicketScreen extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 16),
-            ...importantInfo.map((text) => _buildInfoItem(text)).toList(),
+            
+            // Important information list
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: importantInfo.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      margin: const EdgeInsets.only(top: 8, right: 12),
+                      decoration: BoxDecoration(
+                        color: AppColorScheme.info,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        importantInfo[index],
+                        style: AppTheme.bodyMedium.copyWith(
+                          color: AppColorScheme.neutral700,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildInfoItem(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            margin: const EdgeInsets.only(top: 6),
-            width: 4,
-            height: 4,
-            decoration: BoxDecoration(
-              color: AppColorScheme.neutral600,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              text,
-              textAlign: TextAlign.left,
-              style: AppTheme.labelSmall.copyWith(
-                color: AppColorScheme.neutral700,
-                height: 1.3,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Future<void> _selectDate(BuildContext context, TicketOrderState orderState, TicketOrderNotifier orderNotifier) async {
     final earliestDate = DateTime.now().add(const Duration(days: 2));
