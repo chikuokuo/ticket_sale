@@ -37,38 +37,55 @@ class AttendeeCard extends StatelessWidget {
                   ),
               ],
             ),
-            TextFormField(
-              controller: attendee.givenNameController,
-              decoration: const InputDecoration(labelText: 'Given Name'),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter a given name';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: attendee.familyNameController,
-              decoration: const InputDecoration(labelText: 'Family Name'),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter a family name';
-                }
-                return null;
-              },
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: attendee.givenNameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Given Name',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a given name';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextFormField(
+                    controller: attendee.familyNameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Family Name',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a family name';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             DropdownButtonFormField<AttendeeType>(
               value: attendee.type,
-              decoration: const InputDecoration(labelText: 'Type'),
               items: AttendeeType.values.map((type) {
                 return DropdownMenuItem(
                   value: type,
-                  child: Text(type.name),
+                  child: Text(type.toString().split('.').last),
                 );
               }).toList(),
               onChanged: onTypeChanged,
+              decoration: const InputDecoration(
+                labelText: 'Type',
+                border: OutlineInputBorder(),
+              ),
             ),
           ],
         ),

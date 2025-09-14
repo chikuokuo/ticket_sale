@@ -170,9 +170,9 @@ class TrainResultsScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: AppColorScheme.primary.withAlpha(51), // 0.2 opacity
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),

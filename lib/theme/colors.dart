@@ -129,12 +129,12 @@ class AppColorScheme {
     
     // Primary Colors (Castle Blue Theme)
     primary: primary,
-    onPrimary: Colors.white,
-    primaryContainer: primary100,
-    onPrimaryContainer: primary900,
+    onPrimary: Color(0xFFFFFFFF),
+    primaryContainer: Color(0xFFCDE5FF),
+    onPrimaryContainer: Color(0xFF001D35),
     
     // Secondary Colors (Accent Gold)
-    secondary: secondary,
+    secondary: Color(0xFF00658B),
     onSecondary: neutral900,
     secondaryContainer: secondary100,
     onSecondaryContainer: secondary900,
@@ -142,30 +142,30 @@ class AppColorScheme {
     // Tertiary Colors (Light Blue)
     tertiary: tertiary,
     onTertiary: Colors.white,
-    tertiaryContainer: tertiary100,
-    onTertiaryContainer: tertiary900,
+    tertiaryContainer: Color(0xFFFFD9E2),
+    onTertiaryContainer: Color(0xFF3E001D),
     
     // Error Colors
-    error: error,
+    error: Color(0xFFBA1A1A),
     onError: Colors.white,
-    errorContainer: error100,
-    onErrorContainer: error900,
+    errorContainer: Color(0xFFFFDAD6),
+    onErrorContainer: Color(0xFF410002),
     
     // Background and Surface
     background: neutral50,
     onBackground: neutral900,
-    surface: Colors.white,
-    onSurface: neutral900,
-    surfaceVariant: neutral100,
-    onSurfaceVariant: neutral700,
+    surface: Color(0xFFFAFDFD),
+    onSurface: Color(0xFF191C1D),
+    surfaceContainerHighest: Color(0xFFE1E3E3),
+    onSurfaceVariant: Color(0xFF42474E),
     
     // Outline and Others
-    outline: neutral300,
+    outline: Color(0xFF72787E),
     outlineVariant: neutral200,
     shadow: Colors.black,
     scrim: Colors.black54,
     inverseSurface: neutral800,
-    onInverseSurface: neutral100,
+    onInverseSurface: Color(0xFFEFF1F1),
     inversePrimary: primary200,
   );
 
@@ -177,12 +177,12 @@ class AppColorScheme {
     
     // Primary Colors
     primary: primary200,
-    onPrimary: primary900,
-    primaryContainer: primary700,
-    onPrimaryContainer: primary100,
+    onPrimary: Color(0xFF003355),
+    primaryContainer: Color(0xFF98CBFF),
+    onPrimaryContainer: Color(0xFF001D35),
     
     // Secondary Colors
-    secondary: secondary200,
+    secondary: Color(0xFF53D7F3),
     onSecondary: secondary900,
     secondaryContainer: secondary700,
     onSecondaryContainer: secondary100,
@@ -190,30 +190,30 @@ class AppColorScheme {
     // Tertiary Colors
     tertiary: tertiary200,
     onTertiary: tertiary900,
-    tertiaryContainer: tertiary700,
-    onTertiaryContainer: tertiary100,
+    tertiaryContainer: Color(0xFF7E4256),
+    onTertiaryContainer: Color(0xFFFFD9E2),
     
     // Error Colors
-    error: error200,
+    error: Color(0xFFFFB4AB),
     onError: error900,
-    errorContainer: error700,
-    onErrorContainer: error100,
+    errorContainer: Color(0xFF93000A),
+    onErrorContainer: Color(0xFFFFDAD6),
     
     // Background and Surface
     background: neutral900,
     onBackground: neutral100,
-    surface: neutral800,
-    onSurface: neutral100,
-    surfaceVariant: neutral700,
-    onSurfaceVariant: neutral300,
+    surface: Color(0xFF191C1D),
+    onSurface: Color(0xFFE1E3E3),
+    surfaceContainerHighest: Color(0xFF42474E),
+    onSurfaceVariant: Color(0xFFC1C7CE),
     
     // Outline and Others
-    outline: neutral600,
+    outline: Color(0xFF8B9198),
     outlineVariant: neutral700,
     shadow: Colors.black,
     scrim: Colors.black54,
     inverseSurface: neutral100,
-    onInverseSurface: neutral800,
+    onInverseSurface: Color(0xFF191C1D),
     inversePrimary: primary600,
   );
 

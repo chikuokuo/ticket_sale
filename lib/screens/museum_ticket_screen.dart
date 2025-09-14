@@ -78,8 +78,8 @@ class MuseumTicketScreen extends ConsumerWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Colors.black.withOpacity(0.3),
-              Colors.black.withOpacity(0.6),
+              Colors.black.withAlpha(77), // 0.3 opacity
+              Colors.black.withAlpha(153), // 0.6 opacity
             ],
           ),
         ),
@@ -102,7 +102,7 @@ class MuseumTicketScreen extends ConsumerWidget {
                 Text(
                   'Florence, Italy',
                   style: AppTheme.titleMedium.copyWith(
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withAlpha(230), // 0.9 opacity
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -134,7 +134,7 @@ class MuseumTicketScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withAlpha(20), // 0.08 opacity
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -342,11 +342,11 @@ class MuseumTicketScreen extends ConsumerWidget {
         
         // Adult Tickets
         _buildTicketCounter(
-          title: 'Adult (18+)',
-          price: '€${adultPrice.toStringAsFixed(2)}',
+          title: 'Adult',
+          price: adultPrice > 0 ? '€${adultPrice.toStringAsFixed(2)}' : 'Free',
           count: orderState.attendees.where((a) => a.type == AttendeeType.adult).length,
-          onIncrement: () => ref.read(ticketOrderProvider.notifier).addAttendee(AttendeeType.adult),
-          onDecrement: orderState.attendees.where((a) => a.type == AttendeeType.adult).isNotEmpty ? () {
+          onIncrement: () => orderNotifier.addAttendee(AttendeeType.adult),
+          onDecrement: () {
             final adults = orderState.attendees.where((a) => a.type == AttendeeType.adult).toList();
             if (adults.isNotEmpty) {
               // Find the last adult index and remove it
@@ -361,7 +361,7 @@ class MuseumTicketScreen extends ConsumerWidget {
                 orderNotifier.removeAttendee(lastAdultIndex);
               }
             }
-          } : null,
+          },
         ),
         
         const SizedBox(height: 12),
@@ -369,10 +369,10 @@ class MuseumTicketScreen extends ConsumerWidget {
         // Child Tickets
         _buildTicketCounter(
           title: 'Child (0-17)',
-          price: childPrice == 0.0 ? 'Free' : '€${childPrice.toStringAsFixed(2)}',
+          price: childPrice > 0 ? '€${childPrice.toStringAsFixed(2)}' : 'Free',
           count: orderState.attendees.where((a) => a.type == AttendeeType.child).length,
-          onIncrement: () => ref.read(ticketOrderProvider.notifier).addAttendee(AttendeeType.child),
-          onDecrement: orderState.attendees.where((a) => a.type == AttendeeType.child).isNotEmpty ? () {
+          onIncrement: () => orderNotifier.addAttendee(AttendeeType.child),
+          onDecrement: () {
             final children = orderState.attendees.where((a) => a.type == AttendeeType.child).toList();
             if (children.isNotEmpty) {
               // Find the last child index and remove it
@@ -387,7 +387,7 @@ class MuseumTicketScreen extends ConsumerWidget {
                 orderNotifier.removeAttendee(lastChildIndex);
               }
             }
-          } : null,
+          },
         ),
       ],
     );
@@ -397,8 +397,8 @@ class MuseumTicketScreen extends ConsumerWidget {
     required String title,
     required String price,
     required int count,
-    VoidCallback? onDecrement,
     required VoidCallback onIncrement,
+    required VoidCallback onDecrement,
   }) {
     return Row(
       children: [
@@ -534,7 +534,7 @@ class MuseumTicketScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withAlpha(20), // 0.08 opacity
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),

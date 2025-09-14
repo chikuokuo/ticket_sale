@@ -8,7 +8,6 @@ import '../providers/ticket_order_provider.dart';
 import '../services/stripe_service.dart';
 import '../theme/colors.dart';
 import '../theme/app_theme.dart';
-import 'main_navigation_screen.dart';
 
 class OrderSummaryScreen extends ConsumerWidget {
   final TicketType ticketType;
@@ -79,7 +78,7 @@ class OrderSummaryScreen extends ConsumerWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              AppColorScheme.primary.withOpacity(0.05),
+              AppColorScheme.primary.withAlpha(13), // 0.05 opacity
               Colors.white,
             ],
             stops: const [0.0, 0.3],
@@ -163,7 +162,7 @@ class OrderSummaryScreen extends ConsumerWidget {
                     Text(
                       'Hohenschwangau, Bavaria',
                       style: AppTheme.bodyMedium.copyWith(
-                        color: Colors.white70,
+                        color: Colors.white.withAlpha(179), // 0.7 opacity
                       ),
                     ),
                   ],
@@ -177,7 +176,7 @@ class OrderSummaryScreen extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
+              color: Colors.white.withAlpha(38), // 0.15 opacity
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
@@ -219,7 +218,7 @@ class OrderSummaryScreen extends ConsumerWidget {
       children: [
         Icon(
           icon,
-          color: Colors.white70,
+          color: Colors.white.withAlpha(179), // 0.7 opacity
           size: 20,
         ),
         const SizedBox(width: 12),
@@ -230,7 +229,7 @@ class OrderSummaryScreen extends ConsumerWidget {
               Text(
                 label,
                 style: AppTheme.labelSmall.copyWith(
-                  color: Colors.white70,
+                  color: Colors.white.withAlpha(179), // 0.7 opacity
                 ),
               ),
               Text(
@@ -424,8 +423,8 @@ class OrderSummaryScreen extends ConsumerWidget {
           height: 32,
           decoration: BoxDecoration(
             color: attendee.type == AttendeeType.adult 
-              ? AppColorScheme.primary.withOpacity(0.1)
-              : AppColorScheme.secondary.withOpacity(0.1),
+              ? AppColorScheme.primary.withAlpha(26) // 0.1 opacity
+              : AppColorScheme.secondary.withAlpha(26), // 0.1 opacity
             borderRadius: BorderRadius.circular(16),
           ),
           child: Center(
@@ -458,8 +457,8 @@ class OrderSummaryScreen extends ConsumerWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
                       color: attendee.type == AttendeeType.adult 
-                        ? AppColorScheme.primary.withOpacity(0.1)
-                        : AppColorScheme.secondary.withOpacity(0.1),
+                        ? AppColorScheme.primary.withAlpha(26) // 0.1 opacity
+                        : AppColorScheme.secondary.withAlpha(26), // 0.1 opacity
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -568,13 +567,13 @@ class OrderSummaryScreen extends ConsumerWidget {
               Text(
                 'Total Amount',
                 style: AppTheme.titleMedium.copyWith(
-                  color: Colors.white70,
+                  color: Colors.white.withAlpha(179), // 0.7 opacity
                 ),
               ),
               Text(
                 'Including all taxes',
                 style: AppTheme.bodySmall.copyWith(
-                  color: Colors.white60,
+                  color: Colors.white.withAlpha(153), // 0.6 opacity
                 ),
               ),
             ],

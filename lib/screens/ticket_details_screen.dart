@@ -69,7 +69,7 @@ class TicketDetailsScreen extends ConsumerWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              AppColorScheme.primary.withOpacity(0.05),
+              AppColorScheme.primary.withAlpha(13), // 0.05 opacity
               Colors.white,
             ],
             stops: const [0.0, 0.3],
@@ -347,8 +347,8 @@ class TicketDetailsScreen extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: attendee.type == AttendeeType.adult 
-                      ? AppColorScheme.primary.withOpacity(0.1)
-                      : AppColorScheme.secondary.withOpacity(0.1),
+                      ? AppColorScheme.primary.withAlpha(26) // 0.1 opacity
+                      : AppColorScheme.secondary.withAlpha(26), // 0.1 opacity
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(

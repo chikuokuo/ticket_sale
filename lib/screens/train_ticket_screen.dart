@@ -46,7 +46,7 @@ class TrainTicketScreen extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColorScheme.primary.withOpacity(0.2),
+                    color: AppColorScheme.primary.withAlpha(51), // 0.2 opacity
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -72,7 +72,7 @@ class TrainTicketScreen extends ConsumerWidget {
                   Text(
                     'Find and book train tickets across Germany',
                     style: AppTheme.bodyMedium.copyWith(
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withAlpha(230), // 0.9 opacity
                     ),
                   ),
                 ],
@@ -141,7 +141,7 @@ class TrainTicketScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha(13), // 0.05 opacity
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -491,7 +491,7 @@ class TrainTicketScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha(13), // 0.05 opacity
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),

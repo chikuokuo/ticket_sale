@@ -138,8 +138,8 @@ class SelectTicketScreen extends ConsumerWidget {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Colors.black.withOpacity(0.3),
-                      Colors.black.withOpacity(0.7),
+                      Colors.black.withAlpha(77), // 0.3 opacity
+                      Colors.black.withAlpha(179), // 0.7 opacity
                     ],
                     stops: const [0.0, 1.0],
                   ),
@@ -160,7 +160,7 @@ class SelectTicketScreen extends ConsumerWidget {
                             fontWeight: FontWeight.bold,
                             shadows: [
                               Shadow(
-                                color: Colors.black.withOpacity(0.5),
+                                color: Colors.black.withAlpha(128), // 0.5 opacity
                                 offset: const Offset(0, 2),
                                 blurRadius: 4,
                               ),
@@ -174,11 +174,11 @@ class SelectTicketScreen extends ConsumerWidget {
                         Text(
                           'Hohenschwangau, Bavaria',
                           style: AppTheme.titleLarge.copyWith(
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withAlpha(230), // 0.9 opacity
                             fontWeight: FontWeight.w400,
                             shadows: [
                               Shadow(
-                                color: Colors.black.withOpacity(0.5),
+                                color: Colors.black.withAlpha(128), // 0.5 opacity
                                 offset: const Offset(0, 1),
                                 blurRadius: 2,
                               ),
@@ -204,7 +204,7 @@ class SelectTicketScreen extends ConsumerWidget {
                     margin: const EdgeInsets.symmetric(horizontal: 16),
                     child: Card(
                       elevation: 8,
-                      shadowColor: Colors.black.withOpacity(0.15),
+                      shadowColor: Colors.black.withAlpha(38), // 0.15 opacity
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
@@ -500,7 +500,7 @@ class SelectTicketScreen extends ConsumerWidget {
                     margin: const EdgeInsets.symmetric(horizontal: 16),
                     child: Card(
                       elevation: 8,
-                      shadowColor: Colors.black.withOpacity(0.15),
+                      shadowColor: Colors.black.withAlpha(38), // 0.15 opacity
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
