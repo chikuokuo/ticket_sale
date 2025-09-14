@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../models/attendee.dart';
 import '../models/bundle.dart';
@@ -152,15 +153,19 @@ class BundleOrderSummaryScreen extends ConsumerWidget {
                 if (value != null) orderNotifier.selectPaymentMethod(value);
               },
             ),
-            if (orderState.selectedPaymentMethod == PaymentMethod.atmTransfer)
+            if (orderState.selectedPaymentMethod == PaymentMethod.atmTransfer) ...[
+              const SizedBox(height: 16),
+              _buildBankDetailsCard(),
+              const SizedBox(height: 16),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: TextFormField(
                   controller: orderState.atmLastFiveController,
                   decoration: const InputDecoration(
                     labelText: '银行账户末 5 码',
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.account_balance),
+                    helperText: '输入末 5 码用于付款验证',
                   ),
                   keyboardType: TextInputType.number,
                   maxLength: 5,
@@ -172,9 +177,171 @@ class BundleOrderSummaryScreen extends ConsumerWidget {
                   },
                 ),
               ),
+            ],
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildBankDetailsCard() {
+    // Bank details for ATM Transfer
+    const String bankName = 'Neuschwanstein Bank';
+    const String bankAccount = '1234-5678-9012-3456';
+    const String bankCode = 'NEUS123';
+    const String recipientName = 'Castle Tour Service';
+
+    // QR Code data for transfer
+    const String qrData = 'Bank: $bankName\nAccount: $bankAccount\nCode: $bankCode\nRecipient: $recipientName';
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16.0),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColorScheme.neutral50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppColorScheme.primary.withAlpha(77), // 0.3 opacity
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.account_balance,
+                color: AppColorScheme.primary,
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '转账详情',
+                style: AppTheme.titleMedium.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: AppColorScheme.primary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Bank details in two columns
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Left column - Bank details
+              Expanded(
+                flex: 2,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildBundleBankDetailRow('银行名称', bankName),
+                    const SizedBox(height: 8),
+                    _buildBundleBankDetailRow('账户号码', bankAccount),
+                    const SizedBox(height: 8),
+                    _buildBundleBankDetailRow('银行代码', bankCode),
+                    const SizedBox(height: 8),
+                    _buildBundleBankDetailRow('收款人', recipientName),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: 20),
+
+              // Right column - QR Code
+              Expanded(
+                child: Column(
+                  children: [
+                    Text(
+                      '扫码转账',
+                      style: AppTheme.labelMedium.copyWith(
+                        color: AppColorScheme.neutral600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withAlpha(26), // 0.1 opacity
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: QrImageView(
+                        data: qrData,
+                        version: QrVersions.auto,
+                        size: 120,
+                        backgroundColor: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // Important note
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColorScheme.warning.withAlpha(26), // 0.1 opacity
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: AppColorScheme.warning.withAlpha(77), // 0.3 opacity
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  color: AppColorScheme.warning700,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '请在 24 小时内完成转账。付款确认可能需要 1 个工作日。',
+                    style: AppTheme.bodySmall.copyWith(
+                      color: AppColorScheme.warning700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBundleBankDetailRow(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: AppTheme.labelSmall.copyWith(
+            color: AppColorScheme.neutral600,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: AppTheme.bodyMedium.copyWith(
+            fontWeight: FontWeight.w600,
+            color: AppColorScheme.neutral900,
+          ),
+        ),
+      ],
     );
   }
 
