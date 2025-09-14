@@ -55,7 +55,7 @@ class G2RailApiClient {
   final String apiKey = 'your_g2rail_api_key'; // Replace with your actual key
   final String userId = 'your_g2rail_user_id'; // Replace with your actual user id
   final String secret = 'your_g2rail_secret'; // Replace with your actual secret
-  final String baseUrl = 'https://prod.g2rail.com/api';
+  final String baseUrl = 'http://alpha-api.g2rail.com';
   final http.Client httpClient;
 
   G2RailApiClient({
