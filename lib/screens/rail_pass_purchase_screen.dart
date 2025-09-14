@@ -67,7 +67,7 @@ class _RailPassPurchaseScreenState extends ConsumerState<RailPassPurchaseScreen>
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.of(context).pop(),
         ),
         titleTextStyle: AppTheme.headlineSmall.copyWith(

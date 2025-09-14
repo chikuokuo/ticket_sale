@@ -56,11 +56,11 @@ class TrainApiService {
       print('🕐 Time: $searchTime');
       print('👥 Passengers: $adultCount Adult(s), $childCount Child(ren)');
 
-      // Create a timeout for the entire search operation (50 seconds)
+      // Create a timeout for the entire search operation (70 seconds to accommodate longer polling)
       return await Future.any([
         _performSearch(fromStation, toStation, departureDate, searchTime, adultCount, childCount),
-        Future.delayed(const Duration(seconds: 50), () {
-          throw Exception('Search timed out: Operation took longer than 50 seconds and was canceled');
+        Future.delayed(const Duration(seconds: 70), () {
+          throw Exception('Search timed out: Operation took longer than 70 seconds and was canceled');
         }),
       ]);
 
@@ -120,7 +120,7 @@ class TrainApiService {
   }
 
   Future<Map<String, dynamic>> _pollAsyncResult(String asyncKey) async {
-    const maxAttempts = 15; // Increased to fit within 50s total timeout (15 * 3s = 45s)
+    const maxAttempts = 20; // Increased attempts to allow more time for all companies to finish
     const pollInterval = Duration(seconds: 3);
 
     for (int attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -143,14 +143,18 @@ class TrainApiService {
           // Check if all railway companies have finished loading
           bool allLoaded = true;
           bool hasSolutions = false;
+          List<String> stillLoadingCompanies = [];
 
           for (var railwayData in data) {
             if (railwayData is Map<String, dynamic>) {
               final loading = railwayData['loading'] ?? false;
               final solutions = railwayData['solutions'] as List?;
+              final railway = railwayData['railway'] as Map<String, dynamic>?;
+              final companyName = railway?['name'] ?? 'Unknown Company';
 
               if (loading == true) {
                 allLoaded = false;
+                stillLoadingCompanies.add(companyName);
               }
 
               if (solutions != null && solutions.isNotEmpty) {
@@ -160,12 +164,16 @@ class TrainApiService {
           }
 
           print('⏳ Loading status - All loaded: $allLoaded, Has solutions: $hasSolutions');
+          if (stillLoadingCompanies.isNotEmpty) {
+            print('🚂 Still loading: ${stillLoadingCompanies.join(", ")}');
+          }
 
-          // Return if all are loaded OR if we have some solutions and reasonable time has passed
-          // Also return if we've waited long enough even without solutions (to show "no results found")
-          if (allLoaded || (hasSolutions && attempt > 3) || attempt >= 8) {
-            print('✅ Polling complete! ${allLoaded ? ' (All loaded)' : hasSolutions ? ' (Partial results found)' : ' (Waited long enough)'}');
+          // Only return when ALL railway companies have finished loading
+          if (allLoaded) {
+            print('✅ Polling complete! All railway companies have finished loading.');
             return result;
+          } else {
+            print('⏳ Waiting for ${stillLoadingCompanies.length} railway companies to finish loading...');
           }
         } else if (data != null && data['status'] == 'completed') {
           print('✅ Polling complete!');
