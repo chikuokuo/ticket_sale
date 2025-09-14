@@ -4,6 +4,7 @@ import '../models/train_station.dart';
 import '../models/train_trip.dart';
 import '../models/train_passenger.dart';
 import '../models/train_order.dart';
+import '../models/payment_status.dart';
 import '../services/stripe_service.dart';
 import '../services/train_api_service.dart';
 
@@ -200,7 +201,7 @@ class TrainOrderNotifier extends StateNotifier<TrainOrderState> {
       );
 
       // Log search completion
-      print('🏁 搜索完成: 找到 ${searchResult.trips.length} 個班次');
+      print('🏁 Search complete: Found ${searchResult.trips.length} trips');
 
       state = state.copyWith(
         searchResults: searchResult.trips,

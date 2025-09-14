@@ -8,8 +8,9 @@ import '../providers/ticket_order_provider.dart';
 import '../theme/colors.dart';
 import '../theme/app_theme.dart';
 import 'order_summary_screen.dart';
+import '../models/order_type.dart';
 
-class TicketDetailsScreen extends ConsumerWidget {
+class TicketDetailsScreen extends ConsumerStatefulWidget {
   final TicketType ticketType;
 
   const TicketDetailsScreen({
@@ -17,19 +18,25 @@ class TicketDetailsScreen extends ConsumerWidget {
     required this.ticketType,
   });
 
+  @override
+  ConsumerState<TicketDetailsScreen> createState() => _TicketDetailsScreenState();
+}
+
+class _TicketDetailsScreenState extends ConsumerState<TicketDetailsScreen> {
+  final _formKey = GlobalKey<FormState>();
+
   void _navigateToSummary(BuildContext context, WidgetRef ref) {
-    final orderState = ref.read(ticketOrderProvider(ticketType));
-    
     // Validate form
-    if (!orderState.formKey.currentState!.validate()) {
+    if (!_formKey.currentState!.validate()) {
       return;
     }
 
+    final orderState = ref.read(ticketOrderProvider(widget.ticketType));
     // Validate contact information
     if (orderState.customerEmailController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Please fill in contact Email'),
+          content: const Text('Please fill in Contact Email'),
           backgroundColor: AppColorScheme.warning,
           behavior: SnackBarBehavior.floating,
         ),
@@ -40,15 +47,18 @@ class TicketDetailsScreen extends ConsumerWidget {
     // Navigate to confirmation page
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => OrderSummaryScreen(ticketType: ticketType),
+        builder: (context) => OrderSummaryScreen(
+          orderType: OrderType.ticket,
+          ticketType: widget.ticketType,
+        ),
       ),
     );
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final orderState = ref.watch(ticketOrderProvider(ticketType));
-    final orderNotifier = ref.read(ticketOrderProvider(ticketType).notifier);
+  Widget build(BuildContext context) {
+    final orderState = ref.watch(ticketOrderProvider(widget.ticketType));
+    final orderNotifier = ref.read(ticketOrderProvider(widget.ticketType).notifier);
 
     final int adultCount = orderState.attendees.where((a) => a.type == AttendeeType.adult).length;
     final int childCount = orderState.attendees.where((a) => a.type == AttendeeType.child).length;
@@ -56,7 +66,7 @@ class TicketDetailsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Ticket Details'),
+        title: const Text('Ticket Holder Details'),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -76,7 +86,7 @@ class TicketDetailsScreen extends ConsumerWidget {
           ),
         ),
         child: Form(
-          key: orderState.formKey,
+          key: _formKey,
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24.0),
             child: Column(
@@ -90,16 +100,13 @@ class TicketDetailsScreen extends ConsumerWidget {
                   childCount,
                   totalAmount,
                 ),
-                
                 const SizedBox(height: 24),
-
                 // Ticket holder information
                 Text(
                   'Ticket Holder Information',
                   style: AppTheme.headlineSmall,
                 ),
                 const SizedBox(height: 16),
-
                 // Details for each ticket
                 ListView.builder(
                   shrinkWrap: true,
@@ -115,14 +122,10 @@ class TicketDetailsScreen extends ConsumerWidget {
                     );
                   },
                 ),
-
                 const SizedBox(height: 24),
-
                 // Contact information
                 _buildContactInfoCard(orderState),
-
                 const SizedBox(height: 32),
-
                 // Continue button
                 SizedBox(
                   width: double.infinity,
@@ -144,9 +147,7 @@ class TicketDetailsScreen extends ConsumerWidget {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 16),
-
                 // Back button
                 SizedBox(
                   width: double.infinity,
@@ -167,7 +168,6 @@ class TicketDetailsScreen extends ConsumerWidget {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 24),
               ],
             ),

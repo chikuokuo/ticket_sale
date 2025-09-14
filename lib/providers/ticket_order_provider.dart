@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
 import '../models/attendee.dart';
+import '../models/payment_method.dart';
+import '../models/payment_status.dart';
 import '../models/time_slot.dart';
 import '../services/stripe_service.dart';
 
@@ -13,15 +15,14 @@ enum TicketType {
   museum,
 }
 
-enum PaymentMethod { creditCard, atmTransfer }
-
 // 1. Defines the state of the ticket order form
 @immutable
 class TicketOrderState {
-  final List<Attendee> attendees;
+  final Map<TicketType, TicketData> ticketData;
+  final TicketType ticketType;
   final DateTime? selectedDate;
   final TimeSlot? selectedTimeSlot;
-  final GlobalKey<FormState> formKey;
+  final List<Attendee> attendees;
   final TextEditingController customerEmailController;
   final TextEditingController atmLastFiveController;
   final PaymentStatus paymentStatus;
@@ -29,10 +30,11 @@ class TicketOrderState {
   final PaymentMethod selectedPaymentMethod;
 
   const TicketOrderState({
-    required this.attendees,
+    required this.ticketData,
+    required this.ticketType,
     this.selectedDate,
     this.selectedTimeSlot,
-    required this.formKey,
+    this.attendees = const [],
     required this.customerEmailController,
     required this.atmLastFiveController,
     this.paymentStatus = PaymentStatus.idle,
@@ -42,9 +44,11 @@ class TicketOrderState {
 
   // Allows creating a copy of the state with modified fields
   TicketOrderState copyWith({
-    List<Attendee>? attendees,
+    Map<TicketType, TicketData>? ticketData,
+    TicketType? ticketType,
     DateTime? selectedDate,
     TimeSlot? selectedTimeSlot,
+    List<Attendee>? attendees,
     PaymentStatus? paymentStatus,
     String? paymentError,
     PaymentMethod? selectedPaymentMethod,
@@ -53,10 +57,11 @@ class TicketOrderState {
     bool clearPaymentError = false,
   }) {
     return TicketOrderState(
-      attendees: attendees ?? this.attendees,
+      ticketData: ticketData ?? this.ticketData,
+      ticketType: ticketType ?? this.ticketType,
       selectedDate: clearDate ? null : (selectedDate ?? this.selectedDate),
       selectedTimeSlot: clearTimeSlot ? null : (selectedTimeSlot ?? this.selectedTimeSlot),
-      formKey: formKey, // controllers and key are not copied
+      attendees: attendees ?? this.attendees,
       customerEmailController: customerEmailController,
       atmLastFiveController: atmLastFiveController,
       paymentStatus: paymentStatus ?? this.paymentStatus,
@@ -66,6 +71,12 @@ class TicketOrderState {
   }
 }
 
+class TicketData {
+  // This class is needed to ensure the ticketData map is initialized
+  // with default values when creating a TicketOrderState.
+  // It can be empty or contain default values if needed.
+}
+
 // 2. Manages the state and business logic
 class TicketOrderNotifier extends StateNotifier<TicketOrderState> {
   final TicketType ticketType;
@@ -73,12 +84,20 @@ class TicketOrderNotifier extends StateNotifier<TicketOrderState> {
   late final double _childTicketPrice;
 
   TicketOrderNotifier(this.ticketType)
-      : super(TicketOrderState(
-          attendees: [Attendee()],
-          formKey: GlobalKey<FormState>(),
-          customerEmailController: TextEditingController(),
-          atmLastFiveController: TextEditingController(),
-        )) {
+      : super(
+          TicketOrderState(
+            ticketData: {
+              TicketType.neuschwanstein: TicketData(),
+              TicketType.museum: TicketData(),
+            },
+            ticketType: ticketType,
+            customerEmailController: TextEditingController(),
+            atmLastFiveController: TextEditingController(),
+            selectedPaymentMethod: PaymentMethod.creditCard,
+            paymentStatus: PaymentStatus.idle,
+            attendees: [Attendee()],
+          ),
+        ) {
     _initializePrices();
   }
 
@@ -103,14 +122,15 @@ class TicketOrderNotifier extends StateNotifier<TicketOrderState> {
     state = state.copyWith(attendees: [...state.attendees, newAttendee]);
   }
 
-  void removeAttendee(int index) {
-    // It's important to dispose controllers when they are removed
-    state.attendees[index].dispose();
-    
-    final newAttendees = List<Attendee>.from(state.attendees)..removeAt(index);
-    state = state.copyWith(attendees: newAttendees);
+  void removeAttendee(AttendeeType type) {
+    final attendees = List<Attendee>.from(state.attendees);
+    final lastIndex = attendees.lastIndexWhere((attendee) => attendee.type == type);
+    if (lastIndex != -1) {
+      attendees.removeAt(lastIndex);
+      state = state.copyWith(attendees: attendees);
+    }
   }
-  
+
   void updateAttendeeType(int index, AttendeeType newType) {
     final newAttendees = List<Attendee>.from(state.attendees);
     newAttendees[index].type = newType;
@@ -138,15 +158,7 @@ class TicketOrderNotifier extends StateNotifier<TicketOrderState> {
 
   // Process payment with Stripe
   Future<void> processPayment(BuildContext context) async {
-    if (!state.formKey.currentState!.validate()) {
-      return;
-    }
-
-    // Set payment status to processing
-    state = state.copyWith(
-      paymentStatus: PaymentStatus.processing,
-      clearPaymentError: true,
-    );
+    state = state.copyWith(paymentStatus: PaymentStatus.processing, clearPaymentError: true);
 
     try {
       final stripeService = StripeService();
@@ -194,30 +206,15 @@ class TicketOrderNotifier extends StateNotifier<TicketOrderState> {
 
   // Submit ATM payment order to n8n webhook
   Future<void> submitAtmPayment() async {
-    // Also validate the main form for email, etc.
-    if (!state.formKey.currentState!.validate()) {
-      return;
-    }
-    // Validate ATM specific field
-    if (state.atmLastFiveController.text.length < 5) {
-      state = state.copyWith(
-        paymentStatus: PaymentStatus.failed,
-        paymentError: 'Please enter the last 5 digits of your bank account.',
-      );
-      return;
-    }
-
     state = state.copyWith(paymentStatus: PaymentStatus.processing, clearPaymentError: true);
-
     try {
-      // Use the existing _submitToWebhook logic but add the bank account info
       await _submitToWebhook(atmLastFive: state.atmLastFiveController.text);
       state = state.copyWith(paymentStatus: PaymentStatus.success);
       _resetForm();
     } catch (e) {
       state = state.copyWith(
         paymentStatus: PaymentStatus.failed,
-        paymentError: 'Failed to submit ATM order: $e',
+        paymentError: e.toString(),
       );
     }
   }
@@ -284,9 +281,6 @@ class TicketOrderNotifier extends StateNotifier<TicketOrderState> {
 
   // Business logic for submitting is now cleanly separated from the UI
   Future<void> submitOrder() async {
-    if (!state.formKey.currentState!.validate()) {
-      return;
-    }
     // Further validation for date and time slot can be done here.
 
     final int adultCount = state.attendees.where((a) => a.type == AttendeeType.adult).length;
@@ -348,22 +342,15 @@ class TicketOrderNotifier extends StateNotifier<TicketOrderState> {
 
 
   void _resetForm() {
-    state.formKey.currentState!.reset();
-    state.customerEmailController.clear();
-    state.atmLastFiveController.clear();
-
-    // Dispose old controllers before creating a new list
-    for (var attendee in state.attendees) {
-      attendee.dispose();
-    }
-
     state = state.copyWith(
-      attendees: [Attendee()],
+      selectedDate: null,
+      selectedTimeSlot: null,
+      attendees: [],
       paymentStatus: PaymentStatus.idle,
-      clearDate: true,
-      clearTimeSlot: true,
       clearPaymentError: true,
     );
+    state.customerEmailController.clear();
+    state.atmLastFiveController.clear();
   }
 
   @override

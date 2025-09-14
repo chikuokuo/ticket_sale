@@ -22,7 +22,7 @@ class AttendeeInfoCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('参加者信息', style: AppTheme.titleLarge),
+            Text('Attendee Information', style: AppTheme.titleLarge),
             const SizedBox(height: 16),
             ...attendees.asMap().entries.map((entry) {
               final index = entry.key;
@@ -39,27 +39,27 @@ class AttendeeInfoCard extends StatelessWidget {
                       child: Text('${index + 1}'),
                     ),
                     const SizedBox(width: 12),
-                    Text(fullName.isNotEmpty ? fullName : '参加者 ${index + 1}'),
+                    Text(fullName.isNotEmpty ? fullName : 'Attendee ${index + 1}'),
                     const Spacer(),
-                    Text(attendee.type == AttendeeType.adult ? '成人' : '儿童'),
+                    Text(attendee.type == AttendeeType.adult ? 'Adult' : 'Child'),
                   ],
                 ),
               );
             }).toList(),
             const Divider(height: 24),
-            Text('联系信息', style: AppTheme.titleMedium),
+            Text('Contact Information', style: AppTheme.titleMedium),
             const SizedBox(height: 12),
             TextFormField(
               controller: emailController,
               decoration: const InputDecoration(
-                labelText: '电子邮箱',
+                labelText: 'Email Address',
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.email),
               ),
               keyboardType: TextInputType.emailAddress,
               validator: (value) {
                 if (value == null || value.isEmpty || !value.contains('@')) {
-                  return '请输入有效的电子邮箱';
+                  return 'Please enter a valid email address';
                 }
                 return null;
               },

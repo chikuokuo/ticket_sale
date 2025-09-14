@@ -1,39 +1,58 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:qr_flutter/qr_flutter.dart';
+import 'package:sale_ticket_app/models/payment_status.dart';
 
 import '../models/attendee.dart';
+import '../models/order_type.dart';
+import '../models/payment_method.dart';
 import '../models/time_slot.dart';
+import '../providers/bundle_provider.dart';
 import '../providers/ticket_order_provider.dart';
-import '../services/stripe_service.dart';
-import '../theme/colors.dart';
 import '../theme/app_theme.dart';
+import '../theme/colors.dart';
+import '../widgets/attendee_info_card.dart';
 
-class OrderSummaryScreen extends ConsumerWidget {
-  final TicketType ticketType;
+class OrderSummaryScreen extends ConsumerStatefulWidget {
+  final OrderType orderType;
+  final TicketType? ticketType;
 
   const OrderSummaryScreen({
     super.key,
-    required this.ticketType,
-  });
+    required this.orderType,
+    this.ticketType,
+  }) : assert(orderType == OrderType.ticket ? ticketType != null : true,
+            'ticketType must be provided for ticket orders');
 
-  Future<void> _handlePayment(BuildContext context, WidgetRef ref) async {
-    final orderNotifier = ref.read(ticketOrderProvider(ticketType).notifier);
-    await orderNotifier.processPayment(context);
-  }
+  @override
+  ConsumerState<OrderSummaryScreen> createState() => _OrderSummaryScreenState();
+}
+
+class _OrderSummaryScreenState extends ConsumerState<OrderSummaryScreen> {
+  final _formKey = GlobalKey<FormState>();
 
   void _backToBooking(BuildContext context) {
-    // Return to first page (pop all until first)
     Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
   Future<void> _handleConfirm(BuildContext context, WidgetRef ref) async {
-    final orderState = ref.read(ticketOrderProvider(ticketType));
-    final orderNotifier = ref.read(ticketOrderProvider(ticketType).notifier);
+    dynamic orderNotifier;
 
-    // Defensively handle potential null value for payment method
-    final paymentMethod = orderState.selectedPaymentMethod ?? PaymentMethod.creditCard;
+    if (widget.orderType == OrderType.ticket) {
+      orderNotifier = ref.read(ticketOrderProvider(widget.ticketType!).notifier);
+    } else {
+      orderNotifier = ref.read(bundleOrderProvider.notifier);
+    }
+
+    if (_formKey.currentState == null || !_formKey.currentState!.validate()) {
+      return;
+    }
+
+    final dynamic orderState = (widget.orderType == OrderType.ticket)
+        ? ref.read(ticketOrderProvider(widget.ticketType!))
+        : ref.read(bundleOrderProvider);
+
+    final paymentMethod = orderState.selectedPaymentMethod;
 
     if (paymentMethod == PaymentMethod.creditCard) {
       await orderNotifier.processPayment(context);
@@ -43,418 +62,164 @@ class OrderSummaryScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // Listen for payment status changes to show notifications
-    ref.listen<TicketOrderState>(ticketOrderProvider(ticketType), (previous, current) {
+  Widget build(BuildContext context) {
+    final ProviderListenable<dynamic> provider;
+    dynamic orderNotifier;
+
+    if (widget.orderType == OrderType.ticket) {
+      provider = ticketOrderProvider(widget.ticketType!);
+      orderNotifier = ref.read(ticketOrderProvider(widget.ticketType!).notifier);
+    } else {
+      provider = bundleOrderProvider;
+      orderNotifier = ref.read(bundleOrderProvider.notifier);
+    }
+
+    ref.listen(provider, (previous, current) {
       if (previous?.paymentStatus != current.paymentStatus) {
         if (current.paymentStatus == PaymentStatus.success) {
           final isAtmTransfer = current.selectedPaymentMethod == PaymentMethod.atmTransfer;
-          
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
                 isAtmTransfer
-                  ? '✅ Order received! We will confirm your payment within 24 hours.'
-                  : '🎉 Payment successful! Tickets sent to your email.',
+                    ? '✅ Order received! We will confirm your payment within 24 hours.'
+                    : '🎉 Payment successful! Details sent to your email.',
               ),
               backgroundColor: AppColorScheme.success,
-              behavior: SnackBarBehavior.floating,
               duration: const Duration(seconds: 5),
             ),
           );
-          // Return to first page
           _backToBooking(context);
-        } else if (current.paymentStatus == PaymentStatus.failed) {
+        } else if (current.paymentStatus == PaymentStatus.failed && current.paymentError != null) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                current.paymentError ?? 'Payment failed. Please try again.',
-              ),
+              content: Text('Error: ${current.paymentError}'),
               backgroundColor: AppColorScheme.error,
-              behavior: SnackBarBehavior.floating,
-              duration: const Duration(seconds: 5),
             ),
           );
         }
       }
     });
 
-    final orderState = ref.watch(ticketOrderProvider(ticketType));
-    final orderNotifier = ref.read(ticketOrderProvider(ticketType).notifier);
-
-    final double totalAmount = orderNotifier.getTotalAmount();
+    final dynamic orderState = ref.watch(provider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Order Summary'),
-        elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              AppColorScheme.primary.withAlpha(13), // 0.05 opacity
-              Colors.white,
-            ],
-            stops: const [0.0, 0.3],
-          ),
-        ),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Castle information card
-              _buildCastleInfoCard(orderState),
-              
-              const SizedBox(height: 24),
-
-              // Ticket details
-              _buildTicketDetailsCard(
-                orderState,
-                orderNotifier,
-              ),
-
-              const SizedBox(height: 24),
-
-              // Visitor information
-              _buildVisitorInfoCard(orderState),
-
-              const SizedBox(height: 24),
-
-              // Payment method
-              _buildPaymentMethodCard(orderState, orderNotifier),
-
-              const SizedBox(height: 24),
-
-              // Contact information
-              _buildContactCard(orderState),
-
-              const SizedBox(height: 24),
-
-              // Total amount card
-              _buildTotalCard(totalAmount),
-
-              const SizedBox(height: 32),
-
-              // Button area
-              _buildActionButtons(context, ref, orderState),
-
-              const SizedBox(height: 24),
-            ],
-          ),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(16.0),
+          children: [
+            _buildOrderDetailsCard(orderState),
+            const SizedBox(height: 16),
+            AttendeeInfoCard(
+              attendees: orderState.attendees,
+              emailController: orderState.customerEmailController,
+            ),
+            const SizedBox(height: 16),
+            _buildPaymentMethodCard(orderState, orderNotifier),
+            const SizedBox(height: 16),
+            _buildTotalAmountCard(orderNotifier),
+            const SizedBox(height: 24),
+            _buildActionButtons(context, ref, orderState),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildCastleInfoCard(TicketOrderState orderState) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: AppTheme.castleGradient,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: AppTheme.shadowMedium,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.castle,
-                color: Colors.white,
-                size: 28,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Neuschwanstein Castle',
-                      style: AppTheme.headlineSmall.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      'Hohenschwangau, Bavaria',
-                      style: AppTheme.bodyMedium.copyWith(
-                        color: Colors.white.withAlpha(179), // 0.7 opacity
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          
-          // Visit details
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withAlpha(38), // 0.15 opacity
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              children: [
-                _buildInfoRow(
-                  Icons.calendar_today,
-                  'Date',
-                  orderState.selectedDate != null
-                    ? DateFormat('EEEE, MMMM dd, yyyy').format(orderState.selectedDate!)
-                    : 'Not selected',
-                ),
-                const SizedBox(height: 12),
-                _buildInfoRow(
-                  orderState.selectedTimeSlot == TimeSlot.am 
-                    ? Icons.wb_sunny 
-                    : Icons.wb_sunny_outlined,
-                  'Time',
-                  orderState.selectedTimeSlot == TimeSlot.am 
-                    ? 'Morning Session (9:00 AM - 12:00 PM)'
-                    : 'Afternoon Session (1:00 PM - 5:00 PM)',
-                ),
-                const SizedBox(height: 12),
-                _buildInfoRow(
-                  Icons.people,
-                  'Visitors',
-                  '${orderState.attendees.length} ${orderState.attendees.length == 1 ? "person" : "people"}',
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _buildOrderDetailsCard(dynamic orderState) {
+    String title = 'Order Details';
+    List<Widget> details = [];
 
-  Widget _buildBankDetailsCard() {
-    // Bank details for ATM Transfer
-    const String bankName = 'Neuschwanstein Bank';
-    const String bankAccount = '1234-5678-9012-3456';
-    const String bankCode = 'NEUS123';
-    const String recipientName = 'Castle Tour Service';
-
-    // QR Code data for transfer
-    const String qrData = 'Bank: $bankName\nAccount: $bankAccount\nCode: $bankCode\nRecipient: $recipientName';
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16.0),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColorScheme.neutral50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColorScheme.primary.withAlpha(77), // 0.3 opacity
-          width: 1,
+    if (orderState is TicketOrderState) {
+      title = orderState.ticketType == TicketType.museum ? 'Museum Ticket' : 'Neuschwanstein Castle Ticket';
+      details = [
+        _buildInfoRow(
+          icon: Icons.calendar_today,
+          label: 'Date',
+          value: orderState.selectedDate != null
+              ? DateFormat('yyyy-MM-dd').format(orderState.selectedDate!)
+              : 'Not selected',
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.account_balance,
-                color: AppColorScheme.primary,
-                size: 24,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Transfer Details',
-                style: AppTheme.titleMedium.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppColorScheme.primary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Bank details in two columns
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Left column - Bank details
-              Expanded(
-                flex: 2,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildBankDetailRow('Bank Name', bankName),
-                    const SizedBox(height: 8),
-                    _buildBankDetailRow('Account Number', bankAccount),
-                    const SizedBox(height: 8),
-                    _buildBankDetailRow('Bank Code', bankCode),
-                    const SizedBox(height: 8),
-                    _buildBankDetailRow('Recipient', recipientName),
-                  ],
-                ),
-              ),
-
-              const SizedBox(width: 20),
-
-              // Right column - QR Code
-              Expanded(
-                child: Column(
-                  children: [
-                    Text(
-                      'Scan to Transfer',
-                      style: AppTheme.labelMedium.copyWith(
-                        color: AppColorScheme.neutral600,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withAlpha(26), // 0.1 opacity
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: QrImageView(
-                        data: qrData,
-                        version: QrVersions.auto,
-                        size: 120,
-                        backgroundColor: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 16),
-
-          // Important note
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColorScheme.warning.withAlpha(26), // 0.1 opacity
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: AppColorScheme.warning.withAlpha(77), // 0.3 opacity
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.info_outline,
-                  color: AppColorScheme.warning700,
-                  size: 20,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Please complete the transfer within 24 hours. Payment confirmation may take up to 1 business day.',
-                    style: AppTheme.bodySmall.copyWith(
-                      color: AppColorScheme.warning700,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBankDetailRow(String label, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: AppTheme.labelSmall.copyWith(
-            color: AppColorScheme.neutral600,
-          ),
+        _buildInfoRow(
+          icon: Icons.access_time,
+          label: 'Time',
+          value: orderState.selectedTimeSlot?.displayName ?? 'Not selected',
         ),
-        const SizedBox(height: 2),
-        Text(
-          value,
-          style: AppTheme.bodyMedium.copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppColorScheme.neutral900,
-          ),
+      ];
+    } else if (orderState is BundleOrderState) {
+      title = orderState.selectedBundle?.title ?? 'Package Details';
+      details = [
+         _buildInfoRow(
+          icon: Icons.calendar_today,
+          label: 'Date',
+          value: orderState.selectedDate != null
+              ? DateFormat('yyyy-MM-dd').format(orderState.selectedDate!)
+              : 'Not selected',
         ),
-      ],
-    );
-  }
+      ];
+    }
 
-  Widget _buildPaymentMethodCard(
-    TicketOrderState orderState,
-    TicketOrderNotifier orderNotifier,
-  ) {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.payment,
-                  color: AppColorScheme.primary,
-                  size: 24,
-                ),
-                const SizedBox(width: 8),
-                Text('Payment Method', style: AppTheme.titleLarge),
-              ],
-            ),
+            Text(title, style: AppTheme.titleLarge),
+            const SizedBox(height: 16),
+            ...details,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPaymentMethodCard(dynamic orderState, dynamic orderNotifier) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Payment Method', style: AppTheme.titleLarge),
             const SizedBox(height: 8),
             RadioListTile<PaymentMethod>(
               title: const Text('Credit Card'),
               value: PaymentMethod.creditCard,
               groupValue: orderState.selectedPaymentMethod,
-              onChanged: (PaymentMethod? value) {
-                if (value != null) {
-                  orderNotifier.selectPaymentMethod(value);
-                }
+              onChanged: (value) {
+                if (value != null) orderNotifier.selectPaymentMethod(value);
               },
             ),
             RadioListTile<PaymentMethod>(
               title: const Text('ATM Transfer'),
               value: PaymentMethod.atmTransfer,
               groupValue: orderState.selectedPaymentMethod,
-              onChanged: (PaymentMethod? value) {
-                if (value != null) {
-                  orderNotifier.selectPaymentMethod(value);
-                }
+              onChanged: (value) {
+                if (value != null) orderNotifier.selectPaymentMethod(value);
               },
             ),
-            if (orderState.selectedPaymentMethod == PaymentMethod.atmTransfer) ...[
-              const SizedBox(height: 16),
-              _buildBankDetailsCard(),
-              const SizedBox(height: 16),
+            if (orderState.selectedPaymentMethod == PaymentMethod.atmTransfer)
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: TextFormField(
                   controller: orderState.atmLastFiveController,
                   decoration: const InputDecoration(
-                    labelText: 'Last 5 digits of your account',
+                    labelText: 'Last 5 digits of bank account',
                     border: OutlineInputBorder(),
-                    helperText: 'Enter the last 5 digits for payment verification',
+                    prefixIcon: Icon(Icons.account_balance),
                   ),
                   keyboardType: TextInputType.number,
                   maxLength: 5,
@@ -466,339 +231,27 @@ class OrderSummaryScreen extends ConsumerWidget {
                   },
                 ),
               ),
-            ],
           ],
         ),
       ),
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(
-          icon,
-          color: Colors.white.withAlpha(179), // 0.7 opacity
-          size: 20,
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: AppTheme.labelSmall.copyWith(
-                  color: Colors.white.withAlpha(179), // 0.7 opacity
-                ),
-              ),
-              Text(
-                value,
-                style: AppTheme.bodyMedium.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTicketDetailsCard(
-    TicketOrderState orderState,
-    TicketOrderNotifier orderNotifier,
-  ) {
-    final int adultCount = orderState.attendees.where((a) => a.type == AttendeeType.adult).length;
-    final int childCount = orderState.attendees.where((a) => a.type == AttendeeType.child).length;
-    final double adultPrice = orderNotifier.getTotalAmount() / (adultCount + (childCount > 0 ? childCount : 0)); // Simplified price logic
-    final double childPrice = 0.0;
+  Widget _buildTotalAmountCard(dynamic orderNotifier) {
+    final double totalAmount = orderNotifier.getTotalAmount();
 
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.confirmation_number,
-                  color: AppColorScheme.primary,
-                  size: 24,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Ticket Details',
-                  style: AppTheme.titleLarge,
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            
-            if (adultCount > 0) ...[
-              _buildTicketRow(
-                'Adult Ticket (18+)',
-                adultCount,
-                adultPrice,
-                adultCount * adultPrice,
-              ),
-            ],
-            
-            if (childCount > 0) ...[
-              const SizedBox(height: 12),
-              _buildTicketRow(
-                'Child Ticket (0-17)',
-                childCount,
-                childPrice,
-                childCount * childPrice,
-              ),
-            ],
-            
-            const SizedBox(height: 16),
-            Container(
-              height: 1,
-              width: double.infinity,
-              color: AppColorScheme.neutral200,
-            ),
-            const SizedBox(height: 16),
-            
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Total Tickets',
-                  style: AppTheme.titleMedium.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                Text(
-                  '${adultCount + childCount}',
-                  style: AppTheme.titleMedium.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: AppColorScheme.primary,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTicketRow(String type, int quantity, double unitPrice, double totalPrice) {
-    return Row(
-      children: [
-        Expanded(
-          flex: 3,
-          child: Text(
-            type,
-            style: AppTheme.bodyMedium,
-          ),
-        ),
-        Expanded(
-          child: Text(
-            '×$quantity',
-            style: AppTheme.bodyMedium,
-            textAlign: TextAlign.center,
-          ),
-        ),
-        Expanded(
-          child: Text(
-            unitPrice == 0.0 ? 'Free' : '€${unitPrice.toStringAsFixed(2)}',
-            style: AppTheme.bodyMedium,
-            textAlign: TextAlign.center,
-          ),
-        ),
-        Expanded(
-          child: Text(
-            totalPrice == 0.0 ? 'Free' : '€${totalPrice.toStringAsFixed(2)}',
-            style: AppTheme.bodyMedium.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-            textAlign: TextAlign.right,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildVisitorInfoCard(TicketOrderState orderState) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.people,
-                  color: AppColorScheme.primary,
-                  size: 24,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Visitor Information',
-                  style: AppTheme.titleLarge,
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: orderState.attendees.length,
-              separatorBuilder: (context, index) => const Divider(height: 20),
-              itemBuilder: (context, index) {
-                final attendee = orderState.attendees[index];
-                return _buildVisitorRow(attendee, index + 1);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildVisitorRow(Attendee attendee, int number) {
-    final fullName = '${attendee.givenNameController.text.trim()} ${attendee.familyNameController.text.trim()}'.trim();
-    
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: 32,
-          height: 32,
-          decoration: BoxDecoration(
-            color: attendee.type == AttendeeType.adult 
-              ? AppColorScheme.primary.withAlpha(26) // 0.1 opacity
-              : AppColorScheme.secondary.withAlpha(26), // 0.1 opacity
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Center(
-            child: Text(
-              '$number',
-              style: AppTheme.labelMedium.copyWith(
-                color: attendee.type == AttendeeType.adult 
-                  ? AppColorScheme.primary
-                  : AppColorScheme.secondary800,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                fullName.isNotEmpty ? fullName : 'Name not provided',
-                style: AppTheme.bodyMedium.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: attendee.type == AttendeeType.adult 
-                        ? AppColorScheme.primary.withAlpha(26) // 0.1 opacity
-                        : AppColorScheme.secondary.withAlpha(26), // 0.1 opacity
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      attendee.type == AttendeeType.adult ? 'Adult' : 'Child',
-                      style: AppTheme.labelSmall.copyWith(
-                        color: attendee.type == AttendeeType.adult 
-                          ? AppColorScheme.primary
-                          : AppColorScheme.secondary800,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Passport: ${attendee.passportNumberController.text.trim()}',
-                    style: AppTheme.bodySmall.copyWith(
-                      color: AppColorScheme.neutral600,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildContactCard(TicketOrderState orderState) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.contact_mail,
-                  color: AppColorScheme.primary,
-                  size: 24,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Contact Information',
-                  style: AppTheme.titleLarge,
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            
-            Row(
-              children: [
-                Icon(
-                  Icons.email_outlined,
-                  color: AppColorScheme.neutral600,
-                  size: 20,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    orderState.customerEmailController.text.trim(),
-                    style: AppTheme.bodyMedium.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
+            Text('Total Amount', style: AppTheme.titleLarge),
             Text(
-              'Tickets will be sent to this email address',
-              style: AppTheme.bodySmall.copyWith(
-                color: AppColorScheme.neutral600,
-              ),
+              '€${totalAmount.toStringAsFixed(2)}',
+              style: AppTheme.titleLarge?.copyWith(color: AppColorScheme.primary),
             ),
           ],
         ),
@@ -806,60 +259,14 @@ class OrderSummaryScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildTotalCard(double totalAmount) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [AppColorScheme.primary700, AppColorScheme.primary],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: AppTheme.shadowMedium,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Total Amount',
-                style: AppTheme.titleMedium.copyWith(
-                  color: Colors.white.withAlpha(179), // 0.7 opacity
-                ),
-              ),
-              Text(
-                'Including all taxes',
-                style: AppTheme.bodySmall.copyWith(
-                  color: Colors.white.withAlpha(153), // 0.6 opacity
-                ),
-              ),
-            ],
-          ),
-          Text(
-            '€${totalAmount.toStringAsFixed(2)}',
-            style: AppTheme.displaySmall.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionButtons(BuildContext context, WidgetRef ref, TicketOrderState orderState) {
+  Widget _buildActionButtons(BuildContext context, WidgetRef ref, dynamic orderState) {
     final isProcessing = orderState.paymentStatus == PaymentStatus.processing;
 
-    // Defensively handle potential null value for payment method
-    final paymentMethod = orderState.selectedPaymentMethod ?? PaymentMethod.creditCard;
+    final paymentMethod = orderState.selectedPaymentMethod;
     final buttonText = paymentMethod == PaymentMethod.creditCard
-        ? 'Confirm Order & Pay'
+        ? 'Confirm & Pay'
         : 'Confirm ATM Transfer';
-    
+
     return Column(
       children: [
         SizedBox(
@@ -875,38 +282,36 @@ class OrderSummaryScreen extends ConsumerWidget {
               backgroundColor: AppColorScheme.primary,
               foregroundColor: Colors.white,
             ),
-            child: isProcessing 
-              ? Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            child: isProcessing
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
                       ),
+                      SizedBox(width: 12),
+                      Text('Processing...'),
+                    ],
+                  )
+                : Text(
+                    buttonText,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
                     ),
-                    const SizedBox(width: 12),
-                    const Text('Processing...'),
-                  ],
-                )
-              : Text(
-                  buttonText,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
                   ),
-                ),
           ),
         ),
-        
         const SizedBox(height: 16),
-        
         SizedBox(
           width: double.infinity,
           child: OutlinedButton(
-            onPressed: isProcessing ? null : () => _backToBooking(context),
+            onPressed: isProcessing ? null : () => Navigator.of(context).pop(),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
@@ -914,7 +319,7 @@ class OrderSummaryScreen extends ConsumerWidget {
               ),
             ),
             child: const Text(
-              'Back to Booking',
+              'Back to Modify',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -924,5 +329,33 @@ class OrderSummaryScreen extends ConsumerWidget {
         ),
       ],
     );
+  }
+
+  Widget _buildInfoRow({required IconData icon, required String label, required String value}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: Colors.grey[600]),
+          const SizedBox(width: 12),
+          Text('$label:', style: AppTheme.bodyMedium),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(value, style: AppTheme.bodyLarge, textAlign: TextAlign.right),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+extension TimeSlotExtension on TimeSlot {
+  String get displayName {
+    switch (this) {
+      case TimeSlot.am:
+        return 'AM (9:00 - 12:00)';
+      case TimeSlot.pm:
+        return 'PM (1:00 - 5:00)';
+    }
   }
 }

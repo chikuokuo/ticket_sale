@@ -6,6 +6,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
+import 'package:intl/intl.dart';
 
 
 class SearchCriteria {
@@ -92,7 +93,7 @@ class G2RailApiClient {
       "Content-Type": 'application/json',
       "Authorization": authorization,
       "Date": HttpDate.format(timestamp),
-      "Api-Locale": "zh-TW",
+      "Api-Locale": "en-US",
     };
   }
 
@@ -128,7 +129,7 @@ class G2RailApiClient {
     ).timeout(
       const Duration(seconds: 10),
       onTimeout: () {
-        throw Exception('HTTP 請求超時：無法連接到 G2Rail API');
+        throw Exception('HTTP request timed out: Could not connect to G2Rail API');
       },
     );
 
@@ -150,19 +151,19 @@ class G2RailApiClient {
     ).timeout(
       const Duration(seconds: 5),
       onTimeout: () {
-        throw Exception('異步結果請求超時');
+        throw Exception('Async result request timed out');
       },
     );
 
     if (asyncResult.statusCode != 200) {
-      throw Exception('異步結果請求失敗，狀態碼: ${asyncResult.statusCode}');
+      throw Exception('Async result request failed with status code: ${asyncResult.statusCode}');
     }
 
     try {
       final decodedData = jsonDecode(utf8.decode(asyncResult.bodyBytes));
       return {"data": decodedData};
     } catch (e) {
-      throw Exception('解析異步結果失敗: $e');
+      throw Exception('Failed to parse async result: $e');
     }
   }
 }
