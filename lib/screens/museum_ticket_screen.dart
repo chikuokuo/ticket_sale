@@ -34,7 +34,7 @@ class MuseumTicketScreen extends ConsumerWidget {
         child: Column(
           children: [
             // Background and Title Section
-            _buildHeader(),
+            _buildHeader(context),
 
             // Main Content with Overlap
             Transform.translate(
@@ -62,7 +62,7 @@ class MuseumTicketScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Container(
       height: 280,
       width: double.infinity,
@@ -84,12 +84,36 @@ class MuseumTicketScreen extends ConsumerWidget {
           ),
         ),
         child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Spacer(),
+          child: Column(
+            children: [
+              // AppBar with back button
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+                child: Row(
+                  children: [
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(
+                        Icons.arrow_back,
+                        color: Colors.white,
+                      ),
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.black.withOpacity(0.3),
+                        shape: const CircleBorder(),
+                      ),
+                    ),
+                    const Spacer(),
+                  ],
+                ),
+              ),
+              // Original content
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Spacer(),
                 Text(
                   'Uffizi Galleries',
                   style: AppTheme.headlineLarge.copyWith(
@@ -106,8 +130,11 @@ class MuseumTicketScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
-              ],
-            ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),

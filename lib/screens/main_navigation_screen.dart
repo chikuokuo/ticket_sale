@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../screens/museum_ticket_screen.dart';
-import '../screens/select_ticket_screen.dart';
+import '../screens/tickets_home_screen.dart';
 import '../screens/train_ticket_screen.dart';
 import '../theme/app_theme.dart';
 import '../theme/colors.dart';
@@ -18,8 +17,7 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
   int _selectedIndex = 0;
 
   static const List<Widget> _pages = <Widget>[
-    SelectTicketScreen(),
-    MuseumTicketScreen(),
+    TicketsHomeScreen(),
     TrainTicketScreen(),
     ProfileScreen(),
   ];
@@ -40,14 +38,9 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: Icon(Icons.castle_outlined),
-            activeIcon: Icon(Icons.castle),
-            label: 'Castle',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_balance_outlined),
-            activeIcon: Icon(Icons.account_balance),
-            label: 'Museum',
+            icon: Icon(Icons.confirmation_number_outlined),
+            activeIcon: Icon(Icons.confirmation_number),
+            label: 'Tickets',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.train_outlined),

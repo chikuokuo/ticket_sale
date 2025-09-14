@@ -145,8 +145,32 @@ class SelectTicketScreen extends ConsumerWidget {
                   ),
                 ),
                 child: SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    children: [
+                      // AppBar with back button
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+                        child: Row(
+                          children: [
+                            IconButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              icon: const Icon(
+                                Icons.arrow_back,
+                                color: Colors.white,
+                              ),
+                              style: IconButton.styleFrom(
+                                backgroundColor: Colors.black.withOpacity(0.3),
+                                shape: const CircleBorder(),
+                              ),
+                            ),
+                            const Spacer(),
+                          ],
+                        ),
+                      ),
+                      // Original content
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.end,
@@ -189,6 +213,9 @@ class SelectTicketScreen extends ConsumerWidget {
                         const SizedBox(height: 24),
                       ],
                     ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
