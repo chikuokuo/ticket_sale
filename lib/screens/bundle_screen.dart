@@ -11,7 +11,7 @@ class BundleScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final bundles = ref.watch(bundlesProvider);
+    final bundlesAsync = ref.watch(bundlesProvider);
 
     return Scaffold(
       backgroundColor: AppColorScheme.neutral50,
@@ -33,12 +33,16 @@ class BundleScreen extends ConsumerWidget {
                     const SizedBox(height: 24),
                     
                     // Bundle Cards
-                    ...bundles.map((bundle) => Column(
-                      children: [
-                        _buildBundleCard(context, ref, bundle),
-                        const SizedBox(height: 20),
-                      ],
-                    )),
+                    bundlesAsync.when(
+                      data: (bundles) => Column(
+                        children: bundles.map((bundle) => Padding(
+                          padding: const EdgeInsets.only(bottom: 20.0),
+                          child: _buildBundleCard(context, ref, bundle),
+                        )).toList(),
+                      ),
+                      loading: () => const Center(child: CircularProgressIndicator()),
+                      error: (err, stack) => Center(child: Text('Error: $err')),
+                    ),
                     
                     const SizedBox(height: 40),
                   ],

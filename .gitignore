@@ -40,3 +40,6 @@ pubspec.lock
 /windows/flutter/ephemeral/
 /linux/flutter/ephemeral/
 /macos/flutter/ephemeral/
+
+# Environment variables
+.env

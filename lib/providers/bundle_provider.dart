@@ -1,255 +1,235 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
+
 import '../models/bundle.dart';
+import '../models/attendee.dart';
 import '../services/stripe_service.dart';
 
-// Sample bundle data
-final bundlesProvider = Provider<List<Bundle>>((ref) {
-  return [
-    Bundle(
-      id: 'neuschwanstein_tour',
-      title: 'Neuschwanstein Castle Tour',
-      subtitle: 'Full Day Experience',
-      description: 'Visit the fairy tale castle with guided tour and lunch included',
-      detailedDescription: 'Experience the magic of Neuschwanstein Castle with our comprehensive full-day tour. This package includes round-trip transportation, skip-the-line entrance tickets, professional guide services, and a traditional Bavarian lunch.\n\nYour adventure begins with a scenic drive through the Bavarian Alps, followed by a guided tour of the castle\'s magnificent rooms and halls. Learn about the fascinating history of King Ludwig II and his architectural masterpiece.\n\nAfter the castle tour, enjoy a delicious lunch at a local restaurant before visiting the nearby village of Hohenschwangau.',
-      price: 89.00,
-      duration: '8 hours',
-      imageUrl: 'assets/images/neuschwanstein_tour.jpg',
-      highlights: [
-        'Skip-the-line castle entrance',
-        'Professional guide services', 
-        'Traditional Bavarian lunch included',
-        'Round-trip transportation',
-        'Small group experience (max 16 people)',
-        'Visit to Hohenschwangau village'
-      ],
-      activities: [
-        '09:00 - Meet at Munich Central Station',
-        '10:30 - Arrive at Neuschwanstein area',
-        '11:00 - Guided castle tour',
-        '12:30 - Traditional lunch break',
-        '14:00 - Explore Hohenschwangau village',
-        '15:30 - Photo opportunity at Mary\'s Bridge',
-        '16:30 - Return journey begins',
-        '18:00 - Arrival back in Munich'
-      ],
-      category: 'Cultural Heritage',
-      rating: 4.8,
-      reviewCount: 1247,
-    ),
-    Bundle(
-      id: 'alps_adventure',
-      title: 'Alpine Adventure Package',
-      subtitle: 'Mountain Experience',
-      description: 'Hiking, cable car rides, and Alpine cuisine in the Bavarian Alps',
-      detailedDescription: 'Discover the breathtaking beauty of the Bavarian Alps with our Alpine Adventure Package. This thrilling experience combines scenic cable car rides, guided hiking trails, and authentic Alpine dining.\n\nTake in panoramic views from mountain peaks, explore pristine hiking trails suitable for all fitness levels, and enjoy traditional mountain cuisine at authentic Alpine huts.\n\nPerfect for nature lovers and adventure seekers looking to experience the natural wonders of Bavaria.',
-      price: 120.00,
-      duration: '10 hours',
-      imageUrl: 'assets/images/alps_adventure.jpg',
-      highlights: [
-        'Cable car rides to mountain peaks',
-        'Guided hiking with certified guide',
-        'Traditional Alpine lunch at mountain hut',
-        'Professional photography service',
-        'Small group (max 12 people)',
-        'All safety equipment included'
-      ],
-      activities: [
-        '08:00 - Hotel pickup in Munich',
-        '09:30 - Arrive at Zugspitze base station',
-        '10:00 - Cable car ride to peak',
-        '11:00 - Guided alpine hiking',
-        '13:00 - Lunch at traditional mountain hut',
-        '15:00 - Explore alpine meadows',
-        '16:00 - Descent via cable car',
-        '18:00 - Return to Munich'
-      ],
-      category: 'Adventure',
-      rating: 4.9,
-      reviewCount: 892,
-    ),
-    Bundle(
-      id: 'bavarian_culture',
-      title: 'Bavarian Culture Experience',
-      subtitle: 'Local Traditions',
-      description: 'Brewery visit, traditional folk show, and authentic dinner',
-      detailedDescription: 'Immerse yourself in authentic Bavarian culture with this comprehensive experience package. Visit a historic brewery, enjoy a traditional folk performance, and savor a hearty Bavarian feast.\n\nLearn about centuries-old brewing traditions, watch skilled craftsmen demonstrate traditional Bavarian arts, and experience lively folk music and dancing.\n\nThis cultural journey offers an authentic glimpse into Bavaria\'s rich heritage and traditions.',
-      price: 65.00,
-      duration: '6 hours',
-      imageUrl: 'assets/images/bavarian_culture.jpg',
-      highlights: [
-        'Historic brewery tour and tasting',
-        'Traditional folk show performance',
-        'Authentic Bavarian dinner',
-        'Local artisan demonstrations',
-        'Traditional costume photo opportunity',
-        'Cultural guide with local insights'
-      ],
-      activities: [
-        '14:00 - Meet at traditional brewery',
-        '14:30 - Guided brewery tour and tasting',
-        '16:00 - Traditional craft demonstrations',
-        '17:00 - Folk show performance',
-        '18:30 - Authentic Bavarian dinner',
-        '20:00 - Experience concludes'
-      ],
-      category: 'Cultural',
-      rating: 4.7,
-      reviewCount: 623,
-    ),
-  ];
-});
+enum PaymentMethod { creditCard, atmTransfer }
 
-// Bundle order state
+@immutable
 class BundleOrderState {
-  final BundleOrder? currentOrder;
-  final bool isLoading;
-  final String? error;
+  final Bundle? selectedBundle;
+  final List<Attendee> attendees;
+  final DateTime? selectedDate;
+  final GlobalKey<FormState> formKey;
+  final TextEditingController customerEmailController;
+  final TextEditingController atmLastFiveController;
+  final PaymentStatus paymentStatus;
+  final String? paymentError;
+  final PaymentMethod selectedPaymentMethod;
 
-  BundleOrderState({
-    this.currentOrder,
-    this.isLoading = false,
-    this.error,
+  const BundleOrderState({
+    this.selectedBundle,
+    required this.attendees,
+    this.selectedDate,
+    required this.formKey,
+    required this.customerEmailController,
+    required this.atmLastFiveController,
+    this.paymentStatus = PaymentStatus.idle,
+    this.paymentError,
+    this.selectedPaymentMethod = PaymentMethod.creditCard,
   });
 
   BundleOrderState copyWith({
-    BundleOrder? currentOrder,
-    bool? isLoading,
-    String? error,
+    Bundle? selectedBundle,
+    List<Attendee>? attendees,
+    DateTime? selectedDate,
+    PaymentStatus? paymentStatus,
+    String? paymentError,
+    PaymentMethod? selectedPaymentMethod,
+    bool clearDate = false,
+    bool clearPaymentError = false,
   }) {
     return BundleOrderState(
-      currentOrder: currentOrder ?? this.currentOrder,
-      isLoading: isLoading ?? this.isLoading,
-      error: error,
+      selectedBundle: selectedBundle ?? this.selectedBundle,
+      attendees: attendees ?? this.attendees,
+      selectedDate: clearDate ? null : (selectedDate ?? this.selectedDate),
+      formKey: formKey,
+      customerEmailController: customerEmailController,
+      atmLastFiveController: atmLastFiveController,
+      paymentStatus: paymentStatus ?? this.paymentStatus,
+      paymentError: clearPaymentError ? null : (paymentError ?? this.paymentError as String?),
+      selectedPaymentMethod: selectedPaymentMethod ?? this.selectedPaymentMethod,
     );
   }
 }
 
-// Bundle order provider
 class BundleOrderNotifier extends StateNotifier<BundleOrderState> {
-  BundleOrderNotifier() : super(BundleOrderState());
+  // TODO: Replace with actual bundle prices
+  final double _adultBundlePrice = 100.0;
+  final double _childBundlePrice = 50.0;
+
+  BundleOrderNotifier()
+      : super(BundleOrderState(
+          attendees: [Attendee()],
+          formKey: GlobalKey<FormState>(),
+          customerEmailController: TextEditingController(),
+          atmLastFiveController: TextEditingController(),
+        ));
 
   void selectBundle(Bundle bundle) {
-    state = state.copyWith(
-      currentOrder: BundleOrder(bundle: bundle),
-    );
+    state = state.copyWith(selectedBundle: bundle);
   }
 
-  void selectDate(DateTime date) {
-    if (state.currentOrder == null) return;
-    
-    state = state.copyWith(
-      currentOrder: state.currentOrder!.copyWith(selectedDate: date),
-    );
+  void addAttendee() {
+    state = state.copyWith(attendees: [...state.attendees, Attendee()]);
   }
 
-  void updateParticipantCount(int count) {
-    if (state.currentOrder == null) return;
-    
-    final participants = <BundleParticipant>[];
-    for (int i = 0; i < count; i++) {
-      if (i < state.currentOrder!.participants.length) {
-        participants.add(state.currentOrder!.participants[i]);
-      } else {
-        participants.add(BundleParticipant(givenName: '', familyName: ''));
-      }
+  void removeAttendee(int index) {
+    state.attendees[index].dispose();
+    final newAttendees = List<Attendee>.from(state.attendees)..removeAt(index);
+    state = state.copyWith(attendees: newAttendees);
+  }
+
+  void updateAttendeeType(int index, AttendeeType newType) {
+    final newAttendees = List<Attendee>.from(state.attendees);
+    newAttendees[index].type = newType;
+    state = state.copyWith(attendees: newAttendees);
+  }
+
+  void selectDate(DateTime? date) {
+    state = state.copyWith(selectedDate: date);
+  }
+
+  void selectPaymentMethod(PaymentMethod method) {
+    state = state.copyWith(selectedPaymentMethod: method);
+  }
+
+  double getTotalAmount() {
+    final int adultCount = state.attendees.where((a) => a.type == AttendeeType.adult).length;
+    final int childCount = state.attendees.where((a) => a.type == AttendeeType.child).length;
+    return (adultCount * _adultBundlePrice) + (childCount * _childBundlePrice);
+  }
+
+  Future<void> submitAtmPayment() async {
+    if (!state.formKey.currentState!.validate() || state.selectedDate == null) {
+      return;
+    }
+    if (state.atmLastFiveController.text.length < 5) {
+      state = state.copyWith(
+        paymentStatus: PaymentStatus.failed,
+        paymentError: 'Please enter the last 5 digits of your account.',
+      );
+      return;
     }
 
-    final totalAmount = count * state.currentOrder!.bundle.price;
-
-    state = state.copyWith(
-      currentOrder: state.currentOrder!.copyWith(
-        participantCount: count,
-        participants: participants,
-        totalAmount: totalAmount,
-      ),
-    );
-  }
-
-  void updateParticipant(int index, String givenName, String familyName) {
-    if (state.currentOrder == null || index >= state.currentOrder!.participants.length) return;
-
-    final participants = List<BundleParticipant>.from(state.currentOrder!.participants);
-    participants[index] = BundleParticipant(givenName: givenName, familyName: familyName);
-
-    state = state.copyWith(
-      currentOrder: state.currentOrder!.copyWith(participants: participants),
-    );
-  }
-
-  void updateContactEmail(String email) {
-    if (state.currentOrder == null) return;
-
-    state = state.copyWith(
-      currentOrder: state.currentOrder!.copyWith(contactEmail: email),
-    );
+    state = state.copyWith(paymentStatus: PaymentStatus.processing, clearPaymentError: true);
+    try {
+      await _submitToWebhook(atmLastFive: state.atmLastFiveController.text);
+      state = state.copyWith(paymentStatus: PaymentStatus.success);
+      _resetForm();
+    } catch (e) {
+      state = state.copyWith(
+        paymentStatus: PaymentStatus.failed,
+        paymentError: e.toString(),
+      );
+    }
   }
 
   Future<void> processPayment(BuildContext context) async {
-    if (state.currentOrder == null || !state.currentOrder!.isComplete) return;
-
-    state = state.copyWith(isLoading: true, error: null);
-
+    if (!state.formKey.currentState!.validate() || state.selectedDate == null) {
+      return;
+    }
+    state = state.copyWith(paymentStatus: PaymentStatus.processing, clearPaymentError: true);
     try {
       final stripeService = StripeService();
-      
-      // Prepare metadata for the order
-      final metadata = {
-        'order_type': 'bundle',
-        'bundle_id': state.currentOrder!.bundle.id,
-        'bundle_title': state.currentOrder!.bundle.title,
-        'date': state.currentOrder!.selectedDate!.toIso8601String(),
-        'participant_count': state.currentOrder!.participantCount.toString(),
-        'contact_email': state.currentOrder!.contactEmail,
-      };
+      final totalAmount = getTotalAmount();
 
-      // Process payment
       final result = await stripeService.processPayment(
         context: context,
-        amount: state.currentOrder!.totalAmount,
-        currency: 'EUR',
-        customerEmail: state.currentOrder!.contactEmail,
-        metadata: metadata,
+        amount: totalAmount,
+        currency: 'eur',
+        customerEmail: state.customerEmailController.text,
+        metadata: {
+          'orderType': 'bundle',
+          'date': DateFormat('yyyy-MM-dd').format(state.selectedDate!),
+          'attendee_count': state.attendees.length.toString(),
+        },
       );
 
       if (result.status == PaymentStatus.success) {
-        // Payment successful
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Payment successful! Booking confirmed.'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        
-        // Reset order after successful payment
-        state = BundleOrderState();
+        await _submitToWebhook();
+        state = state.copyWith(paymentStatus: PaymentStatus.success);
+        _resetForm();
       } else {
-        // Payment failed
-        state = state.copyWith(
-          isLoading: false,
-          error: 'Payment failed. Please try again.',
-        );
+        state = state.copyWith(paymentStatus: PaymentStatus.failed, paymentError: result.error);
       }
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: 'Payment error: $e',
-      );
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Payment error: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      state = state.copyWith(paymentStatus: PaymentStatus.failed, paymentError: e.toString());
     }
   }
 
-  void clearOrder() {
-    state = BundleOrderState();
+  Future<void> _submitToWebhook({String? atmLastFive}) async {
+    final List<Map<String, String>> attendeesData = state.attendees.map((a) {
+      final ticketType = a.type == AttendeeType.adult ? 'Adult' : 'Child';
+      final fullName = '${a.givenNameController.text} ${a.familyNameController.text}'.trim();
+      return {'name': fullName, 'ticketType': ticketType};
+    }).toList();
+
+    final Map<String, dynamic> bundleData = {
+      'ticketId': 'TR__22697P8',
+      'tourName': 'TXXXXXXXX',
+      'customerEmail': state.customerEmailController.text,
+      'orderDate': DateFormat('yyyy-MM-dd').format(state.selectedDate!),
+      'attendees': attendeesData,
+      'paymentMethod': state.selectedPaymentMethod.name,
+    };
+    
+    if (state.selectedPaymentMethod == PaymentMethod.atmTransfer) {
+      bundleData['bankAccount'] = {'last5': atmLastFive ?? ''};
+    } else {
+      bundleData['totalAmount'] = {'value': getTotalAmount(), 'currency': 'EUR'};
+    }
+
+    final response = await http.post(
+      Uri.parse('https://dream-ticket.app.n8n.cloud/webhook/ae7619b9-fbb4-496f-8876-ec5443de6b4b'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(bundleData),
+    );
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception('Webhook call failed with status ${response.statusCode}: ${response.body}');
+    }
+  }
+
+  void _resetForm() {
+    state.formKey.currentState?.reset();
+    state.customerEmailController.clear();
+    state.atmLastFiveController.clear();
+    for (var attendee in state.attendees) {
+      attendee.dispose();
+    }
+    state = state.copyWith(
+      attendees: [Attendee()],
+      paymentStatus: PaymentStatus.idle,
+      clearDate: true,
+      clearPaymentError: true,
+    );
+  }
+
+  @override
+  void dispose() {
+    for (var attendee in state.attendees) {
+      attendee.dispose();
+    }
+    state.customerEmailController.dispose();
+    state.atmLastFiveController.dispose();
+    super.dispose();
   }
 }
 
-final bundleOrderProvider = StateNotifierProvider<BundleOrderNotifier, BundleOrderState>((ref) {
-  return BundleOrderNotifier();
+final bundleOrderProvider = StateNotifierProvider.autoDispose<BundleOrderNotifier, BundleOrderState>(
+  (ref) => BundleOrderNotifier(),
+);
+
+// Provider to fetch all bundles from a JSON asset
+final bundlesProvider = FutureProvider<List<Bundle>>((ref) async {
+  final String response = await rootBundle.loadString('assets/bundles.json');
+  final data = await json.decode(response) as List;
+  return data.map((json) => Bundle.fromJson(json)).toList();
 });

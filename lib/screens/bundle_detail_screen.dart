@@ -262,7 +262,7 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
           const SizedBox(height: 24),
           
           // Total amount
-          if (bundleOrder.currentOrder?.participantCount != null && bundleOrder.currentOrder!.participantCount > 0) ...[
+          if (bundleOrder.attendees.isNotEmpty) ...[
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
@@ -282,7 +282,7 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
                     ),
                   ),
                   Text(
-                    '€${(bundleOrder.currentOrder!.participantCount * widget.bundle.price).toStringAsFixed(2)}',
+                    '€${(bundleOrder.attendees.length * widget.bundle.price).toStringAsFixed(2)}',
                     style: AppTheme.headlineMedium.copyWith(
                       color: AppColorScheme.primary,
                       fontWeight: FontWeight.bold,
@@ -354,13 +354,13 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               border: Border.all(
-                color: bundleOrder.currentOrder?.selectedDate != null 
+                color: bundleOrder.selectedDate != null 
                   ? AppColorScheme.primary 
                   : AppColorScheme.neutral300,
-                width: bundleOrder.currentOrder?.selectedDate != null ? 2 : 1,
+                width: bundleOrder.selectedDate != null ? 2 : 1,
               ),
               borderRadius: BorderRadius.circular(12),
-              color: bundleOrder.currentOrder?.selectedDate != null 
+              color: bundleOrder.selectedDate != null 
                 ? AppColorScheme.primary50 
                 : AppColorScheme.neutral50,
             ),
@@ -368,7 +368,7 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
               children: [
                 Icon(
                   Icons.calendar_today,
-                  color: bundleOrder.currentOrder?.selectedDate != null 
+                  color: bundleOrder.selectedDate != null 
                     ? AppColorScheme.primary 
                     : AppColorScheme.neutral500,
                   size: 24,
@@ -376,13 +376,13 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    bundleOrder.currentOrder?.selectedDate == null
+                    bundleOrder.selectedDate == null
                       ? 'Choose your preferred date'
-                      : DateFormat('EEEE, MMMM dd, yyyy').format(bundleOrder.currentOrder!.selectedDate!),
+                      : DateFormat('EEEE, MMMM dd, yyyy').format(bundleOrder.selectedDate!),
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
-                      color: bundleOrder.currentOrder?.selectedDate != null 
+                      color: bundleOrder.selectedDate != null 
                         ? AppColorScheme.primary 
                         : AppColorScheme.neutral600,
                     ),
@@ -416,22 +416,22 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
           children: [
             // Decrement button
             InkWell(
-              onTap: bundleOrder.currentOrder != null && bundleOrder.currentOrder!.participantCount > 1
-                ? () => _updateParticipantCount(bundleOrder.currentOrder!.participantCount - 1)
+              onTap: bundleOrder.attendees.length > 1
+                ? () => _updateParticipantCount(bundleOrder.attendees.length - 1)
                 : null,
               borderRadius: BorderRadius.circular(20),
               child: Container(
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: bundleOrder.currentOrder != null && bundleOrder.currentOrder!.participantCount > 1
+                  color: bundleOrder.attendees.length > 1
                     ? AppColorScheme.neutral200
                     : AppColorScheme.neutral100,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   Icons.remove,
-                  color: bundleOrder.currentOrder != null && bundleOrder.currentOrder!.participantCount > 1
+                  color: bundleOrder.attendees.length > 1
                     ? AppColorScheme.neutral700
                     : AppColorScheme.neutral400,
                   size: 18,
@@ -446,7 +446,7 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
               margin: const EdgeInsets.symmetric(horizontal: 16),
               alignment: Alignment.center,
               child: Text(
-                (bundleOrder.currentOrder?.participantCount ?? 1).toString(),
+                bundleOrder.attendees.length.toString(),
                 style: AppTheme.titleMedium.copyWith(
                   fontWeight: FontWeight.w600,
                   color: AppColorScheme.neutral900,
@@ -457,7 +457,7 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
             // Increment button
             InkWell(
               onTap: () => _updateParticipantCount(
-                (bundleOrder.currentOrder?.participantCount ?? 1) + 1,
+                bundleOrder.attendees.length + 1,
               ),
               borderRadius: BorderRadius.circular(20),
               child: Container(
@@ -630,9 +630,8 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
   }
 
   bool _canProceed(BundleOrderState bundleOrder) {
-    return bundleOrder.currentOrder?.selectedDate != null &&
-           bundleOrder.currentOrder?.participantCount != null &&
-           bundleOrder.currentOrder!.participantCount > 0;
+    return bundleOrder.selectedDate != null &&
+           bundleOrder.attendees.isNotEmpty;
   }
 
   Future<void> _selectDate() async {
@@ -649,8 +648,21 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
   }
 
   void _updateParticipantCount(int count) {
-    if (count > 0) {
-      ref.read(bundleOrderProvider.notifier).updateParticipantCount(count);
+    final notifier = ref.read(bundleOrderProvider.notifier);
+    final currentCount = ref.read(bundleOrderProvider).attendees.length;
+
+    if (count > currentCount) {
+      for (int i = 0; i < count - currentCount; i++) {
+        notifier.addAttendee();
+      }
+    } else if (count < currentCount) {
+      for (int i = 0; i < currentCount - count; i++) {
+        // Find last index to remove
+        final lastIndex = ref.read(bundleOrderProvider).attendees.length - 1;
+        if(lastIndex >= 0) {
+          notifier.removeAttendee(lastIndex);
+        }
+      }
     }
   }
 
