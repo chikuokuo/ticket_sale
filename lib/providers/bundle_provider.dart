@@ -64,9 +64,6 @@ class BundleOrderState {
 }
 
 class BundleOrderNotifier extends StateNotifier<BundleOrderState> {
-  // TODO: Replace with actual bundle prices
-  final double _adultBundlePrice = 100.0;
-  final double _childBundlePrice = 50.0;
 
   BundleOrderNotifier()
       : super(BundleOrderState(
@@ -104,9 +101,10 @@ class BundleOrderNotifier extends StateNotifier<BundleOrderState> {
   }
 
   double getTotalAmount() {
-    final int adultCount = state.attendees.where((a) => a.type == AttendeeType.adult).length;
-    final int childCount = state.attendees.where((a) => a.type == AttendeeType.child).length;
-    return (adultCount * _adultBundlePrice) + (childCount * _childBundlePrice);
+    if (state.selectedBundle == null) {
+      return 0.0;
+    }
+    return state.selectedBundle!.price * state.attendees.length;
   }
 
   Future<void> submitAtmPayment() async {
