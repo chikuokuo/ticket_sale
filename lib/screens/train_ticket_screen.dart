@@ -28,6 +28,13 @@ class TrainTicketScreen extends ConsumerWidget {
       if (trainState.searchCriteria.departureDate == null) {
         trainNotifier.setDepartureDate(DateTime.now().add(const Duration(days: 1)));
       }
+      if (trainState.searchCriteria.departureTime == null) {
+        trainNotifier.setDepartureTime('08:00');
+      }
+      // Ensure at least 1 adult passenger
+      if (trainState.searchCriteria.adultCount == 0 && trainState.searchCriteria.childCount == 0) {
+        trainNotifier.setPassengerCount(adults: 1);
+      }
     });
 
     return Scaffold(
@@ -233,10 +240,11 @@ class TrainTicketScreen extends ConsumerWidget {
 
           const SizedBox(height: 16),
 
-          // Date Selection
+          // Date and Time Selection
           Row(
             children: [
               Expanded(
+                flex: 2,
                 child: _buildDateSelector(
                   label: 'Departure Date',
                   date: trainState.searchCriteria.departureDate,
@@ -244,7 +252,16 @@ class TrainTicketScreen extends ConsumerWidget {
                   context: context,
                 ),
               ),
-              // TODO: Add return date for round trips
+              const SizedBox(width: 16),
+              Expanded(
+                flex: 1,
+                child: _buildTimeSelector(
+                  label: 'Time',
+                  time: trainState.searchCriteria.departureTime,
+                  onTimeSelected: trainNotifier.setDepartureTime,
+                  context: context,
+                ),
+              ),
             ],
           ),
 
@@ -573,6 +590,55 @@ class TrainTicketScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildTimeSelector({
+    required String label,
+    required String? time,
+    required Function(String?) onTimeSelected,
+    required BuildContext context,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: AppTheme.labelMedium.copyWith(
+            color: AppColorScheme.neutral700,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: () => _selectTime(context, time, onTimeSelected),
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              border: Border.all(color: AppColorScheme.neutral300),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  time ?? '08:00',
+                  style: AppTheme.bodyMedium.copyWith(
+                    color: AppColorScheme.neutral900,
+                  ),
+                ),
+                Icon(
+                  Icons.access_time,
+                  color: AppColorScheme.neutral500,
+                  size: 20,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Future<void> _selectDate(
     BuildContext context,
     DateTime? currentDate,
@@ -589,20 +655,66 @@ class TrainTicketScreen extends ConsumerWidget {
     }
   }
 
+  Future<void> _selectTime(
+    BuildContext context,
+    String? currentTime,
+    Function(String?) onTimeSelected,
+  ) async {
+    // Parse current time or default to 8:00 AM
+    TimeOfDay initialTime = TimeOfDay(hour: 8, minute: 0);
+    if (currentTime != null) {
+      final parts = currentTime.split(':');
+      if (parts.length == 2) {
+        initialTime = TimeOfDay(
+          hour: int.tryParse(parts[0]) ?? 8,
+          minute: int.tryParse(parts[1]) ?? 0,
+        );
+      }
+    }
+
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: initialTime,
+    );
+
+    if (picked != null) {
+      final timeString = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+      onTimeSelected(timeString);
+    }
+  }
+
   Future<void> _handleSearch(
     BuildContext context,
     WidgetRef ref,
     TrainOrderNotifier trainNotifier,
   ) async {
+    print('🔍 開始處理搜索請求...');
     await trainNotifier.searchTrains();
-    
+
     final trainState = ref.read(trainOrderProvider);
-    if (trainState.searchResults.isNotEmpty) {
+    print('🎯 搜索結果狀態: 結果數量=${trainState.searchResults.length}, 錯誤=${trainState.errorMessage}');
+
+    if (trainState.errorMessage == null) {
+      // Always navigate to results screen, even if no results found
+      // The results screen should handle empty results appropriately
+      print('✅ 導航到結果頁面...');
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => const TrainResultsScreen(),
         ),
       );
+    } else {
+      // Show error message if there was an actual error (not just empty results)
+      print('❌ 顯示錯誤訊息: ${trainState.errorMessage}');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(trainState.errorMessage!),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
     }
   }
 

@@ -144,9 +144,21 @@ class TrainOrderNotifier extends StateNotifier<TrainOrderState> {
     );
   }
 
+  void setDepartureTime(String? time) {
+    state = state.copyWith(
+      searchCriteria: state.searchCriteria.copyWith(departureTime: time),
+    );
+  }
+
   void setReturnDate(DateTime? date) {
     state = state.copyWith(
       searchCriteria: state.searchCriteria.copyWith(returnDate: date),
+    );
+  }
+
+  void setReturnTime(String? time) {
+    state = state.copyWith(
+      searchCriteria: state.searchCriteria.copyWith(returnTime: time),
     );
   }
 
@@ -182,14 +194,19 @@ class TrainOrderNotifier extends StateNotifier<TrainOrderState> {
         fromStation: state.searchCriteria.fromStation!,
         toStation: state.searchCriteria.toStation!,
         departureDate: state.searchCriteria.departureDate!,
+        departureTime: state.searchCriteria.departureTime,
         adultCount: state.searchCriteria.adultCount,
         childCount: state.searchCriteria.childCount,
       );
+
+      // Log search completion
+      print('🏁 搜索完成: 找到 ${searchResult.trips.length} 個班次');
 
       state = state.copyWith(
         searchResults: searchResult.trips,
         rawApiResponse: searchResult.rawApiResponse,
         isLoading: false,
+        errorMessage: null, // Clear any previous errors
       );
     } catch (e) {
       state = state.copyWith(

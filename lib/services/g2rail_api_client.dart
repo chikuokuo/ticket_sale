@@ -6,7 +6,6 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
-import '../models/train_trip.dart';
 
 class SearchCriteria {
   final String from;
@@ -51,14 +50,24 @@ class SearchCriteria {
 }
 
 class G2RailApiClient {
-  final String apiKey = dotenv.env['G2RAIL_API_KEY']!;
-  final String userId = dotenv.env['G2RAIL_USER_ID']!;
-  final String baseUrl = dotenv.env['G2RAIL_BASE_URL']!;
+  late final String apiKey;
+  late final String userId;
+  late final String baseUrl;
+  late final String secret;
   final http.Client httpClient;
 
   G2RailApiClient({
     required this.httpClient,
-  });
+  }) {
+    apiKey = dotenv.env['G2RAIL_API_KEY'] ?? '';
+    userId = dotenv.env['G2RAIL_USER_ID'] ?? '';
+    baseUrl = dotenv.env['G2RAIL_BASE_URL'] ?? '';
+    secret = dotenv.env['G2RAIL_SECRET'] ?? '';
+
+    if (apiKey.isEmpty || userId.isEmpty || baseUrl.isEmpty || secret.isEmpty) {
+      throw Exception('Missing required G2Rail API configuration in .env file');
+    }
+  }
 
   Map<String, String> getAuthorizationHeaders(Map<String, dynamic> params) {
     var timestamp = DateTime.now();
@@ -71,7 +80,7 @@ class G2RailApiClient {
       if (params[key] is List || params[key] is Map) continue;
       buffer.write('$key=${params[key].toString()}');
     }
-    buffer.write(dotenv.env['G2RAIL_SECRET']!);
+    buffer.write(secret);
 
     String hashString = buffer.toString();
     String authorization = md5.convert(utf8.encode(hashString)).toString();
@@ -110,9 +119,15 @@ class G2RailApiClient {
     final solutionUrl =
         '$baseUrl/api/v2/online_solutions/?${criteria.toQuery()}';
 
+    // Add timeout to the HTTP request (10 seconds)
     final solutionResponse = await httpClient.get(
       Uri.parse(solutionUrl),
       headers: getAuthorizationHeaders(criteria.toMap()),
+    ).timeout(
+      const Duration(seconds: 10),
+      onTimeout: () {
+        throw Exception('HTTP 請求超時：無法連接到 G2Rail API');
+      },
     );
 
     if (solutionResponse.statusCode != 200) {
@@ -125,11 +140,28 @@ class G2RailApiClient {
 
   Future<dynamic> getAsyncResult(String asyncKey) async {
     final asyncResultURl = '$baseUrl/api/v2/async_results/$asyncKey';
+
+    // Add timeout to the async result request (5 seconds)
     final asyncResult = await httpClient.get(
       Uri.parse(asyncResultURl),
       headers: getAuthorizationHeaders({"async_key": asyncKey}),
+    ).timeout(
+      const Duration(seconds: 5),
+      onTimeout: () {
+        throw Exception('異步結果請求超時');
+      },
     );
-    return {"data": jsonDecode(utf8.decode(asyncResult.bodyBytes))};
+
+    if (asyncResult.statusCode != 200) {
+      throw Exception('異步結果請求失敗，狀態碼: ${asyncResult.statusCode}');
+    }
+
+    try {
+      final decodedData = jsonDecode(utf8.decode(asyncResult.bodyBytes));
+      return {"data": decodedData};
+    } catch (e) {
+      throw Exception('解析異步結果失敗: $e');
+    }
   }
 }
 
