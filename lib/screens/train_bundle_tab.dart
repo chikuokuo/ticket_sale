@@ -2,9 +2,18 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 import '../theme/colors.dart';
+import '../models/rail_pass.dart';
+import 'rail_pass_purchase_screen.dart';
 
-class TrainBundleTab extends StatelessWidget {
+class TrainBundleTab extends StatefulWidget {
   const TrainBundleTab({super.key});
+
+  @override
+  State<TrainBundleTab> createState() => _TrainBundleTabState();
+}
+
+class _TrainBundleTabState extends State<TrainBundleTab> {
+  TicketCategory selectedCategory = TicketCategory.individual;
 
   @override
   Widget build(BuildContext context) {
@@ -19,14 +28,14 @@ class TrainBundleTab extends StatelessWidget {
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [AppColorScheme.secondary, AppColorScheme.warning],
+                colors: [AppColorScheme.primary, AppColorScheme.info],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: AppColorScheme.secondary.withAlpha(51), // 0.2 opacity
+                  color: AppColorScheme.primary.withAlpha(51), // 0.2 opacity
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -36,13 +45,13 @@ class TrainBundleTab extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(
-                  Icons.card_giftcard,
+                  Icons.train,
                   color: Colors.white,
                   size: 32,
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Bundle Packages',
+                  'European Rail Passes',
                   style: AppTheme.headlineMedium.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -50,7 +59,7 @@ class TrainBundleTab extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Save more with our pre-made travel packages',
+                  'Flexible train travel across Europe with unlimited journeys',
                   style: AppTheme.bodyMedium.copyWith(
                     color: Colors.white.withAlpha(230), // 0.9 opacity
                   ),
@@ -61,14 +70,9 @@ class TrainBundleTab extends StatelessWidget {
 
           const SizedBox(height: 32),
 
-          // Featured Bundle
-          _buildFeaturedBundle(),
-
-          const SizedBox(height: 32),
-
-          // Popular Bundles Section
+          // Available Rail Passes Section
           Text(
-            'Popular Bundles',
+            'Available Rail Passes',
             style: AppTheme.headlineSmall.copyWith(
               color: AppColorScheme.neutral900,
               fontWeight: FontWeight.w600,
@@ -76,53 +80,11 @@ class TrainBundleTab extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // Bundle Cards
-          _buildBundleCard(
-            title: 'Bavaria Explorer',
-            description: 'Munich to Füssen roundtrip with castle tickets',
-            originalPrice: '€89.00',
-            bundlePrice: '€69.00',
-            savings: 'Save €20.00',
-            includes: [
-              'Roundtrip train tickets',
-              'Neuschwanstein Castle entry',
-              'Hohenschwangau Castle entry',
-              'Free seat reservation',
-            ],
-            isPopular: true,
-          ),
-
-          const SizedBox(height: 16),
-
-          _buildBundleCard(
-            title: 'Weekend Getaway',
-            description: 'Berlin to Munich with 2 nights accommodation',
-            originalPrice: '€299.00',
-            bundlePrice: '€239.00',
-            savings: 'Save €60.00',
-            includes: [
-              'One-way train tickets',
-              '2 nights hotel stay',
-              'City transport pass',
-              'Tourist information pack',
-            ],
-          ),
-
-          const SizedBox(height: 16),
-
-          _buildBundleCard(
-            title: 'Family Adventure',
-            description: 'Special family package for 2 adults + 2 children',
-            originalPrice: '€179.00',
-            bundlePrice: '€149.00',
-            savings: 'Save €30.00',
-            includes: [
-              'Family train tickets',
-              'Kids travel entertainment',
-              'Snack vouchers',
-              'Priority boarding',
-            ],
-          ),
+          // Rail Pass Cards
+          ...RailPassData.passes.map((pass) => Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: _buildRailPassCard(pass),
+          )),
 
           const SizedBox(height: 32),
 
@@ -133,7 +95,11 @@ class TrainBundleTab extends StatelessWidget {
     );
   }
 
-  Widget _buildFeaturedBundle() {
+  Widget _buildFeaturedRailPass() {
+    final italyPass = RailPassData.getPassById('italy')!;
+    final pricing = italyPass.pricing.first; // 3-day pricing
+    final currentPrice = _getPriceForCategory(pricing);
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -186,14 +152,13 @@ class TrainBundleTab extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  Icons.star,
-                  color: AppColorScheme.secondary,
-                  size: 32,
+                Text(
+                  italyPass.flagIcon,
+                  style: const TextStyle(fontSize: 32),
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Castle Discovery Premium',
+                  italyPass.name,
                   style: AppTheme.headlineMedium.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -201,7 +166,7 @@ class TrainBundleTab extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Ultimate castle experience with VIP access and guided tour',
+                  italyPass.description,
                   style: AppTheme.bodyLarge.copyWith(
                     color: Colors.white.withAlpha(230), // 0.9 opacity
                   ),
@@ -214,36 +179,23 @@ class TrainBundleTab extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'From',
+                          'From (${pricing.days} days)',
                           style: AppTheme.bodySmall.copyWith(
                             color: Colors.white.withAlpha(204), // 0.8 opacity
                           ),
                         ),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              '€159.00',
-                              style: AppTheme.headlineMedium.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              '€199.00',
-                              style: AppTheme.bodyMedium.copyWith(
-                                color: Colors.white.withAlpha(179), // 0.7 opacity
-                                decoration: TextDecoration.lineThrough,
-                              ),
-                            ),
-                          ],
+                        Text(
+                          '${pricing.currency}${currentPrice.toStringAsFixed(0)}',
+                          style: AppTheme.headlineMedium.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
                     const Spacer(),
                     ElevatedButton(
-                      onPressed: () => _showBundleDetails(null, 'Castle Discovery Premium'),
+                      onPressed: () => _showPassDetails(italyPass),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColorScheme.secondary,
                         foregroundColor: Colors.white,
@@ -270,21 +222,13 @@ class TrainBundleTab extends StatelessWidget {
     );
   }
 
-  Widget _buildBundleCard({
-    required String title,
-    required String description,
-    required String originalPrice,
-    required String bundlePrice,
-    required String savings,
-    required List<String> includes,
-    bool isPopular = false,
-  }) {
+  Widget _buildRailPassCard(RailPass pass) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: isPopular
+        border: pass.isPopular
           ? Border.all(color: AppColorScheme.secondary, width: 2)
           : null,
         boxShadow: [
@@ -298,7 +242,7 @@ class TrainBundleTab extends StatelessWidget {
       child: Stack(
         children: [
           // Popular Badge
-          if (isPopular)
+          if (pass.isPopular)
             Positioned(
               top: 16,
               right: 16,
@@ -323,72 +267,81 @@ class TrainBundleTab extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: AppTheme.titleLarge.copyWith(
-                    color: AppColorScheme.neutral900,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  description,
-                  style: AppTheme.bodyMedium.copyWith(
-                    color: AppColorScheme.neutral600,
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Price Section
                 Row(
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              bundlePrice,
-                              style: AppTheme.titleLarge.copyWith(
-                                color: AppColorScheme.primary,
-                                fontWeight: FontWeight.bold,
-                              ),
+                    Text(
+                      pass.flagIcon,
+                      style: const TextStyle(fontSize: 24),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            pass.name,
+                            style: AppTheme.titleLarge.copyWith(
+                              color: AppColorScheme.neutral900,
+                              fontWeight: FontWeight.w600,
                             ),
-                            const SizedBox(width: 8),
-                            Text(
-                              originalPrice,
-                              style: AppTheme.bodyMedium.copyWith(
-                                color: AppColorScheme.neutral500,
-                                decoration: TextDecoration.lineThrough,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Text(
-                          savings,
-                          style: AppTheme.bodySmall.copyWith(
-                            color: AppColorScheme.success,
-                            fontWeight: FontWeight.w600,
                           ),
-                        ),
-                      ],
+                          Text(
+                            pass.description,
+                            style: AppTheme.bodyMedium.copyWith(
+                              color: AppColorScheme.neutral600,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 16),
 
-                // Includes Section
+                // Pricing Options
                 Text(
-                  'Includes:',
+                  'Flexible Days (Individual):',
                   style: AppTheme.labelMedium.copyWith(
                     color: AppColorScheme.neutral700,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 8),
-                ...includes.map((item) => Padding(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: pass.pricing.map((pricing) {
+                    final price = _getPriceForCategory(pricing);
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: AppColorScheme.primary100,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppColorScheme.primary200),
+                      ),
+                      child: Text(
+                        '${pricing.days} days: ${pricing.currency}${price.toStringAsFixed(0)}',
+                        style: AppTheme.bodySmall.copyWith(
+                          color: AppColorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Features
+                Text(
+                  'Features:',
+                  style: AppTheme.labelMedium.copyWith(
+                    color: AppColorScheme.neutral700,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ...pass.features.take(3).map((feature) => Padding(
                   padding: const EdgeInsets.only(bottom: 4),
                   child: Row(
                     children: [
@@ -400,7 +353,7 @@ class TrainBundleTab extends StatelessWidget {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          item,
+                          feature,
                           style: AppTheme.bodySmall.copyWith(
                             color: AppColorScheme.neutral700,
                           ),
@@ -417,7 +370,7 @@ class TrainBundleTab extends StatelessWidget {
                   width: double.infinity,
                   height: 44,
                   child: ElevatedButton(
-                    onPressed: () => _showBundleDetails(null, title),
+                    onPressed: () => _showPassDetails(pass),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColorScheme.primary,
                       foregroundColor: Colors.white,
@@ -427,9 +380,10 @@ class TrainBundleTab extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      'Select Bundle',
+                      'Select Pass',
                       style: AppTheme.labelLarge.copyWith(
                         fontWeight: FontWeight.w600,
+                        color: Colors.white
                       ),
                     ),
                   ),
@@ -467,7 +421,7 @@ class TrainBundleTab extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Text(
-                'Create Custom Bundle',
+                'Custom Multi-Country Pass',
                 style: AppTheme.titleLarge.copyWith(
                   color: AppColorScheme.neutral900,
                   fontWeight: FontWeight.w600,
@@ -477,7 +431,7 @@ class TrainBundleTab extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Need something specific? Build your own custom travel package.',
+            'Need to travel across multiple countries? Build your own custom European rail pass.',
             style: AppTheme.bodyMedium.copyWith(
               color: AppColorScheme.neutral600,
             ),
@@ -487,7 +441,7 @@ class TrainBundleTab extends StatelessWidget {
             width: double.infinity,
             height: 44,
             child: OutlinedButton(
-              onPressed: () => _showCustomBundleBuilder(null),
+              onPressed: () => _showCustomPassBuilder(),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColorScheme.primary,
                 side: BorderSide(color: AppColorScheme.primary),
@@ -501,7 +455,7 @@ class TrainBundleTab extends StatelessWidget {
                   Icon(Icons.add, size: 20),
                   const SizedBox(width: 8),
                   Text(
-                    'Build Custom Bundle',
+                    'Build Custom Pass',
                     style: AppTheme.labelLarge.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -515,13 +469,20 @@ class TrainBundleTab extends StatelessWidget {
     );
   }
 
-  void _showBundleDetails(BuildContext? context, String bundleName) {
-    // TODO: Navigate to bundle details page
-    print('Show details for: $bundleName');
+  double _getPriceForCategory(RailPassPricing pricing) {
+    return pricing.individualPrice;
   }
 
-  void _showCustomBundleBuilder(BuildContext? context) {
-    // TODO: Navigate to custom bundle builder
-    print('Show custom bundle builder');
+  void _showPassDetails(RailPass pass) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => RailPassPurchaseScreen(railPass: pass),
+      ),
+    );
+  }
+
+  void _showCustomPassBuilder() {
+    // TODO: Navigate to custom multi-country pass builder
+    print('Show custom multi-country pass builder');
   }
 }

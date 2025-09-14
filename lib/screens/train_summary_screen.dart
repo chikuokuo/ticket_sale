@@ -610,7 +610,7 @@ class TrainSummaryScreen extends ConsumerWidget {
     TrainOrderNotifier trainNotifier,
   ) async {
     try {
-      // await trainNotifier.processPayment(context);
+      await trainNotifier.processPayment(context);
       
       if (!context.mounted) return;
       
