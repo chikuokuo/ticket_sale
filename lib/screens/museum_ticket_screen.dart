@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../models/attendee.dart';
-import '../models/time_slot.dart';
 import '../providers/ticket_order_provider.dart';
 import '../theme/colors.dart';
 import '../theme/app_theme.dart';
@@ -33,7 +32,7 @@ class _MuseumTicketScreenState extends ConsumerState<MuseumTicketScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              AppColorScheme.secondary.withAlpha(13), // 0.05 opacity
+              AppColorScheme.primary.withAlpha(13), // 0.05 opacity
               Colors.white,
             ],
             stops: const [0.0, 0.3],
@@ -89,7 +88,7 @@ class _MuseumTicketScreenState extends ConsumerState<MuseumTicketScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     elevation: 2,
-                    backgroundColor: AppColorScheme.secondary,
+                    backgroundColor: AppColorScheme.primary,
                   ),
                   child: const Text(
                     'Continue',
@@ -134,7 +133,7 @@ class _MuseumTicketScreenState extends ConsumerState<MuseumTicketScreen> {
                     color: orderState.selectedDate != null ? AppColorScheme.neutral900 : AppColorScheme.neutral500,
                   ),
                 ),
-                Icon(Icons.calendar_today, color: AppColorScheme.secondary),
+                Icon(Icons.calendar_today, color: AppColorScheme.primary),
               ],
             ),
           ),
@@ -229,7 +228,7 @@ class _MuseumTicketScreenState extends ConsumerState<MuseumTicketScreen> {
             style: AppTheme.titleMedium.copyWith(fontWeight: FontWeight.bold),
           ),
           IconButton(
-            icon: Icon(Icons.add_circle, color: AppColorScheme.secondary),
+            icon: Icon(Icons.add_circle, color: AppColorScheme.primary),
             onPressed: onIncrement,
           ),
         ],
