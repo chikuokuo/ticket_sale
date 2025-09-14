@@ -138,7 +138,9 @@ class _OrderSummaryScreenState extends ConsumerState<OrderSummaryScreen> {
     List<Widget> details = [];
 
     if (orderState is TicketOrderState) {
-      title = orderState.ticketType == TicketType.museum ? 'Museum Ticket' : 'Neuschwanstein Castle Ticket';
+      title = orderState.ticketType == TicketType.museum
+          ? 'Uffizi Galleries'
+          : 'Neuschwanstein Castle';
       details = [
         _buildInfoRow(
           icon: Icons.calendar_today,
@@ -147,12 +149,25 @@ class _OrderSummaryScreenState extends ConsumerState<OrderSummaryScreen> {
               ? DateFormat('yyyy-MM-dd').format(orderState.selectedDate!)
               : 'Not selected',
         ),
-        _buildInfoRow(
-          icon: Icons.access_time,
-          label: 'Time',
-          value: orderState.selectedTimeSlot?.displayName ?? 'Not selected',
-        ),
       ];
+
+      if (orderState.ticketType == TicketType.neuschwanstein) {
+        details.add(
+          _buildInfoRow(
+            icon: Icons.access_time,
+            label: 'Time',
+            value: orderState.selectedTimeSlot?.displayName ?? 'Not selected',
+          ),
+        );
+      } else if (orderState.ticketType == TicketType.museum) {
+        details.add(
+          _buildInfoRow(
+            icon: Icons.access_time,
+            label: 'Time',
+            value: 'Any time during opening hours',
+          ),
+        );
+      }
     } else if (orderState is BundleOrderState) {
       title = orderState.selectedBundle?.title ?? 'Package Details';
       details = [

@@ -184,6 +184,10 @@ class _TicketDetailsScreenState extends ConsumerState<TicketDetailsScreen> {
     int childCount,
     double totalAmount,
   ) {
+    final String title = widget.ticketType == TicketType.museum
+        ? 'Uffizi Galleries'
+        : 'Neuschwanstein Castle';
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -197,14 +201,14 @@ class _TicketDetailsScreenState extends ConsumerState<TicketDetailsScreen> {
         children: [
           Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.castle,
                 color: Colors.white,
                 size: 24,
               ),
               const SizedBox(width: 8),
               Text(
-                'Neuschwanstein Castle',
+                title,
                 style: AppTheme.titleLarge.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.w600,
@@ -234,27 +238,42 @@ class _TicketDetailsScreenState extends ConsumerState<TicketDetailsScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          
-          Row(
-            children: [
-              Icon(
-                orderState.selectedTimeSlot == TimeSlot.am 
-                  ? Icons.wb_sunny 
-                  : Icons.wb_sunny_outlined,
-                color: Colors.white70,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                orderState.selectedTimeSlot == TimeSlot.am 
-                  ? 'Morning (9:00 AM - 12:00 PM)'
-                  : 'Afternoon (1:00 PM - 5:00 PM)',
-                style: AppTheme.bodyMedium.copyWith(
-                  color: Colors.white,
+          if (widget.ticketType == TicketType.neuschwanstein)
+            Row(
+              children: [
+                Icon(
+                  orderState.selectedTimeSlot == TimeSlot.am ? Icons.wb_sunny : Icons.wb_sunny_outlined,
+                  color: Colors.white70,
+                  size: 20,
                 ),
-              ),
-            ],
-          ),
+                const SizedBox(width: 8),
+                Text(
+                  orderState.selectedTimeSlot == TimeSlot.am
+                      ? 'Morning (9:00 AM - 12:00 PM)'
+                      : 'Afternoon (1:00 PM - 5:00 PM)',
+                  style: AppTheme.bodyMedium.copyWith(
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            )
+          else
+            Row(
+              children: [
+                const Icon(
+                  Icons.access_time,
+                  color: Colors.white70,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Any time during opening hours',
+                  style: AppTheme.bodyMedium.copyWith(
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
           const SizedBox(height: 16),
           
           // Number of tickets
@@ -329,6 +348,9 @@ class _TicketDetailsScreenState extends ConsumerState<TicketDetailsScreen> {
     int index,
     TicketOrderNotifier orderNotifier,
   ) {
+    final String adultPrice =
+        widget.ticketType == TicketType.museum ? '€20.00' : '€21.00';
+
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
@@ -363,7 +385,7 @@ class _TicketDetailsScreenState extends ConsumerState<TicketDetailsScreen> {
                 ),
                 const Spacer(),
                 Text(
-                  attendee.type == AttendeeType.adult ? '€21.00' : 'Free',
+                  attendee.type == AttendeeType.adult ? adultPrice : 'Free',
                   style: AppTheme.titleMedium.copyWith(
                     color: AppColorScheme.primary,
                     fontWeight: FontWeight.w600,

@@ -172,7 +172,7 @@ class TicketOrderNotifier extends StateNotifier<TicketOrderState> {
         customerEmail: state.customerEmailController.text,
         metadata: {
           'date': DateFormat('yyyy-MM-dd').format(state.selectedDate!),
-          'time_slot': state.selectedTimeSlot!.name.toUpperCase(),
+          'time_slot': state.selectedTimeSlot?.name.toUpperCase() ?? 'ANYTIME',
           'attendee_count': state.attendees.length.toString(),
         },
       );
