@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/colors.dart';
 import '../theme/app_theme.dart';
+import '../l10n/app_localizations.dart';
 import 'select_ticket_screen.dart';
 import 'museum_ticket_screen.dart';
 
@@ -33,10 +34,12 @@ class TicketsHomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Scaffold(
       backgroundColor: AppColorScheme.neutral50,
       appBar: AppBar(
-        title: const Text('FUTURE DREAM'),
+        title: Text(l10n.appTitle.toUpperCase()),
         backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -50,16 +53,16 @@ class TicketsHomeScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildWelcomeHeader(),
+            _buildWelcomeHeader(l10n),
             const SizedBox(height: 32),
-            _buildSectionTitle(),
+            _buildSectionTitle(l10n),
             const SizedBox(height: 20),
             _buildTicketCard(
               context: context,
-              title: 'Neuschwanstein Castle',
-              subtitle: 'Royal Castle Tour',
+              title: l10n.neuschwansteinCastle,
+              subtitle: l10n.royalCastleTour,
               imagePath: 'assets/images/Bg-NeuschwansteinCastle.jpg',
-              price: 'from €23.50',
+              price: l10n.fromPrice('€23.50'),
               onTap: () {
                 Navigator.push(
                   context,
@@ -72,10 +75,10 @@ class TicketsHomeScreen extends StatelessWidget {
             const SizedBox(height: 20),
             _buildTicketCard(
               context: context,
-              title: 'Uffizi Galleries',
-              subtitle: 'World-Class Art Museum',
+              title: l10n.uffiziGalleries,
+              subtitle: l10n.worldClassArtMuseum,
               imagePath: 'assets/images/Bg-UffiziGallery.jpg',
-              price: 'from €20.00',
+              price: l10n.fromPrice('€20.00'),
               onTap: () {
                 Navigator.push(
                   context,
@@ -206,7 +209,7 @@ class TicketsHomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionTitle() {
+  Widget _buildSectionTitle(AppLocalizations l10n) {
     return Row(
       children: [
         Container(
@@ -219,7 +222,7 @@ class TicketsHomeScreen extends StatelessWidget {
         ),
         const SizedBox(width: 12),
         Text(
-          'Popular Destinations',
+          l10n.popularDestinations,
           style: AppTheme.headlineSmall.copyWith(
             color: AppColorScheme.neutral900,
             fontWeight: FontWeight.w600,
@@ -234,7 +237,7 @@ class TicketsHomeScreen extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'View All',
+                l10n.viewAll,
                 style: AppTheme.bodyMedium.copyWith(
                   color: AppColorScheme.primary,
                   fontWeight: FontWeight.w500,
@@ -253,7 +256,7 @@ class TicketsHomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildWelcomeHeader() {
+  Widget _buildWelcomeHeader(AppLocalizations l10n) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -294,7 +297,7 @@ class TicketsHomeScreen extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Text(
-                'future dream',
+                l10n.appTitle.toLowerCase(),
                 style: AppTheme.headlineLarge.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -305,7 +308,7 @@ class TicketsHomeScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Welcome to your dream journey',
+            l10n.welcomeToYourDreamJourney,
             style: AppTheme.bodyLarge.copyWith(
               color: Colors.white.withOpacity(0.9),
               fontWeight: FontWeight.w500,
@@ -313,7 +316,7 @@ class TicketsHomeScreen extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'Discover amazing destinations and create unforgettable memories',
+            l10n.discoverAmazingDestinations,
             style: AppTheme.bodyMedium.copyWith(
               color: Colors.white.withOpacity(0.7),
             ),

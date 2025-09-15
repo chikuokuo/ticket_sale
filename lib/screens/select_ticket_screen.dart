@@ -7,6 +7,7 @@ import '../models/time_slot.dart';
 import '../providers/ticket_order_provider.dart';
 import '../theme/colors.dart';
 import '../theme/app_theme.dart';
+import '../l10n/app_localizations.dart';
 import 'ticket_details_screen.dart';
 
 class SelectTicketScreen extends ConsumerStatefulWidget {
@@ -24,12 +25,13 @@ class _SelectTicketScreenState extends ConsumerState<SelectTicketScreen> {
       _submitted = true;
     });
 
+    final l10n = AppLocalizations.of(context)!;
     final orderState = ref.read(ticketOrderProvider(TicketType.neuschwanstein));
 
     if (orderState.selectedDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Please select a date.'),
+          content: Text(l10n.pleaseSelectDate),
           backgroundColor: AppColorScheme.warning,
           behavior: SnackBarBehavior.floating,
         ),
@@ -39,7 +41,7 @@ class _SelectTicketScreenState extends ConsumerState<SelectTicketScreen> {
     if (orderState.selectedTimeSlot == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Please select a time slot.'),
+          content: Text(l10n.pleaseSelectTimeSlot),
           backgroundColor: AppColorScheme.warning,
           behavior: SnackBarBehavior.floating,
         ),
@@ -58,12 +60,13 @@ class _SelectTicketScreenState extends ConsumerState<SelectTicketScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final orderState = ref.watch(ticketOrderProvider(TicketType.neuschwanstein));
     final orderNotifier = ref.read(ticketOrderProvider(TicketType.neuschwanstein).notifier);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Book Tickets'),
+        title: Text(l10n.bookTickets),
         elevation: 0,
       ),
       body: Container(
@@ -85,18 +88,18 @@ class _SelectTicketScreenState extends ConsumerState<SelectTicketScreen> {
             children: [
               // Header
               Text(
-                'Neuschwanstein Castle',
+                l10n.neuschwansteinCastle,
                 style: AppTheme.displaySmall,
               ),
               const SizedBox(height: 8),
               Text(
-                'Select your visit date, time, and number of tickets.',
+                l10n.selectVisitDetails,
                 style: AppTheme.bodyLarge.copyWith(color: AppColorScheme.neutral600),
               ),
               const SizedBox(height: 24),
 
               // Date selection
-              _buildDateSelection(context, orderState, orderNotifier),
+              _buildDateSelection(context, l10n, orderState, orderNotifier),
               const SizedBox(height: 24),
 
               // Time slot selection
@@ -142,13 +145,14 @@ class _SelectTicketScreenState extends ConsumerState<SelectTicketScreen> {
   // Helper methods to build sections of the UI
   Widget _buildDateSelection(
     BuildContext context,
+    AppLocalizations l10n,
     TicketOrderState orderState,
     TicketOrderNotifier orderNotifier,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Select Date', style: AppTheme.headlineSmall),
+        Text(l10n.selectDate, style: AppTheme.headlineSmall),
         const SizedBox(height: 16),
         InkWell(
           onTap: () => _selectDate(context, orderNotifier),

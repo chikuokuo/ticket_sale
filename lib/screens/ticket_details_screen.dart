@@ -7,6 +7,7 @@ import '../models/time_slot.dart';
 import '../providers/ticket_order_provider.dart';
 import '../theme/colors.dart';
 import '../theme/app_theme.dart';
+import '../l10n/app_localizations.dart';
 import 'order_summary_screen.dart';
 import '../models/order_type.dart';
 
@@ -26,6 +27,8 @@ class _TicketDetailsScreenState extends ConsumerState<TicketDetailsScreen> {
   final _formKey = GlobalKey<FormState>();
 
   void _navigateToSummary(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    
     // Validate form
     if (!_formKey.currentState!.validate()) {
       return;
@@ -37,7 +40,7 @@ class _TicketDetailsScreenState extends ConsumerState<TicketDetailsScreen> {
     if (orderState.selectedDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Please select a date.'),
+          content: Text(l10n.pleaseSelectDate),
           backgroundColor: AppColorScheme.warning,
           behavior: SnackBarBehavior.floating,
         ),
@@ -47,7 +50,7 @@ class _TicketDetailsScreenState extends ConsumerState<TicketDetailsScreen> {
     if (widget.ticketType == TicketType.neuschwanstein && orderState.selectedTimeSlot == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Please select a time slot.'),
+          content: Text(l10n.pleaseSelectTimeSlot),
           backgroundColor: AppColorScheme.warning,
           behavior: SnackBarBehavior.floating,
         ),
@@ -59,7 +62,7 @@ class _TicketDetailsScreenState extends ConsumerState<TicketDetailsScreen> {
     if (orderState.customerEmailController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Please fill in Contact Email'),
+          content: Text(l10n.pleaseFillContactEmail),
           backgroundColor: AppColorScheme.warning,
           behavior: SnackBarBehavior.floating,
         ),
@@ -80,6 +83,7 @@ class _TicketDetailsScreenState extends ConsumerState<TicketDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final orderState = ref.watch(ticketOrderProvider(widget.ticketType));
     final orderNotifier = ref.read(ticketOrderProvider(widget.ticketType).notifier);
 
@@ -89,7 +93,7 @@ class _TicketDetailsScreenState extends ConsumerState<TicketDetailsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Ticket Holder Details'),
+        title: Text(l10n.ticketHolderDetails),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),

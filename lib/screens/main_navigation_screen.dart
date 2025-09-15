@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../l10n/app_localizations.dart';
 
 import '../screens/tickets_home_screen.dart';
 import '../screens/bundle_screen.dart';
 import '../screens/train_ticket_screen.dart';
 import '../screens/treasure_hunt_screen.dart';
+import '../screens/settings_screen.dart';
 import '../theme/colors.dart';
 import '../widgets/jackpot_floating_button.dart';
 import '../providers/ticket_order_provider.dart';
@@ -32,6 +34,7 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
     BundleScreen(),
     TrainTicketScreen(),
     TreasureHuntScreen(),
+    SettingsScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -42,6 +45,8 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     // Calculate total participant count from all ticket providers
     final neuschwansteinOrder = ref.watch(ticketOrderProvider(TicketType.neuschwanstein));
     final museumOrder = ref.watch(ticketOrderProvider(TicketType.museum));
@@ -49,14 +54,20 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
     final totalParticipants = neuschwansteinOrder.attendees.length + museumOrder.attendees.length;
 
     return Scaffold(
+      appBar: AppBar(
+        title: Text(l10n.appTitle),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
+      ),
       body: Stack(
         children: [
           IndexedStack(
             index: _selectedIndex,
             children: _pages,
           ),
-          // Jackpot floating button - 在寶藏獵人頁面不顯示
-          if (_selectedIndex != 3) // 3 是 TreasureHuntScreen 的索引
+          // Jackpot floating button - 在寶藏獵人頁面和設定頁面不顯示
+          if (_selectedIndex != 3 && _selectedIndex != 4) // 3 是 TreasureHuntScreen，4 是 SettingsScreen 的索引
             JackpotFloatingButton(
               participantCount: totalParticipants,
               // Uses default onTap behavior to show MegaJackpotDialog
@@ -64,25 +75,31 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
+        items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: Icon(Icons.confirmation_number_outlined),
-            activeIcon: Icon(Icons.confirmation_number),
-            label: 'Tickets'),
-            BottomNavigationBarItem(
-            icon: Icon(Icons.card_giftcard_outlined),
-            activeIcon: Icon(Icons.card_giftcard),
-            label: 'Bundle',
+            icon: const Icon(Icons.confirmation_number_outlined),
+            activeIcon: const Icon(Icons.confirmation_number),
+            label: l10n.tickets,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.train_outlined),
-            activeIcon: Icon(Icons.train),
-            label: 'Train',
+            icon: const Icon(Icons.card_giftcard_outlined),
+            activeIcon: const Icon(Icons.card_giftcard),
+            label: l10n.bundles,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.star_outline),
-            activeIcon: Icon(Icons.star),
-            label: 'Treasure',
+            icon: const Icon(Icons.train_outlined),
+            activeIcon: const Icon(Icons.train),
+            label: l10n.trains,
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.star_outline),
+            activeIcon: const Icon(Icons.star),
+            label: l10n.treasureHunt,
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.settings_outlined),
+            activeIcon: const Icon(Icons.settings),
+            label: l10n.settings,
           ),
         ],
         currentIndex: _selectedIndex,

@@ -1,0 +1,790 @@
+{
+  "@@locale": "en",
+  "appTitle": "Future Dream",
+  "@appTitle": {
+    "description": "The title of the application"
+  },
+  
+  "welcome": "Welcome",
+  "@welcome": {
+    "description": "Welcome message"
+  },
+  
+  "tickets": "Tickets",
+  "@tickets": {
+    "description": "Tickets tab label"
+  },
+  
+  "trains": "Trains",
+  "@trains": {
+    "description": "Trains tab label"
+  },
+  
+  "bundles": "Bundles",
+  "@bundles": {
+    "description": "Bundles tab label"
+  },
+  
+  "treasureHunt": "Treasure Hunt",
+  "@treasureHunt": {
+    "description": "Treasure Hunt tab label"
+  },
+  
+  "search": "Search",
+  "@search": {
+    "description": "Search button text"
+  },
+  
+  "from": "From",
+  "@from": {
+    "description": "Departure station label"
+  },
+  
+  "to": "To",
+  "@to": {
+    "description": "Destination station label"
+  },
+  
+  "date": "Date",
+  "@date": {
+    "description": "Date selection label"
+  },
+  
+  "time": "Time",
+  "@time": {
+    "description": "Time selection label"
+  },
+  
+  "passengers": "Passengers",
+  "@passengers": {
+    "description": "Number of passengers label"
+  },
+  
+  "adults": "Adults",
+  "@adults": {
+    "description": "Adult passengers label"
+  },
+  
+  "children": "Children",
+  "@children": {
+    "description": "Child passengers label"
+  },
+  
+  "selectTicket": "Select Ticket",
+  "@selectTicket": {
+    "description": "Select ticket button text"
+  },
+  
+  "bookNow": "Book Now",
+  "@bookNow": {
+    "description": "Book now button text"
+  },
+  
+  "price": "Price",
+  "@price": {
+    "description": "Price label"
+  },
+  
+  "total": "Total",
+  "@total": {
+    "description": "Total price label"
+  },
+  
+  "paymentMethod": "Payment Method",
+  "@paymentMethod": {
+    "description": "Payment method label"
+  },
+  
+  "creditCard": "Credit Card",
+  "@creditCard": {
+    "description": "Credit card payment option"
+  },
+  
+  "paypal": "PayPal",
+  "@paypal": {
+    "description": "PayPal payment option"
+  },
+  
+  "applePay": "Apple Pay",
+  "@applePay": {
+    "description": "Apple Pay payment option"
+  },
+  
+  "googlePay": "Google Pay",
+  "@googlePay": {
+    "description": "Google Pay payment option"
+  },
+  
+  "confirm": "Confirm",
+  "@confirm": {
+    "description": "Confirm button text"
+  },
+  
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Cancel button text"
+  },
+  
+  "back": "Back",
+  "@back": {
+    "description": "Back button text"
+  },
+  
+  "next": "Next",
+  "@next": {
+    "description": "Next button text"
+  },
+  
+  "done": "Done",
+  "@done": {
+    "description": "Done button text"
+  },
+  
+  "loading": "Loading...",
+  "@loading": {
+    "description": "Loading message"
+  },
+  
+  "error": "Error",
+  "@error": {
+    "description": "Error message"
+  },
+  
+  "retry": "Retry",
+  "@retry": {
+    "description": "Retry button text"
+  },
+  
+  "noDataAvailable": "No data available",
+  "@noDataAvailable": {
+    "description": "No data message"
+  },
+  
+  "selectLanguage": "Select Language",
+  "@selectLanguage": {
+    "description": "Language selection title"
+  },
+  
+  "language": "Language",
+  "@language": {
+    "description": "Language label"
+  },
+  
+  "settings": "Settings",
+  "@settings": {
+    "description": "Settings label"
+  },
+  
+  "profile": "Profile",
+  "@profile": {
+    "description": "Profile label"
+  },
+  
+  "logout": "Logout",
+  "@logout": {
+    "description": "Logout button text"
+  },
+  
+  "login": "Login",
+  "@login": {
+    "description": "Login button text"
+  },
+  
+  "register": "Register",
+  "@register": {
+    "description": "Register button text"
+  },
+  
+  "email": "Email",
+  "@email": {
+    "description": "Email field label"
+  },
+  
+  "password": "Password",
+  "@password": {
+    "description": "Password field label"
+  },
+  
+  "firstName": "First Name",
+  "@firstName": {
+    "description": "First name field label"
+  },
+  
+  "lastName": "Last Name",
+  "@lastName": {
+    "description": "Last name field label"
+  },
+  
+  "phoneNumber": "Phone Number",
+  "@phoneNumber": {
+    "description": "Phone number field label"
+  },
+  
+  "address": "Address",
+  "@address": {
+    "description": "Address field label"
+  },
+  
+  "city": "City",
+  "@city": {
+    "description": "City field label"
+  },
+  
+  "country": "Country",
+  "@country": {
+    "description": "Country field label"
+  },
+  
+  "zipCode": "Zip Code",
+  "@zipCode": {
+    "description": "Zip code field label"
+  },
+  
+  "orderSummary": "Order Summary",
+  "@orderSummary": {
+    "description": "Order summary title"
+  },
+  
+  "orderDetails": "Order Details",
+  "@orderDetails": {
+    "description": "Order details title"
+  },
+  
+  "ticketDetails": "Ticket Details",
+  "@ticketDetails": {
+    "description": "Ticket details title"
+  },
+  
+  "passengerInfo": "Passenger Information",
+  "@passengerInfo": {
+    "description": "Passenger information title"
+  },
+  
+  "departureTime": "Departure Time",
+  "@departureTime": {
+    "description": "Departure time label"
+  },
+  
+  "arrivalTime": "Arrival Time",
+  "@arrivalTime": {
+    "description": "Arrival time label"
+  },
+  
+  "duration": "Duration",
+  "@duration": {
+    "description": "Journey duration label"
+  },
+  
+  "platform": "Platform",
+  "@platform": {
+    "description": "Train platform label"
+  },
+  
+  "seatNumber": "Seat Number",
+  "@seatNumber": {
+    "description": "Seat number label"
+  },
+  
+  "carNumber": "Car Number",
+  "@carNumber": {
+    "description": "Train car number label"
+  },
+  
+  "ticketType": "Ticket Type",
+  "@ticketType": {
+    "description": "Ticket type label"
+  },
+  
+  "firstClass": "First Class",
+  "@firstClass": {
+    "description": "First class ticket type"
+  },
+  
+  "secondClass": "Second Class",
+  "@secondClass": {
+    "description": "Second class ticket type"
+  },
+  
+  "economy": "Economy",
+  "@economy": {
+    "description": "Economy ticket type"
+  },
+  
+  "business": "Business",
+  "@business": {
+    "description": "Business ticket type"
+  },
+  
+  "premium": "Premium",
+  "@premium": {
+    "description": "Premium ticket type"
+  },
+  
+  "exploreNewTreasureMap": "Explore New Treasure Map",
+  "@exploreNewTreasureMap": {
+    "description": "Explore treasure map button text"
+  },
+  
+  "treasureFound": "Treasure Found!",
+  "@treasureFound": {
+    "description": "Treasure found message"
+  },
+  
+  "congratulations": "Congratulations!",
+  "@congratulations": {
+    "description": "Congratulations message"
+  },
+  
+  "collectReward": "Collect Reward",
+  "@collectReward": {
+    "description": "Collect reward button text"
+  },
+  
+  "railPass": "Rail Pass",
+  "@railPass": {
+    "description": "Rail pass label"
+  },
+  
+  "validity": "Validity",
+  "@validity": {
+    "description": "Pass validity label"
+  },
+  
+  "days": "Days",
+  "@days": {
+    "description": "Days unit"
+  },
+  
+  "unlimited": "Unlimited",
+  "@unlimited": {
+    "description": "Unlimited travel description"
+  },
+  
+  "flexibleTravel": "Flexible Travel",
+  "@flexibleTravel": {
+    "description": "Flexible travel description"
+  },
+  
+  "purchaseRailPass": "Purchase Rail Pass",
+  "@purchaseRailPass": {
+    "description": "Purchase rail pass button text"
+  },
+  
+  "selectBundle": "Select Bundle",
+  "@selectBundle": {
+    "description": "Select bundle button text"
+  },
+  
+  "bundleIncludes": "Bundle Includes",
+  "@bundleIncludes": {
+    "description": "Bundle includes label"
+  },
+  
+  "participants": "Participants",
+  "@participants": {
+    "description": "Bundle participants label"
+  },
+  
+  "addParticipant": "Add Participant",
+  "@addParticipant": {
+    "description": "Add participant button text"
+  },
+  
+  "removeParticipant": "Remove Participant",
+  "@removeParticipant": {
+    "description": "Remove participant button text"
+  },
+  
+  "museum": "Museum",
+  "@museum": {
+    "description": "Museum label"
+  },
+  
+  "gallery": "Gallery",
+  "@gallery": {
+    "description": "Gallery label"
+  },
+  
+  "castle": "Castle",
+  "@castle": {
+    "description": "Castle label"
+  },
+  
+  "attraction": "Attraction",
+  "@attraction": {
+    "description": "Attraction label"
+  },
+  
+  "openingHours": "Opening Hours",
+  "@openingHours": {
+    "description": "Opening hours label"
+  },
+  
+  "closingTime": "Closing Time",
+  "@closingTime": {
+    "description": "Closing time label"
+  },
+  
+  "bookingReference": "Booking Reference",
+  "@bookingReference": {
+    "description": "Booking reference label"
+  },
+  
+  "qrCode": "QR Code",
+  "@qrCode": {
+    "description": "QR code label"
+  },
+  
+  "showQRCode": "Show QR Code",
+  "@showQRCode": {
+    "description": "Show QR code button text"
+  },
+  
+  "downloadTicket": "Download Ticket",
+  "@downloadTicket": {
+    "description": "Download ticket button text"
+  },
+  
+  "shareTicket": "Share Ticket",
+  "@shareTicket": {
+    "description": "Share ticket button text"
+  },
+  
+  "myTickets": "My Tickets",
+  "@myTickets": {
+    "description": "My tickets title"
+  },
+  
+  "upcomingTrips": "Upcoming Trips",
+  "@upcomingTrips": {
+    "description": "Upcoming trips title"
+  },
+  
+  "pastTrips": "Past Trips",
+  "@pastTrips": {
+    "description": "Past trips title"
+  },
+  
+  "tripDetails": "Trip Details",
+  "@tripDetails": {
+    "description": "Trip details title"
+  },
+  
+  "contactSupport": "Contact Support",
+  "@contactSupport": {
+    "description": "Contact support button text"
+  },
+  
+  "helpCenter": "Help Center",
+  "@helpCenter": {
+    "description": "Help center title"
+  },
+  
+  "faq": "FAQ",
+  "@faq": {
+    "description": "FAQ title"
+  },
+  
+  "termsAndConditions": "Terms and Conditions",
+  "@termsAndConditions": {
+    "description": "Terms and conditions title"
+  },
+  
+  "privacyPolicy": "Privacy Policy",
+  "@privacyPolicy": {
+    "description": "Privacy policy title"
+  },
+  
+  "aboutUs": "About Us",
+  "@aboutUs": {
+    "description": "About us title"
+  },
+  
+  "version": "Version",
+  "@version": {
+    "description": "App version label"
+  },
+  
+  "buildNumber": "Build Number",
+  "@buildNumber": {
+    "description": "App build number label"
+  },
+  
+  "changed": "changed",
+  "@changed": {
+    "description": "Changed status message"
+  },
+  
+  "europeanTreasureHunt": "🏴‍☠️ European Treasure Hunt Adventure",
+  "@europeanTreasureHunt": {
+    "description": "Title for treasure hunt screen"
+  },
+  
+  "treasureHuntDescription": "🗺️ Explore ancient European treasure maps and discover mysterious treasures hidden in cities like London, Paris, and Rome!",
+  "@treasureHuntDescription": {
+    "description": "Description for treasure hunt adventure"
+  },
+  
+  "welcomeToYourDreamJourney": "Welcome to your dream journey",
+  "@welcomeToYourDreamJourney": {
+    "description": "Welcome header message"
+  },
+  
+  "discoverAmazingDestinations": "Discover amazing destinations and create unforgettable memories",
+  "@discoverAmazingDestinations": {
+    "description": "Welcome description message"
+  },
+  
+  "popularDestinations": "Popular Destinations",
+  "@popularDestinations": {
+    "description": "Popular destinations section title"
+  },
+  
+  "viewAll": "View All",
+  "@viewAll": {
+    "description": "View all button text"
+  },
+  
+  "neuschwansteinCastle": "Neuschwanstein Castle",
+  "@neuschwansteinCastle": {
+    "description": "Neuschwanstein Castle name"
+  },
+  
+  "royalCastleTour": "Royal Castle Tour",
+  "@royalCastleTour": {
+    "description": "Royal Castle Tour description"
+  },
+  
+  "uffiziGalleries": "Uffizi Galleries",
+  "@uffiziGalleries": {
+    "description": "Uffizi Galleries name"
+  },
+  
+  "worldClassArtMuseum": "World-Class Art Museum",
+  "@worldClassArtMuseum": {
+    "description": "Art museum description"
+  },
+  
+  "fromPrice": "from {price}",
+  "@fromPrice": {
+    "description": "Price with from prefix",
+    "placeholders": {
+      "price": {
+        "type": "String",
+        "example": "€23.50"
+      }
+    }
+  },
+  
+  "bookTickets": "Book Tickets",
+  "@bookTickets": {
+    "description": "Book tickets title"
+  },
+  
+  "selectDate": "Select Date",
+  "@selectDate": {
+    "description": "Select date label"
+  },
+  
+  "selectTimeSlot": "Select Time Slot",
+  "@selectTimeSlot": {
+    "description": "Select time slot label"
+  },
+  
+  "selectTickets": "Select Tickets",
+  "@selectTickets": {
+    "description": "Select tickets label"
+  },
+  
+  "pleaseSelectDate": "Please select a date.",
+  "@pleaseSelectDate": {
+    "description": "Date selection validation message"
+  },
+  
+  "pleaseSelectTimeSlot": "Please select a time slot.",
+  "@pleaseSelectTimeSlot": {
+    "description": "Time slot selection validation message"
+  },
+  
+  "pleaseFillContactEmail": "Please fill in Contact Email",
+  "@pleaseFillContactEmail": {
+    "description": "Email validation message"
+  },
+  
+  "ticketHolderDetails": "Ticket Holder Details",
+  "@ticketHolderDetails": {
+    "description": "Ticket holder details title"
+  },
+  
+  "purchaseRailPassTitle": "Purchase Rail Pass",
+  "@purchaseRailPassTitle": {
+    "description": "Purchase rail pass screen title"
+  },
+  
+  "digCount": "Dig Count",
+  "@digCount": {
+    "description": "Treasure hunt dig count"
+  },
+  
+  "treasuresFound": "Treasures Found",
+  "@treasuresFound": {
+    "description": "Treasures found count"
+  },
+  
+  "discovered": "Discovered",
+  "@discovered": {
+    "description": "Discovered count"
+  },
+  
+  "exploreNewTreasureMap": "🗺️ Explore New Treasure Map",
+  "@exploreNewTreasureMap": {
+    "description": "Explore new treasure map button text"
+  },
+  
+  "selectVisitDetails": "Select your visit date, time, and number of tickets.",
+  "@selectVisitDetails": {
+    "description": "Instruction for selecting visit details"
+  },
+  
+  "bookMuseumTickets": "Book Museum Tickets",
+  "@bookMuseumTickets": {
+    "description": "Book museum tickets title"
+  },
+  
+  "pleaseSelectDateBeforeContinuing": "Please select a date before continuing.",
+  "@pleaseSelectDateBeforeContinuing": {
+    "description": "Date selection validation for museum"
+  },
+  
+  "importantInformation": "Important Information",
+  "@importantInformation": {
+    "description": "Important information section title"
+  },
+  
+  "ticketValidityInfo": "• Tickets are valid for the selected date only\n• Please arrive 15 minutes before your visit\n• Children under 18 enter free with valid ID\n• Audio guides available for rent at entrance",
+  "@ticketValidityInfo": {
+    "description": "Ticket validity and museum visit information"
+  },
+  
+  "selectADate": "Select a date",
+  "@selectADate": {
+    "description": "Placeholder text for date selection"
+  },
+  
+  "agesEighteenPlus": "Ages 18+",
+  "@agesEighteenPlus": {
+    "description": "Adult age range"
+  },
+  
+  "agesZeroToSeventeen": "Ages 0-17",
+  "@agesZeroToSeventeen": {
+    "description": "Child age range"
+  },
+  
+  "free": "Free",
+  "@free": {
+    "description": "Free price label"
+  },
+  
+  "continueButton": "Continue",
+  "neuschwansteinCastleTicket": "Neuschwanstein Castle Ticket",
+  "bankTransferInformation": "Bank Transfer Information:",
+  "account": "Account: 1234-5678-9999",
+  "ticketPrice": "Ticket Price: €{adultPrice} (Adult), {childPrice} (Child)",
+  "@ticketPrice": {
+    "placeholders": {
+      "adultPrice": {
+        "type": "String"
+      },
+      "childPrice": {
+        "type": "String"
+      }
+    }
+  },
+  "totalAmount": "Total: €{amount}",
+  "@totalAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "peopleCount": "({count} people)",
+  "@peopleCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "yourInformation": "Your Information:",
+  "noDateChosen": "No date chosen",
+  "dateSelected": "Date: {date}",
+  "@dateSelected": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "timeSlot": "Time Slot: ",
+  "am": "AM",
+  "pm": "PM",
+  "customerEmail": "Customer Email",
+  "pleaseEnterEmail": "Please enter an email address",
+  "pleaseEnterValidEmail": "Please enter a valid email address",
+  "attendees": "Attendees:",
+  "addPerson": "Add Person",
+  "processingPayment": "Processing Payment...",
+  "payAmount": "Pay €{amount}",
+  "@payAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "pleaseSelectDateFirst": "Please select a date",
+  "pleaseSelectTimeSlot": "Please select a time slot (AM/PM)",
+  "paymentSuccessful": "🎉 Payment successful! Please check your email for tickets.",
+  "paymentFailed": "Payment failed. Please try again.",
+  "retry": "Retry",
+  "@continueButton": {
+    "description": "Continue button text"
+  },
+  
+  "preferences": "Preferences",
+  "@preferences": {
+    "description": "Preferences section title"
+  },
+  
+  "about": "About",
+  "@about": {
+    "description": "About section title"
+  },
+  
+  "aboutApp": "About App",
+  "@aboutApp": {
+    "description": "About app title"
+  },
+  
+  "rateApp": "Rate App",
+  "@rateApp": {
+    "description": "Rate app title"
+  },
+  
+  "thankYouForRating": "Thank you for rating our app!",
+  "@thankYouForRating": {
+    "description": "Thank you for rating message"
+  },
+  
+  "appDescription": "Your ultimate travel companion for booking tickets and discovering amazing destinations across Europe.",
+  "@appDescription": {
+    "description": "App description text"
+  },
+  
+  "ok": "OK",
+  "@ok": {
+    "description": "OK button text"
+  }
+}

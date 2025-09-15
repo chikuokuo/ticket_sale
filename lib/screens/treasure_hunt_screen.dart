@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../l10n/app_localizations.dart';
 
 class TreasureHuntScreen extends StatefulWidget {
   const TreasureHuntScreen({super.key});
@@ -48,6 +49,8 @@ class _TreasureHuntScreenState extends State<TreasureHuntScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -75,11 +78,11 @@ class _TreasureHuntScreenState extends State<TreasureHuntScreen>
                 child: Column(
                   children: [
                     // 標題區域
-                    _buildHeader(),
+                    _buildHeader(l10n),
                     const SizedBox(height: 24),
                     
                     // 資訊卡片區域
-                    _buildInfoCards(),
+                    _buildInfoCards(l10n),
                     const SizedBox(height: 32),
                     
                     // 地圖區域
@@ -87,7 +90,7 @@ class _TreasureHuntScreenState extends State<TreasureHuntScreen>
                     const SizedBox(height: 32),
                     
                     // 底部按鈕
-                    _buildExploreButton(),
+                    _buildExploreButton(l10n),
                   ],
                 ),
               ),
@@ -98,7 +101,7 @@ class _TreasureHuntScreenState extends State<TreasureHuntScreen>
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(AppLocalizations l10n) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth > 600;
     
@@ -113,23 +116,26 @@ class _TreasureHuntScreenState extends State<TreasureHuntScreen>
               color: const Color(0xFFFFD700),
               size: isTablet ? 32 : 28,
             ),
-            SizedBox(width: isTablet ? 16 : 12),
-            Text(
-              '🏴‍☠️ 歐洲尋寶大冒險',
-              style: TextStyle(
-                fontSize: isTablet ? 28 : 24,
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFFFFD700),
-                shadows: const [
-                  Shadow(
-                    offset: Offset(2, 2),
-                    blurRadius: 4,
-                    color: Colors.black45,
-                  ),
-                ],
+            SizedBox(width: isTablet ? 16 : 8),
+            Flexible(
+              child: Text(
+                l10n.europeanTreasureHunt,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: isTablet ? 28 : 20,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFFFFD700),
+                  shadows: const [
+                    Shadow(
+                      offset: Offset(2, 2),
+                      blurRadius: 4,
+                      color: Colors.black45,
+                    ),
+                  ],
+                ),
               ),
             ),
-            SizedBox(width: isTablet ? 16 : 12),
+            SizedBox(width: isTablet ? 16 : 8),
             Icon(
               Icons.flash_on,
               color: const Color(0xFFFFD700),
@@ -143,12 +149,14 @@ class _TreasureHuntScreenState extends State<TreasureHuntScreen>
         Container(
           padding: EdgeInsets.symmetric(horizontal: isTablet ? 32 : 16),
           child: Text(
-            '🗺️ 探索歐洲古老的寶藏地圖，發現隱藏在倫敦、巴黎、羅馬等城市的神秘寶物！',
+            l10n.treasureHuntDescription,
             textAlign: TextAlign.center,
+            maxLines: 4,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontSize: isTablet ? 18 : 16,
+              fontSize: isTablet ? 18 : 14,
               color: const Color(0xFFFFE4B5),
-              height: 1.4,
+              height: 1.3,
             ),
           ),
         ),
@@ -156,14 +164,33 @@ class _TreasureHuntScreenState extends State<TreasureHuntScreen>
     );
   }
 
-  Widget _buildInfoCards() {
+  Widget _buildInfoCards(AppLocalizations l10n) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 600;
+    final cardHeight = isTablet ? 120.0 : 100.0;
+    
     return Row(
       children: [
-        Expanded(child: _buildInfoCard('2', '挖掘次數')),
+        Expanded(
+          child: SizedBox(
+            height: cardHeight,
+            child: _buildInfoCard('2', l10n.digCount),
+          ),
+        ),
         const SizedBox(width: 12),
-        Expanded(child: _buildInfoCard('2', '獲得寶藏')),
+        Expanded(
+          child: SizedBox(
+            height: cardHeight,
+            child: _buildInfoCard('2', l10n.treasuresFound),
+          ),
+        ),
         const SizedBox(width: 12),
-        Expanded(child: _buildInfoCard('0', '已發現')),
+        Expanded(
+          child: SizedBox(
+            height: cardHeight,
+            child: _buildInfoCard('0', l10n.discovered),
+          ),
+        ),
       ],
     );
   }
@@ -174,8 +201,8 @@ class _TreasureHuntScreenState extends State<TreasureHuntScreen>
     
     return Container(
       padding: EdgeInsets.symmetric(
-        vertical: isTablet ? 24 : 20, 
-        horizontal: isTablet ? 20 : 16,
+        vertical: isTablet ? 20 : 16, 
+        horizontal: isTablet ? 16 : 12,
       ),
       decoration: BoxDecoration(
         color: const Color(0xFF8B4513).withOpacity(0.3),
@@ -200,29 +227,45 @@ class _TreasureHuntScreenState extends State<TreasureHuntScreen>
         ],
       ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.max,
         children: [
-          Text(
-            number,
-            style: TextStyle(
-              fontSize: isTablet ? 36 : 32,
-              fontWeight: FontWeight.bold,
-              color: const Color(0xFFFFD700),
-              shadows: const [
-                Shadow(
-                  offset: Offset(1, 1),
-                  blurRadius: 2,
-                  color: Colors.black45,
+          Flexible(
+            flex: 2,
+            child: Center(
+              child: Text(
+                number,
+                style: TextStyle(
+                  fontSize: isTablet ? 36 : 28,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFFFFD700),
+                  shadows: const [
+                    Shadow(
+                      offset: Offset(1, 1),
+                      blurRadius: 2,
+                      color: Colors.black45,
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-          SizedBox(height: isTablet ? 10 : 8),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: isTablet ? 16 : 14,
-              color: const Color(0xFFFFE4B5),
-              fontWeight: FontWeight.w500,
+          SizedBox(height: isTablet ? 8 : 4),
+          Flexible(
+            flex: 1,
+            child: Center(
+              child: Text(
+                label,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: isTablet ? 14 : 11,
+                  color: const Color(0xFFFFE4B5),
+                  fontWeight: FontWeight.w500,
+                  height: 1.2,
+                ),
+              ),
             ),
           ),
         ],
@@ -232,7 +275,7 @@ class _TreasureHuntScreenState extends State<TreasureHuntScreen>
 
   Widget _buildTreasureMap() {
     final screenWidth = MediaQuery.of(context).size.width;
-    final mapHeight = screenWidth > 600 ? 450.0 : 400.0; // 平板更高
+    final mapHeight = screenWidth > 600 ? 450.0 : 320.0; // 手機上降低高度避免破版
     
     return Container(
       width: double.infinity,
@@ -385,7 +428,7 @@ class _TreasureHuntScreenState extends State<TreasureHuntScreen>
 
   List<Widget> _buildTreasureMarkers() {
     final screenWidth = MediaQuery.of(context).size.width;
-    final mapHeight = screenWidth > 600 ? 450.0 : 400.0;
+    final mapHeight = screenWidth > 600 ? 450.0 : 320.0; // 與地圖高度一致
     final mapWidth = screenWidth - 40; // 減去 padding
     
     // 根據歐洲實際城市位置調整寶藏座標
@@ -414,7 +457,7 @@ class _TreasureHuntScreenState extends State<TreasureHuntScreen>
     }).toList();
   }
 
-  Widget _buildExploreButton() {
+  Widget _buildExploreButton(AppLocalizations l10n) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth > 600;
     
@@ -456,29 +499,36 @@ class _TreasureHuntScreenState extends State<TreasureHuntScreen>
                 onTap: _onExplorePressed,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(
                       Icons.star,
                       color: Colors.white,
                       size: 24,
                     ),
-                    const SizedBox(width: 12),
-                    Text(
-                      '🗺️ 探索新的寶藏地圖',
-                      style: TextStyle(
-                        fontSize: isTablet ? 20 : 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        shadows: const [
-                          Shadow(
-                            offset: Offset(1, 1),
-                            blurRadius: 2,
-                            color: Colors.black26,
-                          ),
-                        ],
+                    SizedBox(width: isTablet ? 12 : 8),
+                    Flexible(
+                      child: Text(
+                        l10n.exploreNewTreasureMap,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: isTablet ? 20 : 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          height: 1.2,
+                          shadows: const [
+                            Shadow(
+                              offset: Offset(1, 1),
+                              blurRadius: 2,
+                              color: Colors.black26,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: isTablet ? 12 : 8),
                     const Icon(
                       Icons.flash_on,
                       color: Colors.white,

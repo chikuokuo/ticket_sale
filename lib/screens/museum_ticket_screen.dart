@@ -6,6 +6,7 @@ import '../models/attendee.dart';
 import '../providers/ticket_order_provider.dart';
 import '../theme/colors.dart';
 import '../theme/app_theme.dart';
+import '../l10n/app_localizations.dart';
 import 'ticket_details_screen.dart';
 
 class MuseumTicketScreen extends ConsumerStatefulWidget {
@@ -23,12 +24,13 @@ class _MuseumTicketScreenState extends ConsumerState<MuseumTicketScreen> {
       _submitted = true;
     });
 
+    final l10n = AppLocalizations.of(context)!;
     final orderState = ref.read(ticketOrderProvider(TicketType.museum));
 
     if (orderState.selectedDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Please select a date before continuing.'),
+          content: Text(l10n.pleaseSelectDateBeforeContinuing),
           backgroundColor: AppColorScheme.warning,
           behavior: SnackBarBehavior.floating,
         ),
@@ -47,12 +49,13 @@ class _MuseumTicketScreenState extends ConsumerState<MuseumTicketScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final orderState = ref.watch(ticketOrderProvider(TicketType.museum));
     final orderNotifier = ref.read(ticketOrderProvider(TicketType.museum).notifier);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Book Museum Tickets'),
+        title: Text(l10n.bookMuseumTickets),
         elevation: 0,
       ),
       body: Container(
@@ -74,22 +77,22 @@ class _MuseumTicketScreenState extends ConsumerState<MuseumTicketScreen> {
             children: [
               // Header
               Text(
-                'Uffizi Galleries',
+                l10n.uffiziGalleries,
                 style: AppTheme.displaySmall,
               ),
               const SizedBox(height: 8),
               Text(
-                'World-Class Art Museum',
+                l10n.worldClassArtMuseum,
                 style: AppTheme.bodyLarge.copyWith(color: AppColorScheme.neutral600),
               ),
               const SizedBox(height: 24),
 
               // Date selection
-              _buildDateSelection(context, orderState, orderNotifier),
+              _buildDateSelection(context, l10n, orderState, orderNotifier),
               const SizedBox(height: 24),
 
               // Ticket counters
-              _buildTicketCounters(orderState, orderNotifier),
+              _buildTicketCounters(l10n, orderState, orderNotifier),
               const SizedBox(height: 24),
 
               // Important information
@@ -127,13 +130,14 @@ class _MuseumTicketScreenState extends ConsumerState<MuseumTicketScreen> {
   // Helper methods to build sections of the UI
   Widget _buildDateSelection(
     BuildContext context,
+    AppLocalizations l10n,
     TicketOrderState orderState,
     TicketOrderNotifier orderNotifier,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Select Date', style: AppTheme.headlineSmall),
+        Text(l10n.selectDate, style: AppTheme.headlineSmall),
         const SizedBox(height: 16),
         InkWell(
           onTap: () => _selectDate(context, orderNotifier),
@@ -152,7 +156,7 @@ class _MuseumTicketScreenState extends ConsumerState<MuseumTicketScreen> {
                 Text(
                   orderState.selectedDate != null
                       ? DateFormat('EEEE, MMMM dd, yyyy').format(orderState.selectedDate!)
-                      : 'Select a date',
+                      : l10n.selectADate,
                   style: AppTheme.bodyLarge.copyWith(
                     color: orderState.selectedDate != null ? AppColorScheme.neutral900 : AppColorScheme.neutral500,
                   ),
@@ -182,6 +186,7 @@ class _MuseumTicketScreenState extends ConsumerState<MuseumTicketScreen> {
   }
 
   Widget _buildTicketCounters(
+    AppLocalizations l10n,
     TicketOrderState orderState,
     TicketOrderNotifier orderNotifier,
   ) {
@@ -191,11 +196,11 @@ class _MuseumTicketScreenState extends ConsumerState<MuseumTicketScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Select Tickets', style: AppTheme.headlineSmall),
+        Text(l10n.selectTickets, style: AppTheme.headlineSmall),
         const SizedBox(height: 16),
         _buildTicketCounter(
-          title: 'Adults',
-          subtitle: 'Ages 18+',
+          title: l10n.adults,
+          subtitle: l10n.agesEighteenPlus,
           price: '€20.00',
           count: adultCount,
           onIncrement: () => orderNotifier.addAttendee(AttendeeType.adult),
@@ -203,9 +208,9 @@ class _MuseumTicketScreenState extends ConsumerState<MuseumTicketScreen> {
         ),
         const SizedBox(height: 16),
         _buildTicketCounter(
-          title: 'Children',
-          subtitle: 'Ages 0-17',
-          price: 'Free',
+          title: l10n.children,
+          subtitle: l10n.agesZeroToSeventeen,
+          price: l10n.free,
           count: childCount,
           onIncrement: () => orderNotifier.addAttendee(AttendeeType.child),
           onDecrement: () => orderNotifier.removeAttendee(AttendeeType.child),
