@@ -4,6 +4,7 @@ import '../l10n/app_localizations.dart';
 import '../providers/language_provider.dart';
 import '../theme/app_theme.dart';
 import '../theme/colors.dart';
+import 'italy_dice_test_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -37,6 +38,10 @@ class SettingsScreen extends ConsumerWidget {
             _buildSectionHeader(l10n.about),
             const SizedBox(height: 16),
             _buildAboutSection(context, l10n),
+            const SizedBox(height: 32),
+            _buildSectionHeader('Test Features'),
+            const SizedBox(height: 16),
+            _buildTestSection(context),
           ],
         ),
       ),
@@ -277,6 +282,92 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTestSection(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(AppTheme.radiusL),
+        boxShadow: AppTheme.shadowSoft,
+      ),
+      child: Column(
+        children: [
+          _buildTestItem(
+            context,
+            icon: Icons.casino,
+            title: 'Italy Trip Dice',
+            subtitle: 'Test the random Italy trip dice widget',
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const ItalyDiceTestScreen(),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTestItem(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppTheme.radiusL),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: AppColorScheme.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                icon,
+                color: AppColorScheme.primary,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: AppTheme.titleMedium.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: AppTheme.bodySmall.copyWith(
+                      color: AppColorScheme.neutral600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: AppColorScheme.neutral400,
+            ),
+          ],
+        ),
       ),
     );
   }

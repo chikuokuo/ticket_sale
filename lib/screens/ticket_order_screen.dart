@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../models/attendee.dart';
+import '../models/payment_status.dart';
 import '../models/time_slot.dart';
 import '../providers/ticket_order_provider.dart';
 import '../widgets/attendee_card.dart';
@@ -262,7 +263,7 @@ class TicketOrderScreen extends ConsumerWidget {
                       attendee: attendee,
                       index: index,
                       canRemove: orderState.attendees.length > 1,
-                      onRemove: () => orderNotifier.removeAttendee(index),
+                      onRemove: () => orderNotifier.removeAttendee(attendee.type),
                       onTypeChanged: (value) {
                         if (value != null) {
                           orderNotifier.updateAttendeeType(index, value);
