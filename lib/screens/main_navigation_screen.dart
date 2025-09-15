@@ -48,11 +48,12 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
             index: _selectedIndex,
             children: _pages,
           ),
-          // Jackpot floating button
-          const JackpotFloatingButton(
-            amount: 9.0,
-            // Uses default onTap behavior to show MegaJackpotDialog
-          ),
+          // Jackpot floating button - 在寶藏獵人頁面不顯示
+          if (_selectedIndex != 3) // 3 是 TreasureHuntScreen 的索引
+            const JackpotFloatingButton(
+              amount: 9.0,
+              // Uses default onTap behavior to show MegaJackpotDialog
+            ),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
