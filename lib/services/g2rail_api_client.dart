@@ -14,6 +14,7 @@ class SearchCriteria {
   final String to;
   final String date;
   final String time;
+  final int duration;
   final int adult;
   final int child;
   final int junior;
@@ -25,6 +26,7 @@ class SearchCriteria {
       this.to,
       this.date,
       this.time,
+      this.duration,
       this.adult,
       this.child,
       this.junior,
@@ -33,7 +35,7 @@ class SearchCriteria {
       );
 
   String toQuery() {
-    return "from=$from&to=$to&date=$date&time=$time&adult=$adult&child=$child&junior=$junior&senior=$senior&infant=$infant";
+    return "from=$from&to=$to&date=$date&time=$time&duration=$duration&adult=$adult&child=$child&junior=$junior&senior=$senior&infant=$infant";
   }
 
   Map<String, dynamic> toMap() {
@@ -42,6 +44,7 @@ class SearchCriteria {
       "to": to,
       "date": date,
       "time": time,
+      "duration": duration,
       "adult": adult,
       "child": child,
       "junior": junior,
@@ -106,12 +109,14 @@ class G2RailApiClient {
       int junior,
       int senior,
       int infant,
+      {int duration = 3}
       ) async {
     final criteria = SearchCriteria(
       from,
       to,
       date,
       time,
+      duration,
       adult,
       child,
       junior,
