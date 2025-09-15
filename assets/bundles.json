@@ -7,7 +7,7 @@
     "detailedDescription": "Embark on a magical journey to the legendary castles of Neuschwanstein and Linderhof, built by the enigmatic King Ludwig II. This full-day tour from Munich takes you through the breathtaking landscapes of the Bavarian Alps. You'll explore the opulent interiors of Linderhof Palace, a rococo masterpiece, and marvel at the iconic Neuschwanstein Castle, the inspiration for Disney's Sleeping Beauty castle. Our expert guide will share fascinating stories about the life of the 'Fairytale King'.",
     "price": 120.0,
     "duration": "10 hours",
-    "imageUrl": "assets/images/bundle_neuschwanstein.jpg",
+    "imageUrl": "assets/images/BavarianKingsTour.png",
     "highlights": [
       "Skip-the-line tickets to Neuschwanstein Castle",
       "Guided tour of Linderhof Palace and gardens",
@@ -35,7 +35,7 @@
     "detailedDescription": "Experience the best of Munich on this engaging city tour. Start at Marienplatz to see the famous Glockenspiel, then wander through the historic Old Town. Visit the Frauenkirche, Munich's iconic cathedral, and explore the vibrant Viktualienmarkt. In the afternoon, dive into the world of art at the Alte Pinakothek, home to masterpieces by European painters. The tour concludes with a refreshing stein of beer at the legendary Hofbräuhaus, immersing you in true Bavarian culture.",
     "price": 75.0,
     "duration": "8 hours",
-    "imageUrl": "assets/images/bundle_munich.jpg",
+    "imageUrl": "assets/images/MunichCityDicovery.png",
     "highlights": [
       "Guided walking tour of Munich's Old Town",
       "Visit to the iconic Frauenkirche cathedral",

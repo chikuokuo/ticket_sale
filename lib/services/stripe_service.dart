@@ -4,7 +4,6 @@ import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/payment_status.dart';
-import '../providers/bundle_provider.dart';
 
 class StripeService {
   final String _secretKey = 'sk_test_51S6oar2Z7txq4ZPObvszGjfH8MhmDaZQoAgc2jEfRIkiF5dxmaF73fyWhD6BGKFEhdEsID7qXiZ9uQ9v4f9T74BE00zwb97faN';
