@@ -22,10 +22,12 @@ class _ItalyTripDiceState extends State<ItalyTripDice>
     with TickerProviderStateMixin {
   late AnimationController _floatController;
   late AnimationController _glowController;
+  late AnimationController _sparkleController;
   late Animation<double> _floatAnimation;
   late Animation<double> _rotationAnimation;
   late Animation<double> _shadowAnimation;
   late Animation<double> _glowAnimation;
+  late Animation<double> _sparkleAnimation;
 
   bool _isRolling = false; // 改為數字切換狀態
   int _currentDots = 1;
@@ -85,12 +87,27 @@ class _ItalyTripDiceState extends State<ItalyTripDice>
       curve: Curves.easeInOut,
     ));
 
+    // Sparkle animation (1.8s cycle for fast sparkles)
+    _sparkleController = AnimationController(
+      duration: const Duration(milliseconds: 1800),
+      vsync: this,
+    );
+
+    _sparkleAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _sparkleController,
+      curve: Curves.easeInOut,
+    ));
+
     // 移除搖擺動畫，改為簡單的數字切換
   }
 
   void _startFloatingAnimation() {
     _floatController.repeat(reverse: true);
     _glowController.repeat(reverse: true);
+    _sparkleController.repeat();
   }
 
   Future<void> _onDicePressed() async {
@@ -141,17 +158,18 @@ class _ItalyTripDiceState extends State<ItalyTripDice>
 
   Widget _buildDice() {
     return AnimatedBuilder(
-      animation: _glowController,
+      animation: Listenable.merge([_glowController, _sparkleController]),
       builder: (context, child) {
         return SizedBox(
-          width: 84,
-          height: 84,
+          width: 64, // 從 84 縮小到 64
+          height: 64,
           child: CustomPaint(
             painter: Dice3DPainter(
               dots: _currentDots,
               glowIntensity: _glowAnimation.value,
+              sparkleIntensity: _sparkleAnimation.value,
             ),
-            size: const Size(84, 84),
+            size: const Size(64, 64), // 從 84 縮小到 64
           ),
         );
       },
@@ -164,7 +182,7 @@ class _ItalyTripDiceState extends State<ItalyTripDice>
     return Positioned(
       right: widget.alignment == Alignment.bottomRight ? 20 + _position.dx : null,
       left: widget.alignment == Alignment.bottomLeft ? 20 + _position.dx : null,
-      bottom: 100 + _position.dy,
+      bottom: 180 + _position.dy, // 從 100 增加到 180，放在 Jackpot 按鈕上方
       child: GestureDetector(
         onPanStart: (details) {
           _isDragging = true;
@@ -184,16 +202,16 @@ class _ItalyTripDiceState extends State<ItalyTripDice>
         },
         onTap: _onDicePressed,
         child: AnimatedBuilder(
-          animation: Listenable.merge([_floatController, _glowController]),
+          animation: Listenable.merge([_floatController, _glowController, _sparkleController]),
           builder: (context, child) {
             final floatOffset = _isDragging ? 0.0 : _floatAnimation.value;
             final rotation = _isDragging ? 0.0 : _rotationAnimation.value;
             final shadowScale = _isDragging ? 1.0 : _shadowAnimation.value;
 
-            // 簡化邊界計算，只考慮漂浮動畫
-            final glowRadius = 8.0; // 最大光暈半徑
-            final requiredPadding = floatOffset.abs() + glowRadius + 10; // 額外 10px 安全邊界
-            final safePadding = math.max(25.0, requiredPadding); // 最少 25 像素邊界
+            // 簡化邊界計算，因為骰子變小了
+            final glowRadius = 6.0; // 減小光暈半徑配合小骰子
+            final requiredPadding = floatOffset.abs() + glowRadius + 8; // 減少安全邊界
+            final safePadding = math.max(20.0, requiredPadding); // 最少 20 像素邊界
             
             return Container(
               // 簡化的安全邊界
@@ -211,8 +229,8 @@ class _ItalyTripDiceState extends State<ItalyTripDice>
                       Transform.scale(
                         scale: shadowScale,
                         child: Container(
-                          width: 60,
-                          height: 8,
+                          width: 48, // 從 60 縮小到 48 配合小骰子
+                          height: 6, // 從 8 縮小到 6
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(30),
                             boxShadow: [
@@ -240,6 +258,7 @@ class _ItalyTripDiceState extends State<ItalyTripDice>
   void dispose() {
     _floatController.dispose();
     _glowController.dispose();
+    _sparkleController.dispose();
     super.dispose();
   }
 }
@@ -247,10 +266,12 @@ class _ItalyTripDiceState extends State<ItalyTripDice>
 class Dice3DPainter extends CustomPainter {
   final int dots;
   final double glowIntensity;
+  final double sparkleIntensity;
 
   Dice3DPainter({
     required this.dots,
     required this.glowIntensity,
+    required this.sparkleIntensity,
   });
 
   @override
@@ -260,162 +281,74 @@ class Dice3DPainter extends CustomPainter {
     // 添加剪裁以防止繪製超出邊界
     canvas.clipRect(rect.inflate(2));
     
-    // 確保 glowIntensity 在有效範圍內
+    // 確保動畫值在有效範圍內
     final safeGlowIntensity = glowIntensity.clamp(0.0, 1.0);
+    final safeSparkleIntensity = sparkleIntensity.clamp(0.0, 1.0);
     
     // 繪製光暈效果（先繪製，避免覆蓋）
     _drawGlow(canvas, rect, safeGlowIntensity);
     
-    // 繪製立體骰子的主體
-    _drawDiceCube(canvas, rect, safeGlowIntensity);
+    // 繪製立體骰子的主體（紅色風格）
+    _drawRedDiceCube(canvas, rect, safeGlowIntensity);
     
-    // 繪製骰子點數
-    _drawDots(canvas, rect, safeGlowIntensity);
+    // 繪製骰子點數（白色點數）
+    _drawWhiteDots(canvas, rect, safeGlowIntensity);
+    
+    // 繪製閃亮效果
+    _drawSparkles(canvas, rect, safeSparkleIntensity, safeGlowIntensity);
   }
 
-  void _drawDiceCube(Canvas canvas, Rect rect, double safeGlowIntensity) {
+  void _drawRedDiceCube(Canvas canvas, Rect rect, double safeGlowIntensity) {
+    // 創建平面骰子 - 簡單的正方形，無立體效果
     final paint = Paint()..style = PaintingStyle.fill;
-    final strokePaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.5
-      ..color = const Color(0xFF8B4513).withValues(alpha: 0.8);
-
-    // 增強立體效果的參數 - 更大的深度和更好的透視
-    final depth = 24.0; // 大幅增加深度
-    final perspectiveOffset = 22.0; // 增強透視偏移
-    final sideDepth = 28.0; // 側面深度
-    final mainFaceInset = 6.0; // 稍微減少內邊距讓側面更突出
-
-    // 先繪製陰影面（背景）
-    _drawShadowFaces(canvas, rect, depth, perspectiveOffset);
-
-    // 添加左側面 - 創造更強立體效果
-    _drawLeftSideFace(canvas, rect, mainFaceInset, sideDepth, paint, safeGlowIntensity);
-
-    // 主面 (正面) - 更立體，稍微向內縮
+    
+    // 主面 - 整個正方形，帶圓角
     final mainFace = RRect.fromRectAndRadius(
-      Rect.fromLTWH(mainFaceInset, mainFaceInset,
-                   rect.width - mainFaceInset * 2, rect.height - mainFaceInset * 2),
-      const Radius.circular(12),
+      Rect.fromLTWH(4, 4, rect.width - 8, rect.height - 8),
+      const Radius.circular(8),
     );
 
-    // 主面漸層 - 更真實的光影效果，響應動態光源
-    paint.shader = LinearGradient(
-      begin: const Alignment(-0.3, -0.3), // 光源來自左上
-      end: const Alignment(0.7, 0.7),
-      colors: [
-        Color.lerp(const Color(0xFFFFFFF8), Colors.white, safeGlowIntensity * 0.3) ?? const Color(0xFFFFFFF8), // 動態最亮點
-        Color.lerp(const Color(0xFFFFFAF0), const Color(0xFFFFFFF8), safeGlowIntensity * 0.2) ?? const Color(0xFFFFFAF0), // 動態亮部
-        Color.lerp(const Color(0xFFF5F5DC), const Color(0xFFFFFAF0), safeGlowIntensity * 0.15) ?? const Color(0xFFF5F5DC), // 動態中間調
-        Color.lerp(const Color(0xFFE8E4D0), const Color(0xFFF0F0E8), safeGlowIntensity * 0.1) ?? const Color(0xFFE8E4D0), // 動態暗部
-        const Color(0xFFD3CDB0), // 保持最暗部穩定
-      ],
-      stops: const [0.0, 0.25, 0.5, 0.75, 1.0],
-    ).createShader(mainFace.outerRect);
-
+    // 紅色填充 - 根據光暈強度調整亮度
+    final baseRed = const Color(0xFFE53935); // 經典紅色
+    final brightRed = const Color(0xFFFF5555); // 較亮的紅色
+    
+    paint.color = Color.lerp(baseRed, brightRed, safeGlowIntensity * 0.3) ?? baseRed;
     canvas.drawRRect(mainFace, paint);
 
-    // 右側面 (立體效果) - 大幅增強透視和深度
-    final rightFacePath = Path()
-      ..moveTo(rect.width - mainFaceInset, mainFaceInset) // 主面右上角
-      ..lineTo(rect.width - 2, 2) // 右面右上角 (更外側)
-      ..lineTo(rect.width - 2, rect.height - sideDepth + 2) // 右面右下角 (使用側面深度)
-      ..lineTo(rect.width - mainFaceInset, rect.height - mainFaceInset) // 主面右下角
-      ..close();
+    // 黑色邊框
+    final strokePaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.0
+      ..color = Colors.black;
 
-    // 額外的右側面深度層 - 創造更強立體感
-    final rightFaceDeepPath = Path()
-      ..moveTo(rect.width - 1, 1) // 最外層右上角
-      ..lineTo(rect.width - 1, rect.height - sideDepth + 1) // 最外層右下角
-      ..lineTo(rect.width - 2, rect.height - sideDepth + 2) // 連接到內層
-      ..lineTo(rect.width - 2, 2) // 連接到內層上方
-      ..close();
-
-    // 先繪製最深層的右側面
-    paint.shader = LinearGradient(
-      begin: Alignment.centerLeft,
-      end: Alignment.centerRight,
-      colors: [
-        const Color(0xFF7A6B4A), // 最深的暗色
-        const Color(0xFF6B5C3B), // 更深的陰影
-        const Color(0xFF5D4E2D), // 最暗邊緣
-      ],
-      stops: const [0.0, 0.6, 1.0],
-    ).createShader(rect);
-
-    canvas.drawPath(rightFaceDeepPath, paint);
-
-    // 主要右側面漸層 - 增強立體感，響應光源變化
-    paint.shader = LinearGradient(
-      begin: Alignment.centerLeft,
-      end: Alignment.centerRight,
-      colors: [
-         Color.lerp(const Color(0xFFD8CDB0), const Color(0xFFE3D8BD), safeGlowIntensity * 0.25) ?? const Color(0xFFD8CDB0), // 與主面接觸處更亮
-         Color.lerp(const Color(0xFFC3B294), const Color(0xFFCEB8A1), safeGlowIntensity * 0.2) ?? const Color(0xFFC3B294), // 動態中等明度
-         Color.lerp(const Color(0xFFAB9B78), const Color(0xFFB6A683), safeGlowIntensity * 0.15) ?? const Color(0xFFAB9B78), // 動態中等陰影
-         Color.lerp(const Color(0xFF96865F), const Color(0xFFA1916A), safeGlowIntensity * 0.1) ?? const Color(0xFF96865F), // 動態較暗陰影
-        const Color(0xFF8B7A5A), // 邊緣保持暗色穩定
-      ],
-      stops: const [0.0, 0.25, 0.5, 0.8, 1.0],
-    ).createShader(rect);
-
-    canvas.drawPath(rightFacePath, paint);
-
-    // 頂面 (立體效果) - 大幅改善透視角度和深度
-    final topFacePath = Path()
-      ..moveTo(mainFaceInset, mainFaceInset) // 主面左上角
-      ..lineTo(2, 2) // 頂面左上角 (更外側)
-      ..lineTo(rect.width - 2, 2) // 頂面右上角 (更外側)
-      ..lineTo(rect.width - mainFaceInset, mainFaceInset) // 主面右上角
-      ..close();
-
-    // 額外的頂面深度層 - 創造更強立體感
-    final topFaceDeepPath = Path()
-      ..moveTo(1, 1) // 最外層左上角
-      ..lineTo(rect.width - 1, 1) // 最外層右上角
-      ..lineTo(rect.width - 2, 2) // 連接到內層右側
-      ..lineTo(2, 2) // 連接到內層左側
-      ..close();
-
-    // 先繪製最深層的頂面
-    paint.shader = LinearGradient(
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter,
-      colors: [
-        const Color(0xFFE0E0D0), // 最亮的受光面
-        const Color(0xFFD8D8C8), // 中等亮度
-        const Color(0xFFD0D0C0), // 較暗的邊緣
-      ],
-      stops: const [0.0, 0.5, 1.0],
-    ).createShader(rect);
-
-    canvas.drawPath(topFaceDeepPath, paint);
-
-    // 主要頂面漸層 - 增強受光面效果，響應光源變化
-    paint.shader = LinearGradient(
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter,
-      colors: [
-         Color.lerp(const Color(0xFFFFFFF8), Colors.white, safeGlowIntensity * 0.3) ?? const Color(0xFFFFFFF8), // 動態最亮受光點
-         Color.lerp(const Color(0xFFF8F8F0), const Color(0xFFFFFFF8), safeGlowIntensity * 0.25) ?? const Color(0xFFF8F8F0), // 動態高亮部
-         Color.lerp(const Color(0xFFF0F0E8), const Color(0xFFF8F8F0), safeGlowIntensity * 0.2) ?? const Color(0xFFF0F0E8), // 動態中等亮度
-         Color.lerp(const Color(0xFFE8E8D8), const Color(0xFFF0F0E8), safeGlowIntensity * 0.15) ?? const Color(0xFFE8E8D8), // 動態接觸處
-      ],
-      stops: const [0.0, 0.3, 0.7, 1.0],
-    ).createShader(rect);
-
-    canvas.drawPath(topFacePath, paint);
-
-    // 先繪製邊框再繪製高光
-    canvas.drawPath(rightFacePath, strokePaint);
-    canvas.drawPath(topFacePath, strokePaint);
     canvas.drawRRect(mainFace, strokePaint);
 
-    // 多層內部高光效果
-    _drawInnerHighlights(canvas, mainFace, safeGlowIntensity);
+    // 添加微妙的內部高光讓骰子看起來有光澤
+    _drawFlatHighlight(canvas, mainFace, safeGlowIntensity);
+  }
 
-    // 添加邊緣銳化效果
-    _drawEdgeSharpening(canvas, rect, mainFace, rightFacePath, topFacePath, safeGlowIntensity);
+  void _drawFlatHighlight(Canvas canvas, RRect mainFace, double safeGlowIntensity) {
+    // 簡單的漸層高光效果，讓平面骰子看起來有光澤
+    final highlightPaint = Paint()
+      ..shader = RadialGradient(
+        center: const Alignment(-0.3, -0.3), // 光源來自左上
+        radius: 0.8,
+        colors: [
+          Colors.white.withValues(alpha: 0.3 + (safeGlowIntensity * 0.2)), // 高光中心
+          Colors.white.withValues(alpha: 0.1 + (safeGlowIntensity * 0.1)), // 中間過渡
+          Colors.transparent, // 邊緣透明
+        ],
+        stops: const [0.0, 0.5, 1.0],
+      ).createShader(mainFace.outerRect);
+
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(mainFace.left + 2, mainFace.top + 2,
+                     mainFace.width - 4, mainFace.height - 4),
+        const Radius.circular(6),
+      ),
+      highlightPaint,
+    );
   }
 
   void _drawShadowFaces(Canvas canvas, Rect rect, double depth, double perspectiveOffset) {
@@ -812,36 +745,269 @@ class Dice3DPainter extends CustomPainter {
     );
   }
 
-  void _drawDots(Canvas canvas, Rect rect, double safeGlowIntensity) {
-    const dotRadius = 6.5; // 稍微增大點數
-    final mainFaceRect = Rect.fromLTWH(16, 16, rect.width - 32, rect.height - 32); // 調整以配合新的內邊距
+  void _drawWhiteDots(Canvas canvas, Rect rect, double safeGlowIntensity) {
+    const dotRadius = 5.0; // 點數半徑
+    final mainFaceRect = Rect.fromLTWH(12, 12, rect.width - 24, rect.height - 24); // 調整邊距
 
-    // 深層凹陷陰影 - 模擬骰子點數是凹進去的
-    final deepShadowPaint = Paint()
-      ..color = Colors.black.withValues(alpha: 0.6)
-      ..style = PaintingStyle.fill
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
+    // 白色點數畫筆
+    final dotPaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
 
-    final mediumShadowPaint = Paint()
-      ..color = Colors.black.withValues(alpha: 0.3)
-      ..style = PaintingStyle.fill
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
-
-    final lightShadowPaint = Paint()
-      ..color = Colors.black.withValues(alpha: 0.15)
+    // 點數陰影畫筆 - 讓點數更立體
+    final shadowPaint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.2)
       ..style = PaintingStyle.fill
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1);
 
-    // 繪製多層陰影以營造深度凹陷感
-    _drawDotsPattern(canvas, mainFaceRect, dotRadius + 2.5, deepShadowPaint, const Offset(2.5, 2.5));
-    _drawDotsPattern(canvas, mainFaceRect, dotRadius + 1.8, mediumShadowPaint, const Offset(1.8, 1.8));
-    _drawDotsPattern(canvas, mainFaceRect, dotRadius + 1.0, lightShadowPaint, const Offset(1.0, 1.0));
+    // 先繪製陰影
+    _drawFlatDotsPattern(canvas, mainFaceRect, dotRadius, shadowPaint, const Offset(1, 1));
+    
+    // 再繪製主要的白色點數
+    _drawFlatDotsPattern(canvas, mainFaceRect, dotRadius, dotPaint, Offset.zero);
 
-    // 繪製主點數（帶凹陷立體效果）
-    _drawDotsPatternWithGradient(canvas, mainFaceRect, dotRadius);
+    // 添加點數高光
+    _drawFlatDotsHighlight(canvas, mainFaceRect, dotRadius, safeGlowIntensity);
+  }
 
-    // 添加點數邊緣高光
-    _drawDotsHighlight(canvas, mainFaceRect, dotRadius, safeGlowIntensity);
+  void _drawFlatDotsPattern(Canvas canvas, Rect faceRect, double radius, Paint paint, Offset offset) {
+    final center = faceRect.center + offset;
+    
+    switch (dots) {
+      case 1:
+        canvas.drawCircle(center, radius, paint);
+        break;
+      case 2:
+        canvas.drawCircle(
+          Offset(faceRect.left + faceRect.width * 0.3, faceRect.top + faceRect.height * 0.3) + offset,
+          radius,
+          paint,
+        );
+        canvas.drawCircle(
+          Offset(faceRect.left + faceRect.width * 0.7, faceRect.top + faceRect.height * 0.7) + offset,
+          radius,
+          paint,
+        );
+        break;
+      case 3:
+        canvas.drawCircle(
+          Offset(faceRect.left + faceRect.width * 0.25, faceRect.top + faceRect.height * 0.25) + offset,
+          radius,
+          paint,
+        );
+        canvas.drawCircle(center, radius, paint);
+        canvas.drawCircle(
+          Offset(faceRect.left + faceRect.width * 0.75, faceRect.top + faceRect.height * 0.75) + offset,
+          radius,
+          paint,
+        );
+        break;
+      case 4:
+        canvas.drawCircle(
+          Offset(faceRect.left + faceRect.width * 0.3, faceRect.top + faceRect.height * 0.3) + offset,
+          radius,
+          paint,
+        );
+        canvas.drawCircle(
+          Offset(faceRect.left + faceRect.width * 0.7, faceRect.top + faceRect.height * 0.3) + offset,
+          radius,
+          paint,
+        );
+        canvas.drawCircle(
+          Offset(faceRect.left + faceRect.width * 0.3, faceRect.top + faceRect.height * 0.7) + offset,
+          radius,
+          paint,
+        );
+        canvas.drawCircle(
+          Offset(faceRect.left + faceRect.width * 0.7, faceRect.top + faceRect.height * 0.7) + offset,
+          radius,
+          paint,
+        );
+        break;
+      case 5:
+        canvas.drawCircle(
+          Offset(faceRect.left + faceRect.width * 0.25, faceRect.top + faceRect.height * 0.25) + offset,
+          radius,
+          paint,
+        );
+        canvas.drawCircle(
+          Offset(faceRect.left + faceRect.width * 0.75, faceRect.top + faceRect.height * 0.25) + offset,
+          radius,
+          paint,
+        );
+        canvas.drawCircle(center, radius, paint);
+        canvas.drawCircle(
+          Offset(faceRect.left + faceRect.width * 0.25, faceRect.top + faceRect.height * 0.75) + offset,
+          radius,
+          paint,
+        );
+        canvas.drawCircle(
+          Offset(faceRect.left + faceRect.width * 0.75, faceRect.top + faceRect.height * 0.75) + offset,
+          radius,
+          paint,
+        );
+        break;
+      case 6:
+        canvas.drawCircle(
+          Offset(faceRect.left + faceRect.width * 0.3, faceRect.top + faceRect.height * 0.25) + offset,
+          radius,
+          paint,
+        );
+        canvas.drawCircle(
+          Offset(faceRect.left + faceRect.width * 0.7, faceRect.top + faceRect.height * 0.25) + offset,
+          radius,
+          paint,
+        );
+        canvas.drawCircle(
+          Offset(faceRect.left + faceRect.width * 0.3, faceRect.top + faceRect.height * 0.5) + offset,
+          radius,
+          paint,
+        );
+        canvas.drawCircle(
+          Offset(faceRect.left + faceRect.width * 0.7, faceRect.top + faceRect.height * 0.5) + offset,
+          radius,
+          paint,
+        );
+        canvas.drawCircle(
+          Offset(faceRect.left + faceRect.width * 0.3, faceRect.top + faceRect.height * 0.75) + offset,
+          radius,
+          paint,
+        );
+        canvas.drawCircle(
+          Offset(faceRect.left + faceRect.width * 0.7, faceRect.top + faceRect.height * 0.75) + offset,
+          radius,
+          paint,
+        );
+        break;
+    }
+  }
+
+  void _drawFlatDotsHighlight(Canvas canvas, Rect faceRect, double radius, double safeGlowIntensity) {
+    // 為白色點數添加微妙的高光效果
+    final highlightPaint = Paint()
+      ..color = Colors.white.withValues(alpha: (0.4 + (safeGlowIntensity * 0.3)).clamp(0.0, 1.0))
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.8;
+
+    final center = faceRect.center;
+
+    // 為每個點數位置添加高光環
+    switch (dots) {
+      case 1:
+        canvas.drawCircle(center, radius + 0.5, highlightPaint);
+        break;
+      case 2:
+        canvas.drawCircle(Offset(faceRect.left + faceRect.width * 0.3, faceRect.top + faceRect.height * 0.3), radius + 0.5, highlightPaint);
+        canvas.drawCircle(Offset(faceRect.left + faceRect.width * 0.7, faceRect.top + faceRect.height * 0.7), radius + 0.5, highlightPaint);
+        break;
+      case 3:
+        canvas.drawCircle(Offset(faceRect.left + faceRect.width * 0.25, faceRect.top + faceRect.height * 0.25), radius + 0.5, highlightPaint);
+        canvas.drawCircle(center, radius + 0.5, highlightPaint);
+        canvas.drawCircle(Offset(faceRect.left + faceRect.width * 0.75, faceRect.top + faceRect.height * 0.75), radius + 0.5, highlightPaint);
+        break;
+      case 4:
+        canvas.drawCircle(Offset(faceRect.left + faceRect.width * 0.3, faceRect.top + faceRect.height * 0.3), radius + 0.5, highlightPaint);
+        canvas.drawCircle(Offset(faceRect.left + faceRect.width * 0.7, faceRect.top + faceRect.height * 0.3), radius + 0.5, highlightPaint);
+        canvas.drawCircle(Offset(faceRect.left + faceRect.width * 0.3, faceRect.top + faceRect.height * 0.7), radius + 0.5, highlightPaint);
+        canvas.drawCircle(Offset(faceRect.left + faceRect.width * 0.7, faceRect.top + faceRect.height * 0.7), radius + 0.5, highlightPaint);
+        break;
+      case 5:
+        canvas.drawCircle(Offset(faceRect.left + faceRect.width * 0.25, faceRect.top + faceRect.height * 0.25), radius + 0.5, highlightPaint);
+        canvas.drawCircle(Offset(faceRect.left + faceRect.width * 0.75, faceRect.top + faceRect.height * 0.25), radius + 0.5, highlightPaint);
+        canvas.drawCircle(center, radius + 0.5, highlightPaint);
+        canvas.drawCircle(Offset(faceRect.left + faceRect.width * 0.25, faceRect.top + faceRect.height * 0.75), radius + 0.5, highlightPaint);
+        canvas.drawCircle(Offset(faceRect.left + faceRect.width * 0.75, faceRect.top + faceRect.height * 0.75), radius + 0.5, highlightPaint);
+        break;
+      case 6:
+        canvas.drawCircle(Offset(faceRect.left + faceRect.width * 0.3, faceRect.top + faceRect.height * 0.25), radius + 0.5, highlightPaint);
+        canvas.drawCircle(Offset(faceRect.left + faceRect.width * 0.7, faceRect.top + faceRect.height * 0.25), radius + 0.5, highlightPaint);
+        canvas.drawCircle(Offset(faceRect.left + faceRect.width * 0.3, faceRect.top + faceRect.height * 0.5), radius + 0.5, highlightPaint);
+        canvas.drawCircle(Offset(faceRect.left + faceRect.width * 0.7, faceRect.top + faceRect.height * 0.5), radius + 0.5, highlightPaint);
+        canvas.drawCircle(Offset(faceRect.left + faceRect.width * 0.3, faceRect.top + faceRect.height * 0.75), radius + 0.5, highlightPaint);
+        canvas.drawCircle(Offset(faceRect.left + faceRect.width * 0.7, faceRect.top + faceRect.height * 0.75), radius + 0.5, highlightPaint);
+        break;
+    }
+  }
+
+  void _drawSparkles(Canvas canvas, Rect rect, double sparkleIntensity, double glowIntensity) {
+    // 創建閃亮星星效果
+    final sparklePositions = [
+      Offset(rect.width * 0.15, rect.height * 0.2),
+      Offset(rect.width * 0.85, rect.height * 0.3),
+      Offset(rect.width * 0.2, rect.height * 0.8),
+      Offset(rect.width * 0.75, rect.height * 0.15),
+      Offset(rect.width * 0.9, rect.height * 0.7),
+      Offset(rect.width * 0.1, rect.height * 0.6),
+    ];
+
+    for (int i = 0; i < sparklePositions.length; i++) {
+      // 每個星星有不同的閃爍時機
+      final phase = (sparkleIntensity + (i * 0.3)) % 1.0;
+      final sparkleAlpha = (math.sin(phase * math.pi * 2) * 0.5 + 0.5) * 0.8;
+      
+      if (sparkleAlpha > 0.2) {
+        _drawSingleSparkle(canvas, sparklePositions[i], sparkleAlpha, glowIntensity);
+      }
+    }
+
+    // 添加隨機閃爍的小星星
+    _drawRandomSparkles(canvas, rect, sparkleIntensity, glowIntensity);
+  }
+
+  void _drawSingleSparkle(Canvas canvas, Offset position, double alpha, double glowIntensity) {
+    final sparklePaint = Paint()
+      ..color = Colors.white.withValues(alpha: alpha * (0.8 + glowIntensity * 0.2))
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+
+    final size = 3.0 + (alpha * 2.0);
+    
+    // 繪製十字形星星
+    canvas.drawLine(
+      Offset(position.dx - size, position.dy),
+      Offset(position.dx + size, position.dy),
+      sparklePaint,
+    );
+    canvas.drawLine(
+      Offset(position.dx, position.dy - size),
+      Offset(position.dx, position.dy + size),
+      sparklePaint,
+    );
+    
+    // 添加對角線讓星星更亮
+    final smallSize = size * 0.6;
+    canvas.drawLine(
+      Offset(position.dx - smallSize, position.dy - smallSize),
+      Offset(position.dx + smallSize, position.dy + smallSize),
+      sparklePaint,
+    );
+    canvas.drawLine(
+      Offset(position.dx - smallSize, position.dy + smallSize),
+      Offset(position.dx + smallSize, position.dy - smallSize),
+      sparklePaint,
+    );
+  }
+
+  void _drawRandomSparkles(Canvas canvas, Rect rect, double sparkleIntensity, double glowIntensity) {
+    // 添加一些隨機位置的小閃光
+    final random = math.Random(42); // 使用固定種子保持一致性
+    
+    for (int i = 0; i < 4; i++) {
+      final x = rect.width * (0.1 + random.nextDouble() * 0.8);
+      final y = rect.height * (0.1 + random.nextDouble() * 0.8);
+      
+      // 每個小閃光有不同的閃爍頻率
+      final phase = (sparkleIntensity * (2.0 + i * 0.5)) % 1.0;
+      final alpha = (math.sin(phase * math.pi * 4) * 0.5 + 0.5) * 0.4;
+      
+      if (alpha > 0.1) {
+        final sparklePoint = Paint()
+          ..color = Colors.white.withValues(alpha: alpha * (0.6 + glowIntensity * 0.3))
+          ..style = PaintingStyle.fill;
+        
+        canvas.drawCircle(Offset(x, y), 1.0 + alpha, sparklePoint);
+      }
+    }
   }
 
   void _drawDotsPatternWithGradient(Canvas canvas, Rect faceRect, double radius) {
@@ -1093,6 +1259,8 @@ class Dice3DPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
     return oldDelegate is Dice3DPainter && 
-           (oldDelegate.dots != dots || oldDelegate.glowIntensity != glowIntensity);
+           (oldDelegate.dots != dots || 
+            oldDelegate.glowIntensity != glowIntensity ||
+            oldDelegate.sparkleIntensity != sparkleIntensity);
   }
 }

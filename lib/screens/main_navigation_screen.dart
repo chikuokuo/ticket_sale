@@ -68,10 +68,10 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
               participantCount: totalParticipants,
               // Uses default onTap behavior to show MegaJackpotDialog
             ),
-           // Italy Trip Dice - 只在票券和套票頁面顯示，放在左下角避免與 Jackpot 按鈕重疊
+           // Italy Trip Dice - 只在票券和套票頁面顯示，放在右下角 Jackpot 按鈕上方
            if (_selectedIndex == 0 || _selectedIndex == 1) 
              ItalyTripDice(
-               alignment: Alignment.bottomLeft,
+               alignment: Alignment.bottomRight,
                onPick: (ItalyTrip trip) {
                  // Optional: Add any custom logic when trip is selected
                  debugPrint('Selected Italy trip: ${trip.nameEn}');
