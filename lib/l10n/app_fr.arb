@@ -168,5 +168,14 @@
   "rateApp": "Évaluer l'app",
   "thankYouForRating": "Merci d'avoir évalué notre app!",
   "appDescription": "Votre compagnon de voyage ultime pour réserver des billets et découvrir des destinations incroyables à travers l'Europe.",
-  "ok": "OK"
+  "ok": "OK",
+  
+  "digging": "Fouille...",
+  "accelerate": "Accélérer",
+  "treasureFound": "Trésor Trouvé!",
+  "digCancelled": "Fouille Annulée",
+  
+  "treasureFoundAt": "Trésor Trouvé à {treasureName}!",
+  "treasureEmailSent": "Nous avons envoyé '{treasureName}' à votre email {userEmail}. Veuillez vérifier dans les 24 heures.",
+  "gotIt": "Compris"
 }

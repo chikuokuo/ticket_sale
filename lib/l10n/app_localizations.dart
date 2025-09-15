@@ -496,7 +496,7 @@ abstract class AppLocalizations {
   /// **'🗺️ Explore New Treasure Map'**
   String get exploreNewTreasureMap;
 
-  /// Treasure found message
+  /// Treasure found success message
   ///
   /// In en, this message translates to:
   /// **'Treasure Found!'**
@@ -1095,6 +1095,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'OK'**
   String get ok;
+
+  /// Digging progress overlay title
+  ///
+  /// In en, this message translates to:
+  /// **'Digging...'**
+  String get digging;
+
+  /// Accelerate digging button text
+  ///
+  /// In en, this message translates to:
+  /// **'Accelerate'**
+  String get accelerate;
+
+  /// Dig cancelled message
+  ///
+  /// In en, this message translates to:
+  /// **'Dig Cancelled'**
+  String get digCancelled;
+
+  /// Treasure found dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Treasure Found at {treasureName}!'**
+  String treasureFoundAt(String treasureName);
+
+  /// Treasure email notification message
+  ///
+  /// In en, this message translates to:
+  /// **'We have sent \'{treasureName}\' to your email {userEmail}. Please check within 24 hours.'**
+  String treasureEmailSent(String treasureName, String userEmail);
+
+  /// Got it button text
+  ///
+  /// In en, this message translates to:
+  /// **'Got It'**
+  String get gotIt;
 }
 
 class _AppLocalizationsDelegate

@@ -205,7 +205,7 @@ class AppLocalizationsFr extends AppLocalizations {
       '🗺️ Explorer une Nouvelle Carte au Trésor';
 
   @override
-  String get treasureFound => 'Trésor Trouvé !';
+  String get treasureFound => 'Trésor Trouvé!';
 
   @override
   String get congratulations => 'Félicitations !';
@@ -526,4 +526,26 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get ok => 'OK';
+
+  @override
+  String get digging => 'Fouille...';
+
+  @override
+  String get accelerate => 'Accélérer';
+
+  @override
+  String get digCancelled => 'Fouille Annulée';
+
+  @override
+  String treasureFoundAt(String treasureName) {
+    return 'Trésor Trouvé à $treasureName!';
+  }
+
+  @override
+  String treasureEmailSent(String treasureName, String userEmail) {
+    return 'Nous avons envoyé \'$treasureName\' à votre email $userEmail. Veuillez vérifier dans les 24 heures.';
+  }
+
+  @override
+  String get gotIt => 'Compris';
 }

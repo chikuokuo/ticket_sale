@@ -168,5 +168,14 @@
   "rateApp": "App bewerten",
   "thankYouForRating": "Vielen Dank für Ihre Bewertung!",
   "appDescription": "Ihr ultimativer Reisebegleiter für Ticketbuchungen und die Entdeckung erstaunlicher Reiseziele in Europa.",
-  "ok": "OK"
+  "ok": "OK",
+  
+  "digging": "Graben...",
+  "accelerate": "Beschleunigen",
+  "treasureFound": "Schatz Gefunden!",
+  "digCancelled": "Graben Abgebrochen",
+  
+  "treasureFoundAt": "Schatz bei {treasureName} gefunden!",
+  "treasureEmailSent": "Wir haben '{treasureName}' an Ihre E-Mail {userEmail} gesendet. Bitte prüfen Sie innerhalb von 24 Stunden.",
+  "gotIt": "Verstanden"
 }

@@ -525,4 +525,26 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get ok => 'OK';
+
+  @override
+  String get digging => 'Graben...';
+
+  @override
+  String get accelerate => 'Beschleunigen';
+
+  @override
+  String get digCancelled => 'Graben Abgebrochen';
+
+  @override
+  String treasureFoundAt(String treasureName) {
+    return 'Schatz bei $treasureName gefunden!';
+  }
+
+  @override
+  String treasureEmailSent(String treasureName, String userEmail) {
+    return 'Wir haben \'$treasureName\' an Ihre E-Mail $userEmail gesendet. Bitte prüfen Sie innerhalb von 24 Stunden.';
+  }
+
+  @override
+  String get gotIt => 'Verstanden';
 }

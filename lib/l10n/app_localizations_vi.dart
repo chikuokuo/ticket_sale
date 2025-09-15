@@ -523,4 +523,26 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get ok => 'OK';
+
+  @override
+  String get digging => 'Đang đào...';
+
+  @override
+  String get accelerate => 'Tăng tốc';
+
+  @override
+  String get digCancelled => 'Hủy đào';
+
+  @override
+  String treasureFoundAt(String treasureName) {
+    return 'Tìm thấy kho báu tại $treasureName!';
+  }
+
+  @override
+  String treasureEmailSent(String treasureName, String userEmail) {
+    return 'Chúng tôi đã gửi \'$treasureName\' đến email $userEmail của bạn. Vui lòng kiểm tra trong vòng 24 giờ.';
+  }
+
+  @override
+  String get gotIt => 'Hiểu rồi';
 }

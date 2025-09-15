@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../l10n/app_localizations.dart';
+import '../widgets/dig_progress_overlay.dart';
+import '../widgets/treasure_found_dialog.dart';
 
 class TreasureHuntScreen extends StatefulWidget {
   const TreasureHuntScreen({super.key});
@@ -32,10 +34,108 @@ class _TreasureHuntScreenState extends State<TreasureHuntScreen>
     super.dispose();
   }
 
-  void _onTreasurePressed(String treasureId) {
+  void _onTreasurePressed(String treasureId) async {
     HapticFeedback.lightImpact();
-    // Handle treasure tap
-    print('Treasure tapped: $treasureId');
+    print('Starting dig for treasure: $treasureId');
+    
+    // 顯示挖掘進度條覆蓋層
+    final result = await showDigOverlay(
+      context,
+      treasureId: treasureId,
+      duration: const Duration(seconds: 4),
+    );
+    
+    print('Dig overlay result: $result');
+    
+    if (result != null && result.result == DigResult.success) {
+      print('Dig was successful, showing treasure dialog...');
+      
+      // 檢查 widget 是否仍然掛載
+      if (!mounted) {
+        print('Widget not mounted, returning');
+        return;
+      }
+      
+      // 根據寶藏ID獲取寶藏資訊
+      final treasureInfo = _getTreasureInfo(result.treasureId);
+      print('Treasure info: $treasureInfo');
+      
+      // 顯示寶藏發現對話框
+      await showTreasureFoundDialog(
+        context,
+        emoji: treasureInfo['emoji'] as String,
+        title: treasureInfo['title'] as String,
+        category: treasureInfo['category'] as String,
+        location: treasureInfo['location'] as String,
+        userEmail: 'user@example.com', // 這裡可以從用戶設定或認證狀態獲取
+      );
+      
+      print('Treasure found: ${result.treasureId}');
+      // TODO: 更新統計數據、播放音效等
+    } else {
+      print('Dig was not successful or result is null');
+    }
+  }
+
+  Map<String, dynamic> _getTreasureInfo(String treasureId) {
+    // 根據寶藏ID返回對應的寶藏資訊（使用原本地圖上的 emoji）
+    final treasureMap = {
+      'paris_treasure': {
+        'emoji': '\u{1F3C6}', // 🏆
+        'title': '黃金聖杯',
+        'category': '聖物',
+        'location': 'Paris, France',
+      },
+      'london_treasure': {
+        'emoji': '\u{1F451}', // 👑
+        'title': '皇室王冠',
+        'category': '王室寶物',
+        'location': 'London, England',
+      },
+      'rome_treasure': {
+        'emoji': '\u{1F3C6}', // 🏆
+        'title': '古羅馬金幣',
+        'category': '古代貨幣',
+        'location': 'Rome, Italy',
+      },
+      'barcelona_treasure': {
+        'emoji': '\u{1F4DC}', // 📜
+        'title': '古代卷軸',
+        'category': '歷史文獻',
+        'location': 'Barcelona, Spain',
+      },
+      'amsterdam_treasure': {
+        'emoji': '\u{1F4B0}', // 💰
+        'title': '海盜金庫',
+        'category': '海洋寶藏',
+        'location': 'Amsterdam, Netherlands',
+      },
+      'berlin_treasure': {
+        'emoji': '\u{1F48E}', // 💎
+        'title': '普魯士鑽石',
+        'category': '珍貴寶石',
+        'location': 'Berlin, Germany',
+      },
+      'zurich_treasure': {
+        'emoji': '\u{23F3}', // ⏳
+        'title': '時間聖物',
+        'category': '時間聖物',
+        'location': 'Zurich, Switzerland',
+      },
+      'athens_treasure': {
+        'emoji': '\u{1F5DD}\u{FE0F}', // 🗝️
+        'title': '智慧之鑰',
+        'category': '古希臘神器',
+        'location': 'Athens, Greece',
+      },
+    };
+
+    return treasureMap[treasureId] ?? {
+      'emoji': '\u{1F381}', // 🎁
+      'title': '神秘寶藏',
+      'category': '未知寶物',
+      'location': 'Unknown Location',
+    };
   }
 
   void _onExplorePressed() {

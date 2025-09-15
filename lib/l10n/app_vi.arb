@@ -168,5 +168,14 @@
   "rateApp": "Đánh giá ứng dụng",
   "thankYouForRating": "Cảm ơn bạn đã đánh giá ứng dụng của chúng tôi!",
   "appDescription": "Người bạn đồng hành du lịch tối ưu của bạn để đặt vé và khám phá những điểm đến tuyệt vời trên khắp châu Âu.",
-  "ok": "OK"
+  "ok": "OK",
+  
+  "digging": "Đang đào...",
+  "accelerate": "Tăng tốc",
+  "treasureFound": "Tìm thấy kho báu!",
+  "digCancelled": "Hủy đào",
+  
+  "treasureFoundAt": "Tìm thấy kho báu tại {treasureName}!",
+  "treasureEmailSent": "Chúng tôi đã gửi '{treasureName}' đến email {userEmail} của bạn. Vui lòng kiểm tra trong vòng 24 giờ.",
+  "gotIt": "Hiểu rồi"
 }

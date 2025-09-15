@@ -516,4 +516,26 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get ok => '확인';
+
+  @override
+  String get digging => '발굴중...';
+
+  @override
+  String get accelerate => '가속';
+
+  @override
+  String get digCancelled => '발굴 취소';
+
+  @override
+  String treasureFoundAt(String treasureName) {
+    return '$treasureName에서 보물 발견!';
+  }
+
+  @override
+  String treasureEmailSent(String treasureName, String userEmail) {
+    return '\'$treasureName\'을(를) 귀하의 이메일 $userEmail로 보냈습니다. 24시간 내에 확인해 주세요.';
+  }
+
+  @override
+  String get gotIt => '알겠습니다';
 }

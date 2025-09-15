@@ -786,5 +786,56 @@
   "ok": "OK",
   "@ok": {
     "description": "OK button text"
+  },
+  
+  "digging": "Digging...",
+  "@digging": {
+    "description": "Digging progress overlay title"
+  },
+  
+  "accelerate": "Accelerate",
+  "@accelerate": {
+    "description": "Accelerate digging button text"
+  },
+  
+  "treasureFound": "Treasure Found!",
+  "@treasureFound": {
+    "description": "Treasure found success message"
+  },
+  
+  "digCancelled": "Dig Cancelled",
+  "@digCancelled": {
+    "description": "Dig cancelled message"
+  },
+  
+  "treasureFoundAt": "Treasure Found at {treasureName}!",
+  "@treasureFoundAt": {
+    "description": "Treasure found dialog title",
+    "placeholders": {
+      "treasureName": {
+        "type": "String",
+        "example": "Ancient Hourglass"
+      }
+    }
+  },
+  
+  "treasureEmailSent": "We have sent '{treasureName}' to your email {userEmail}. Please check within 24 hours.",
+  "@treasureEmailSent": {
+    "description": "Treasure email notification message",
+    "placeholders": {
+      "treasureName": {
+        "type": "String",
+        "example": "Ancient Hourglass"
+      },
+      "userEmail": {
+        "type": "String",
+        "example": "user@example.com"
+      }
+    }
+  },
+  
+  "gotIt": "Got It",
+  "@gotIt": {
+    "description": "Got it button text"
   }
 }

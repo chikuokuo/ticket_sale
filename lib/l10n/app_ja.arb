@@ -168,5 +168,14 @@
   "rateApp": "アプリを評価",
   "thankYouForRating": "評価していただきありがとうございます！",
   "appDescription": "ヨーロッパ全域でチケットを予約し、素晴らしい目的地を発見するための絶対的な旅行コンパニオンです。",
-  "ok": "OK"
+  "ok": "OK",
+  
+  "digging": "発掘中...",
+  "accelerate": "加速",
+  "treasureFound": "宝物発見！",
+  "digCancelled": "発掘中止",
+  
+  "treasureFoundAt": "{treasureName}で宝物発見！",
+  "treasureEmailSent": "'{treasureName}'をあなたのメール{userEmail}に送信しました。24時間以内にご確認ください。",
+  "gotIt": "了解"
 }

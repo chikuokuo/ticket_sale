@@ -517,4 +517,26 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get ok => 'OK';
+
+  @override
+  String get digging => '発掘中...';
+
+  @override
+  String get accelerate => '加速';
+
+  @override
+  String get digCancelled => '発掘中止';
+
+  @override
+  String treasureFoundAt(String treasureName) {
+    return '$treasureNameで宝物発見！';
+  }
+
+  @override
+  String treasureEmailSent(String treasureName, String userEmail) {
+    return '\'$treasureName\'をあなたのメール$userEmailに送信しました。24時間以内にご確認ください。';
+  }
+
+  @override
+  String get gotIt => '了解';
 }
