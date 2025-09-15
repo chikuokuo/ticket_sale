@@ -62,14 +62,14 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
             index: _selectedIndex,
             children: _pages,
           ),
-          // Jackpot floating button - 在寶藏獵人頁面和設定頁面不顯示
-          if (_selectedIndex != 3 && _selectedIndex != 4) // 3 是 TreasureHuntScreen，4 是 SettingsScreen 的索引
+          // Jackpot floating button - 只在首頁（票券頁面）顯示
+          if (_selectedIndex == 0) // 只在首頁（TicketsHomeScreen）顯示
             JackpotFloatingButton(
               participantCount: totalParticipants,
               // Uses default onTap behavior to show MegaJackpotDialog
             ),
-           // Italy Trip Dice - 只在票券和套票頁面顯示，放在右下角 Jackpot 按鈕上方
-           if (_selectedIndex == 0 || _selectedIndex == 1) 
+           // Italy Trip Dice - 只在首頁（票券頁面）顯示，放在右下角 Jackpot 按鈕上方
+           if (_selectedIndex == 0) 
              ItalyTripDice(
                alignment: Alignment.bottomRight,
                onPick: (ItalyTrip trip) {

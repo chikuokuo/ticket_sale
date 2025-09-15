@@ -1384,22 +1384,22 @@ class Dice3DPainter extends CustomPainter {
     final shadowPath = Path();
     shadowPath.moveTo(start.dx + 1, start.dy + 1);
     
-    final midX = (start.dx + end.dx) / 2;
-    final midY = (start.dy + end.dy) / 2;
-    final curveOffset = math.sin(intensity * math.pi * 4 + index) * 15;
+    final shadowMidX = (start.dx + end.dx) / 2;
+    final shadowMidY = (start.dy + end.dy) / 2;
+    final shadowCurveOffset = math.sin(intensity * math.pi * 4 + index) * 15;
     
-    final controlPoint1 = Offset(
-      midX + curveOffset + 1, 
-      midY - curveOffset + 1
+    final shadowControlPoint1 = Offset(
+      shadowMidX + shadowCurveOffset + 1, 
+      shadowMidY - shadowCurveOffset + 1
     );
-    final controlPoint2 = Offset(
-      midX - curveOffset + 1, 
-      midY + curveOffset + 1
+    final shadowControlPoint2 = Offset(
+      shadowMidX - shadowCurveOffset + 1, 
+      shadowMidY + shadowCurveOffset + 1
     );
     
     shadowPath.cubicTo(
-      controlPoint1.dx, controlPoint1.dy,
-      controlPoint2.dx, controlPoint2.dy,
+      shadowControlPoint1.dx, shadowControlPoint1.dy,
+      shadowControlPoint2.dx, shadowControlPoint2.dy,
       end.dx + 1, end.dy + 1
     );
     
