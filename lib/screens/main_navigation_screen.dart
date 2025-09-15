@@ -9,7 +9,9 @@ import '../screens/treasure_hunt_screen.dart';
 import '../screens/settings_screen.dart';
 import '../theme/colors.dart';
 import '../widgets/jackpot_floating_button.dart';
+import '../widgets/italy_trip_dice.dart';
 import '../providers/ticket_order_provider.dart';
+import '../models/italy_trip.dart';
 
 class MainNavigationScreen extends ConsumerStatefulWidget {
   final int initialTabIndex;
@@ -66,6 +68,15 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
               participantCount: totalParticipants,
               // Uses default onTap behavior to show MegaJackpotDialog
             ),
+           // Italy Trip Dice - 只在票券和套票頁面顯示，放在左下角避免與 Jackpot 按鈕重疊
+           if (_selectedIndex == 0 || _selectedIndex == 1) 
+             ItalyTripDice(
+               alignment: Alignment.bottomLeft,
+               onPick: (ItalyTrip trip) {
+                 // Optional: Add any custom logic when trip is selected
+                 debugPrint('Selected Italy trip: ${trip.nameEn}');
+               },
+             ),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
