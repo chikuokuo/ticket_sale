@@ -19,6 +19,7 @@ enum TicketType {
 // 1. Defines the state of the ticket order form
 @immutable
 class TicketOrderState {
+  final GlobalKey<FormState> formKey;
   final Map<TicketType, TicketData> ticketData;
   final TicketType ticketType;
   final DateTime? selectedDate;
@@ -31,6 +32,7 @@ class TicketOrderState {
   final PaymentMethod selectedPaymentMethod;
 
   const TicketOrderState({
+    required this.formKey,
     required this.ticketData,
     required this.ticketType,
     this.selectedDate,
@@ -58,6 +60,7 @@ class TicketOrderState {
     bool clearPaymentError = false,
   }) {
     return TicketOrderState(
+      formKey: formKey, // formKey is not copied, it's persistent
       ticketData: ticketData ?? this.ticketData,
       ticketType: ticketType ?? this.ticketType,
       selectedDate: clearDate ? null : (selectedDate ?? this.selectedDate),
@@ -87,6 +90,7 @@ class TicketOrderNotifier extends StateNotifier<TicketOrderState> {
   TicketOrderNotifier(this.ticketType)
       : super(
           TicketOrderState(
+            formKey: GlobalKey<FormState>(),
             ticketData: {
               TicketType.neuschwanstein: TicketData(),
               TicketType.museum: TicketData(),
