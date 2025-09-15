@@ -23,11 +23,13 @@ class _ItalyTripDiceState extends State<ItalyTripDice>
   late AnimationController _floatController;
   late AnimationController _glowController;
   late AnimationController _sparkleController;
+  late AnimationController _confettiController;
   late Animation<double> _floatAnimation;
   late Animation<double> _rotationAnimation;
   late Animation<double> _shadowAnimation;
   late Animation<double> _glowAnimation;
   late Animation<double> _sparkleAnimation;
+  late Animation<double> _confettiAnimation;
 
   bool _isRolling = false; // 改為數字切換狀態
   int _currentDots = 1;
@@ -101,6 +103,20 @@ class _ItalyTripDiceState extends State<ItalyTripDice>
       curve: Curves.easeInOut,
     ));
 
+    // Confetti animation (2.5s cycle for ribbons)
+    _confettiController = AnimationController(
+      duration: const Duration(milliseconds: 2500),
+      vsync: this,
+    );
+
+    _confettiAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _confettiController,
+      curve: Curves.easeInOut,
+    ));
+
     // 移除搖擺動畫，改為簡單的數字切換
   }
 
@@ -108,6 +124,7 @@ class _ItalyTripDiceState extends State<ItalyTripDice>
     _floatController.repeat(reverse: true);
     _glowController.repeat(reverse: true);
     _sparkleController.repeat();
+    _confettiController.repeat();
   }
 
   Future<void> _onDicePressed() async {
@@ -158,7 +175,7 @@ class _ItalyTripDiceState extends State<ItalyTripDice>
 
   Widget _buildDice() {
     return AnimatedBuilder(
-      animation: Listenable.merge([_glowController, _sparkleController]),
+      animation: Listenable.merge([_glowController, _sparkleController, _confettiController]),
       builder: (context, child) {
         return SizedBox(
           width: 64, // 從 84 縮小到 64
@@ -168,6 +185,7 @@ class _ItalyTripDiceState extends State<ItalyTripDice>
               dots: _currentDots,
               glowIntensity: _glowAnimation.value,
               sparkleIntensity: _sparkleAnimation.value,
+              confettiIntensity: _confettiAnimation.value,
             ),
             size: const Size(64, 64), // 從 84 縮小到 64
           ),
@@ -202,7 +220,7 @@ class _ItalyTripDiceState extends State<ItalyTripDice>
         },
         onTap: _onDicePressed,
         child: AnimatedBuilder(
-          animation: Listenable.merge([_floatController, _glowController, _sparkleController]),
+          animation: Listenable.merge([_floatController, _glowController, _sparkleController, _confettiController]),
           builder: (context, child) {
             final floatOffset = _isDragging ? 0.0 : _floatAnimation.value;
             final rotation = _isDragging ? 0.0 : _rotationAnimation.value;
@@ -259,6 +277,7 @@ class _ItalyTripDiceState extends State<ItalyTripDice>
     _floatController.dispose();
     _glowController.dispose();
     _sparkleController.dispose();
+    _confettiController.dispose();
     super.dispose();
   }
 }
@@ -267,11 +286,13 @@ class Dice3DPainter extends CustomPainter {
   final int dots;
   final double glowIntensity;
   final double sparkleIntensity;
+  final double confettiIntensity;
 
   Dice3DPainter({
     required this.dots,
     required this.glowIntensity,
     required this.sparkleIntensity,
+    required this.confettiIntensity,
   });
 
   @override
@@ -284,6 +305,10 @@ class Dice3DPainter extends CustomPainter {
     // 確保動畫值在有效範圍內
     final safeGlowIntensity = glowIntensity.clamp(0.0, 1.0);
     final safeSparkleIntensity = sparkleIntensity.clamp(0.0, 1.0);
+    final safeConfettiIntensity = confettiIntensity.clamp(0.0, 1.0);
+    
+    // 繪製彩帶效果（最先繪製，在背景）
+    _drawConfettiRibbons(canvas, rect, safeConfettiIntensity, safeGlowIntensity);
     
     // 繪製光暈效果（先繪製，避免覆蓋）
     _drawGlow(canvas, rect, safeGlowIntensity);
@@ -337,8 +362,8 @@ class Dice3DPainter extends CustomPainter {
           Colors.white.withValues(alpha: 0.3 + (safeGlowIntensity * 0.2)), // 高光中心
           Colors.white.withValues(alpha: 0.1 + (safeGlowIntensity * 0.1)), // 中間過渡
           Colors.transparent, // 邊緣透明
-        ],
-        stops: const [0.0, 0.5, 1.0],
+      ],
+      stops: const [0.0, 0.5, 1.0],
       ).createShader(mainFace.outerRect);
 
     canvas.drawRRect(
@@ -669,12 +694,12 @@ class Dice3DPainter extends CustomPainter {
   }
 
   void _drawGlow(Canvas canvas, Rect rect, double safeGlowIntensity) {
-    // 多層光暈效果，營造強烈的立體感和動態光源
+    // 多層白色光暈效果
     final glowPaint = Paint()..style = PaintingStyle.fill;
 
-    // 最外層光暈 - 減少範圍防止破版
+    // 最外層光暈 - 淡白色
     glowPaint
-      ..color = Color(0xFFFFD700).withValues(alpha: safeGlowIntensity * 0.25)
+      ..color = Colors.white.withValues(alpha: safeGlowIntensity * 0.15)
       ..maskFilter = MaskFilter.blur(BlurStyle.normal, 8 + (safeGlowIntensity * 4));
     canvas.drawRRect(
       RRect.fromRectAndRadius(
@@ -684,9 +709,9 @@ class Dice3DPainter extends CustomPainter {
       glowPaint,
     );
 
-    // 外層光暈 - 金色，控制範圍
+    // 外層光暈 - 中等白色
     glowPaint
-      ..color = Color(0xFFFFD700).withValues(alpha: safeGlowIntensity * 0.5)
+      ..color = Colors.white.withValues(alpha: safeGlowIntensity * 0.25)
       ..maskFilter = MaskFilter.blur(BlurStyle.normal, 6 + (safeGlowIntensity * 3));
     canvas.drawRRect(
       RRect.fromRectAndRadius(
@@ -696,9 +721,9 @@ class Dice3DPainter extends CustomPainter {
       glowPaint,
     );
 
-    // 中層光暈 - 橙金色，適中範圍
+    // 中層光暈 - 較亮白色
     glowPaint
-      ..color = Color(0xFFFF8C00).withValues(alpha: safeGlowIntensity * 0.4)
+      ..color = Colors.white.withValues(alpha: safeGlowIntensity * 0.35)
       ..maskFilter = MaskFilter.blur(BlurStyle.normal, 4 + (safeGlowIntensity * 2));
     canvas.drawRRect(
       RRect.fromRectAndRadius(
@@ -708,9 +733,9 @@ class Dice3DPainter extends CustomPainter {
       glowPaint,
     );
 
-    // 內層光暈 - 明亮白金色，小範圍
+    // 內層光暈 - 明亮白色
     glowPaint
-      ..color = Color(0xFFFFFACD).withValues(alpha: safeGlowIntensity * 0.6)
+      ..color = Colors.white.withValues(alpha: safeGlowIntensity * 0.5)
       ..maskFilter = MaskFilter.blur(BlurStyle.normal, 3 + (safeGlowIntensity * 1.5));
     canvas.drawRRect(
       RRect.fromRectAndRadius(
@@ -720,9 +745,9 @@ class Dice3DPainter extends CustomPainter {
       glowPaint,
     );
 
-    // 最內層光暈 - 純白高光，最小範圍
+    // 最內層光暈 - 最亮白色
     glowPaint
-      ..color = Colors.white.withValues(alpha: safeGlowIntensity * 0.3)
+      ..color = Colors.white.withValues(alpha: safeGlowIntensity * 0.7)
       ..maskFilter = MaskFilter.blur(BlurStyle.normal, 2 + safeGlowIntensity);
     canvas.drawRRect(
       RRect.fromRectAndRadius(
@@ -734,7 +759,7 @@ class Dice3DPainter extends CustomPainter {
 
     // 邊緣銳化光暈 - 最細邊緣高光
     glowPaint
-      ..color = Colors.white.withValues(alpha: safeGlowIntensity * 0.6)
+      ..color = Colors.white.withValues(alpha: safeGlowIntensity * 0.8)
       ..maskFilter = MaskFilter.blur(BlurStyle.normal, 1 + (safeGlowIntensity * 0.3));
     canvas.drawRRect(
       RRect.fromRectAndRadius(
@@ -1256,11 +1281,193 @@ class Dice3DPainter extends CustomPainter {
     }
   }
 
+  void _drawConfettiRibbons(Canvas canvas, Rect rect, double confettiIntensity, double glowIntensity) {
+    // 創建彩色彩帶效果，圍繞骰子飄舞 - 使用更鮮豔的顏色
+    final ribbonColors = [
+      const Color(0xFFFF0040), // 鮮紅色
+      const Color(0xFF0080FF), // 亮藍色
+      const Color(0xFF00FF40), // 亮綠色
+      const Color(0xFFFFD700), // 金黃色
+      const Color(0xFF8000FF), // 紫色
+      const Color(0xFFFF8000), // 橙色
+      const Color(0xFFFF0080), // 粉紅色
+      const Color(0xFF00FFFF), // 青色
+    ];
+
+    // 定義彩帶的基本位置和參數
+    final centerX = rect.width / 2;
+    final centerY = rect.height / 2;
+    final radius = rect.width * 0.8; // 彩帶環繞半徑
+
+    for (int i = 0; i < ribbonColors.length; i++) {
+      // 每條彩帶有不同的角度和動畫偏移
+      final baseAngle = (i * math.pi * 2 / ribbonColors.length);
+      final animatedAngle = baseAngle + (confettiIntensity * math.pi * 4); // 旋轉動畫
+      
+      // 彩帶的波動效果
+      final waveOffset = math.sin(confettiIntensity * math.pi * 6 + i) * 8;
+      final currentRadius = radius + waveOffset;
+      
+      // 計算彩帶位置
+      final startX = centerX + math.cos(animatedAngle) * currentRadius * 0.6;
+      final startY = centerY + math.sin(animatedAngle) * currentRadius * 0.6;
+      final endX = centerX + math.cos(animatedAngle) * currentRadius;
+      final endY = centerY + math.sin(animatedAngle) * currentRadius;
+      
+      // 彩帶透明度動畫 - 增加基礎透明度和變化範圍
+      final alpha = (0.6 + math.sin(confettiIntensity * math.pi * 3 + i) * 0.3).clamp(0.4, 1.0);
+      
+      _drawSingleRibbon(canvas, 
+        Offset(startX, startY), 
+        Offset(endX, endY), 
+        ribbonColors[i].withValues(alpha: alpha * (0.9 + glowIntensity * 0.1)),
+        confettiIntensity,
+        i
+      );
+    }
+
+    // 添加一些較小的彩帶片段
+    _drawSmallConfettiPieces(canvas, rect, confettiIntensity, glowIntensity);
+  }
+
+  void _drawSingleRibbon(Canvas canvas, Offset start, Offset end, Color color, double intensity, int index) {
+    final ribbonPaint = Paint()
+      ..color = color
+      ..strokeWidth = 5.0 + (intensity * 3.0)  // 增加基礎粗細
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+
+    // 創建彎曲的彩帶路徑
+    final path = Path();
+    path.moveTo(start.dx, start.dy);
+    
+    // 添加曲線讓彩帶看起來更自然
+    final midX = (start.dx + end.dx) / 2;
+    final midY = (start.dy + end.dy) / 2;
+    final curveOffset = math.sin(intensity * math.pi * 4 + index) * 15;
+    
+    final controlPoint1 = Offset(
+      midX + curveOffset, 
+      midY - curveOffset
+    );
+    final controlPoint2 = Offset(
+      midX - curveOffset, 
+      midY + curveOffset
+    );
+    
+    path.cubicTo(
+      controlPoint1.dx, controlPoint1.dy,
+      controlPoint2.dx, controlPoint2.dy,
+      end.dx, end.dy
+    );
+    
+    canvas.drawPath(path, ribbonPaint);
+
+    // 添加彩帶高光效果 - 增強高光
+    final highlightPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.7 * intensity)
+      ..strokeWidth = 2.0 + intensity
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+    
+    canvas.drawPath(path, highlightPaint);
+
+    // 添加彩帶陰影效果，增加深度
+    final shadowPaint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.3 * intensity)
+      ..strokeWidth = ribbonPaint.strokeWidth + 1.0
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
+    
+    // 稍微偏移繪製陰影
+    final shadowPath = Path();
+    shadowPath.moveTo(start.dx + 1, start.dy + 1);
+    
+    final midX = (start.dx + end.dx) / 2;
+    final midY = (start.dy + end.dy) / 2;
+    final curveOffset = math.sin(intensity * math.pi * 4 + index) * 15;
+    
+    final controlPoint1 = Offset(
+      midX + curveOffset + 1, 
+      midY - curveOffset + 1
+    );
+    final controlPoint2 = Offset(
+      midX - curveOffset + 1, 
+      midY + curveOffset + 1
+    );
+    
+    shadowPath.cubicTo(
+      controlPoint1.dx, controlPoint1.dy,
+      controlPoint2.dx, controlPoint2.dy,
+      end.dx + 1, end.dy + 1
+    );
+    
+    canvas.drawPath(shadowPath, shadowPaint);
+  }
+
+  void _drawSmallConfettiPieces(Canvas canvas, Rect rect, double intensity, double glowIntensity) {
+    final confettiColors = [
+      const Color(0xFFFF0040), // 鮮紅色
+      const Color(0xFF0080FF), // 亮藍色
+      const Color(0xFF00FF40), // 亮綠色
+      const Color(0xFFFFD700), // 金黃色
+      const Color(0xFF8000FF), // 紫色
+      const Color(0xFFFF8000), // 橙色
+    ];
+
+    final random = math.Random(123); // 固定種子保持一致性
+    
+    for (int i = 0; i < 12; i++) {
+      // 隨機位置，但圍繞骰子中心
+      final angle = random.nextDouble() * math.pi * 2;
+      final distance = (rect.width * 0.4) + (random.nextDouble() * rect.width * 0.3);
+      final animatedDistance = distance + (math.sin(intensity * math.pi * 3 + i) * 10);
+      
+      final x = rect.width / 2 + math.cos(angle + intensity * math.pi * 2) * animatedDistance;
+      final y = rect.height / 2 + math.sin(angle + intensity * math.pi * 2) * animatedDistance;
+      
+      // 彩色碎片的透明度動畫 - 增加透明度
+      final alpha = (math.sin(intensity * math.pi * 5 + i) * 0.4 + 0.6).clamp(0.3, 1.0);
+      
+      final confettiPaint = Paint()
+        ..color = confettiColors[i % confettiColors.length].withValues(alpha: alpha * (0.8 + glowIntensity * 0.2))
+        ..style = PaintingStyle.fill;
+      
+      // 繪製小矩形彩紙片 - 增加大小
+      final size = 3.0 + (intensity * 4.0);
+      final confettiRect = Rect.fromCenter(
+        center: Offset(x, y),
+        width: size,
+        height: size * 1.5,
+      );
+      
+      canvas.save();
+      canvas.translate(x, y);
+      canvas.rotate(intensity * math.pi * 4 + i);
+      canvas.translate(-x, -y);
+      
+      // 繪製彩紙片
+      canvas.drawRect(confettiRect, confettiPaint);
+      
+      // 添加彩紙片邊框讓它更明顯
+      final borderPaint = Paint()
+        ..color = Colors.white.withValues(alpha: 0.6 * alpha)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0.5;
+      
+      canvas.drawRect(confettiRect, borderPaint);
+      
+      canvas.restore();
+    }
+  }
+
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
     return oldDelegate is Dice3DPainter && 
            (oldDelegate.dots != dots || 
             oldDelegate.glowIntensity != glowIntensity ||
-            oldDelegate.sparkleIntensity != sparkleIntensity);
+            oldDelegate.sparkleIntensity != sparkleIntensity ||
+            oldDelegate.confettiIntensity != confettiIntensity);
   }
 }
