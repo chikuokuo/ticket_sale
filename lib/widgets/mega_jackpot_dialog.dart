@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
 class MegaJackpotDialog extends StatefulWidget {
-  final double jackpotAmount;
+  final int participantCount;
 
   const MegaJackpotDialog({
     super.key,
-    this.jackpotAmount = 9008646,
+    this.participantCount = 0,
   });
 
   @override
@@ -151,7 +151,11 @@ class _MegaJackpotDialogState extends State<MegaJackpotDialog>
                 ],
               ),
               child: Container(
-                width: 320,
+                constraints: const BoxConstraints(
+                  maxWidth: 320,
+                  minWidth: 280,
+                ),
+                width: MediaQuery.of(context).size.width * 0.85,
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(24),
@@ -177,41 +181,48 @@ class _MegaJackpotDialogState extends State<MegaJackpotDialog>
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.emoji_events,
-                              color: const Color(0xFFFFD700),
-                              size: 28,
-                              shadows: [
-                                Shadow(
-                                  color: const Color(0xFFFFD700).withOpacity(0.8),
-                                  blurRadius: 8,
-                                ),
-                              ],
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'MEGA JACKPOT',
-                              style: TextStyle(
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.emoji_events,
                                 color: const Color(0xFFFFD700),
-                                fontSize: 20,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 1.5,
+                                size: 28,
                                 shadows: [
                                   Shadow(
                                     color: const Color(0xFFFFD700).withOpacity(0.8),
                                     blurRadius: 8,
                                   ),
-                                  const Shadow(
-                                    color: Colors.black,
-                                    blurRadius: 2,
-                                    offset: Offset(1, 1),
-                                  ),
                                 ],
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Play the Game\nWin the Journey',
+                                  style: TextStyle(
+                                    color: const Color(0xFFFFD700),
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 1.2,
+                                    shadows: [
+                                      Shadow(
+                                        color: const Color(0xFFFFD700).withOpacity(0.8),
+                                        blurRadius: 8,
+                                      ),
+                                      const Shadow(
+                                        color: Colors.black,
+                                        blurRadius: 2,
+                                        offset: Offset(1, 1),
+                                      ),
+                                    ],
+                                  ),
+                                  maxLines: 2,
+                                  textAlign: TextAlign.center,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                         GestureDetector(
                           onTap: () => Navigator.of(context).pop(),
@@ -245,7 +256,7 @@ class _MegaJackpotDialogState extends State<MegaJackpotDialog>
                               offset: Offset(0, -60 * _flipAnimation.value),
                               child: Opacity(
                                 opacity: 1.0 - _flipAnimation.value,
-                                child: _buildAmountText(widget.jackpotAmount),
+                                child: _buildParticipantText(widget.participantCount),
                               ),
                             ),
                             // Next amount (slightly higher)
@@ -253,7 +264,7 @@ class _MegaJackpotDialogState extends State<MegaJackpotDialog>
                               offset: Offset(0, 60 - 60 * _flipAnimation.value),
                               child: Opacity(
                                 opacity: _flipAnimation.value,
-                                child: _buildAmountText(widget.jackpotAmount + 1000 + (math.Random().nextInt(999))),
+                                child: _buildParticipantText(widget.participantCount + 1 + (math.Random().nextInt(5))),
                               ),
                             ),
                           ],
@@ -268,7 +279,7 @@ class _MegaJackpotDialogState extends State<MegaJackpotDialog>
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'Jackpot Rising',
+                          'Surprises Loading',
                           style: TextStyle(
                             color: Colors.white70,
                             fontSize: 14,
@@ -336,7 +347,7 @@ class _MegaJackpotDialogState extends State<MegaJackpotDialog>
                           child: Container(
                             alignment: Alignment.center,
                             child: Text(
-                              'GET TICKETS NOW',
+                              'Join the Game Now',
                               style: TextStyle(
                                 color: Colors.black,
                                 fontSize: 18,
@@ -358,12 +369,15 @@ class _MegaJackpotDialogState extends State<MegaJackpotDialog>
                     
                     // Footer text
                     Text(
-                      'Spend €10 = 1 Entry Ticket',
+                      'Every purchase brings you closer to special travel surprises from us',
                       style: TextStyle(
                         color: Colors.grey.shade400,
                         fontSize: 12,
                         fontWeight: FontWeight.w400,
                       ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
@@ -375,9 +389,9 @@ class _MegaJackpotDialogState extends State<MegaJackpotDialog>
     );
   }
 
-  Widget _buildAmountText(double amount) {
+  Widget _buildParticipantText(int count) {
     return Text(
-      '€${amount.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}',
+      '$count People',
       style: TextStyle(
         color: const Color(0xFFFFD700),
         fontSize: 32,

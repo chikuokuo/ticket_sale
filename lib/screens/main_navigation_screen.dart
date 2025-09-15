@@ -7,6 +7,7 @@ import '../screens/train_ticket_screen.dart';
 import '../screens/treasure_hunt_screen.dart';
 import '../theme/colors.dart';
 import '../widgets/jackpot_floating_button.dart';
+import '../providers/ticket_order_provider.dart';
 
 class MainNavigationScreen extends ConsumerStatefulWidget {
   final int initialTabIndex;
@@ -41,6 +42,12 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Calculate total participant count from all ticket providers
+    final neuschwansteinOrder = ref.watch(ticketOrderProvider(TicketType.neuschwanstein));
+    final museumOrder = ref.watch(ticketOrderProvider(TicketType.museum));
+
+    final totalParticipants = neuschwansteinOrder.attendees.length + museumOrder.attendees.length;
+
     return Scaffold(
       body: Stack(
         children: [
@@ -50,8 +57,8 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
           ),
           // Jackpot floating button - 在寶藏獵人頁面不顯示
           if (_selectedIndex != 3) // 3 是 TreasureHuntScreen 的索引
-            const JackpotFloatingButton(
-              amount: 9.0,
+            JackpotFloatingButton(
+              participantCount: totalParticipants,
               // Uses default onTap behavior to show MegaJackpotDialog
             ),
         ],

@@ -3,12 +3,12 @@ import 'dart:math' as math;
 import 'mega_jackpot_dialog.dart';
 
 class JackpotFloatingButton extends StatefulWidget {
-  final double amount;
+  final int participantCount;
   final VoidCallback? onTap;
 
   const JackpotFloatingButton({
     super.key,
-    this.amount = 9.0,
+    this.participantCount = 0,
     this.onTap,
   });
 
@@ -154,7 +154,7 @@ class _JackpotFloatingButtonState extends State<JackpotFloatingButton>
                 barrierDismissible: true,
                 barrierColor: Colors.black.withOpacity(0.7),
                 builder: (context) => MegaJackpotDialog(
-                  jackpotAmount: widget.amount * 1000000, // Convert M to actual amount
+                  participantCount: widget.participantCount,
                 ),
               );
             }
@@ -241,7 +241,7 @@ class _JackpotFloatingButtonState extends State<JackpotFloatingButton>
                       children: [
                         // JACKPOT text
                         Text(
-                          'JACKPOT',
+                          'Join Us',
                           style: TextStyle(
                             color: const Color(0xFFFFD700),
                             fontSize: 10,
@@ -268,7 +268,7 @@ class _JackpotFloatingButtonState extends State<JackpotFloatingButton>
                                   child: Opacity(
                                     opacity: 1.0 - _bounceAnimation.value,
                                     child: Text(
-                                      '€${widget.amount.toStringAsFixed(1)}M',
+                                      '${widget.participantCount} People',
                                       style: TextStyle(
                                         color: const Color(0xFFFFD700),
                                         fontSize: 16,
@@ -294,7 +294,7 @@ class _JackpotFloatingButtonState extends State<JackpotFloatingButton>
                                   child: Opacity(
                                     opacity: _bounceAnimation.value,
                                     child: Text(
-                                      '€${(widget.amount + 0.1).toStringAsFixed(1)}M',
+                                      '${widget.participantCount + 1} People',
                                       style: TextStyle(
                                         color: const Color(0xFFFFD700),
                                         fontSize: 16,
