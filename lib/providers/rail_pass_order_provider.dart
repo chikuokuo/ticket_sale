@@ -151,7 +151,10 @@ class RailPassOrderNotifier extends StateNotifier<RailPassOrderState> {
     final webhookService = WebhookService();
 
     final attendees = [
-      {'name': '${state.firstNameController.text} ${state.lastNameController.text}'}
+      {
+        'name': '${state.firstNameController.text} ${state.lastNameController.text}',
+        'price': state.selectedPricing?.individualPrice ?? 0.0,
+      }
     ];
 
     await webhookService.sendRailPassOrder(

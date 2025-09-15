@@ -24,7 +24,7 @@ class WebhookService {
     required int children,
     required double totalAmount,
     required String bankAccountLast5,
-    required List<Map<String, String>> attendees,
+    required List<Map<String, dynamic>> attendees,
   }) async {
     final data = {
       'customerEmail': customerEmail,
@@ -53,7 +53,7 @@ class WebhookService {
     required String ticketId,
     required String tourName,
     required DateTime orderDate,
-    required List<Map<String, String>> attendees,
+    required List<Map<String, dynamic>> attendees,
   }) async {
     final data = {
       'customerEmail': customerEmail,
@@ -71,7 +71,7 @@ class WebhookService {
     required String customerAddress,
     required String ticketName,
     required String days,
-    required List<Map<String, String>> attendees,
+    required List<Map<String, dynamic>> attendees,
     required String bankAccountLast5,
   }) async {
     final data = {

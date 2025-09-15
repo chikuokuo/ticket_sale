@@ -160,10 +160,11 @@ class BundleOrderNotifier extends StateNotifier<BundleOrderState> {
   }
 
   Future<void> _submitToWebhook({String? atmLastFive}) async {
-    final List<Map<String, String>> attendeesData = state.attendees.map((a) {
+    final List<Map<String, dynamic>> attendeesData = state.attendees.map((a) {
       final ticketType = a.type == AttendeeType.adult ? 'Adult' : 'Child';
       final fullName = '${a.givenNameController.text} ${a.familyNameController.text}'.trim();
-      return {'name': fullName, 'ticketType': ticketType};
+      final price = state.selectedBundle?.price ?? 0.0;
+      return {'name': fullName, 'ticketType': ticketType, 'price': price};
     }).toList();
 
     final webhookService = WebhookService();

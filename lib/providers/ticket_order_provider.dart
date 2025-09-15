@@ -236,12 +236,14 @@ class TicketOrderNotifier extends StateNotifier<TicketOrderState> {
     final double totalAmount = getTotalAmount();
 
     // Transform attendees data
-    final List<Map<String, String>> attendeesData = state.attendees.map((a) {
+    final List<Map<String, dynamic>> attendeesData = state.attendees.map((a) {
       final ticketType = a.type == AttendeeType.adult ? 'Adult' : 'Child';
       final fullName = '${a.givenNameController.text} ${a.familyNameController.text}'.trim();
+      final price = a.type == AttendeeType.adult ? _adultTicketPrice : _childTicketPrice;
       return {
         'name': fullName,
         'ticketType': ticketType,
+        'price': price,
       };
     }).toList();
 
@@ -270,12 +272,14 @@ class TicketOrderNotifier extends StateNotifier<TicketOrderState> {
     final double totalAmount = getTotalAmount();
 
     // Transform attendees data
-    final List<Map<String, String>> attendeesData = state.attendees.map((a) {
+    final List<Map<String, dynamic>> attendeesData = state.attendees.map((a) {
       final ticketType = a.type == AttendeeType.adult ? 'Adult' : 'Child';
       final fullName = '${a.givenNameController.text} ${a.familyNameController.text}'.trim();
+      final price = a.type == AttendeeType.adult ? _adultTicketPrice : _childTicketPrice;
       return {
         'name': fullName,
         'ticketType': ticketType,
+        'price': price,
       };
     }).toList();
 
