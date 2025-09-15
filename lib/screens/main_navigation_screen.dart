@@ -54,12 +54,6 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
     final totalParticipants = neuschwansteinOrder.attendees.length + museumOrder.attendees.length;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.appTitle),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
-      ),
       body: Stack(
         children: [
           IndexedStack(
